@@ -1,0 +1,910 @@
+{{ reservas|json_script:"reservas-data" }}
+{{ slots|json_script:"slots-data" }}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Horario de Reservas</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.95;
+        }
+
+        /* Controles superiores */
+        .controls {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .week-navigation {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .week-nav-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .week-nav-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .current-week {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .view-controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .filter-select {
+            padding: 10px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .legend-btn {
+            background: white;
+            border: 2px solid #667eea;
+            color: #667eea;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .legend-btn:hover {
+            background: #f8f9ff;
+        }
+
+        /* Leyenda */
+        .legend {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            display: none;
+        }
+
+        .legend.show {
+            display: block;
+        }
+
+        .legend h3 {
+            margin-bottom: 15px;
+            color: #333;
+            font-size: 1.2rem;
+        }
+
+        .legend-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .legend-color {
+            width: 30px;
+            height: 30px;
+            border-radius: 6px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .legend-label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #555;
+        }
+
+        /* Tabla de horarios */
+        .schedule-wrapper {
+            background: white;
+            border-radius: 16px;
+            padding: 0;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        .schedule-container {
+            overflow-x: auto;
+            overflow-y: auto;
+            max-height: 800px;
+        }
+
+        .schedule-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            min-width: 900px;
+        }
+
+        .schedule-table thead {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background: white;
+        }
+
+        .schedule-table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 15px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 1rem;
+            border-bottom: 3px solid #5568d3;
+        }
+
+        .schedule-table th:first-child {
+            position: sticky;
+            left: 0;
+            z-index: 11;
+            min-width: 100px;
+        }
+
+        .schedule-table tbody tr {
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .schedule-table tbody tr:hover {
+            background: #f8f9ff;
+        }
+
+        .schedule-table td {
+            padding: 8px;
+            border-right: 1px solid #e0e0e0;
+            vertical-align: top;
+            min-height: 80px;
+            position: relative;
+        }
+
+        .schedule-table td:first-child {
+            position: sticky;
+            left: 0;
+            background: #f8f9fa;
+            font-weight: 700;
+            color: #667eea;
+            text-align: center;
+            border-right: 2px solid #e0e0e0;
+            z-index: 9;
+            min-width: 100px;
+        }
+
+        .schedule-table tbody tr:hover td:first-child {
+            background: #e9ecff;
+        }
+
+        .time-cell {
+            font-size: 0.9rem;
+            padding: 15px 10px;
+        }
+
+        /* Reservas en las celdas */
+        .reservation-item {
+            margin-bottom: 6px;
+            padding: 8px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            font-size: 0.8rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .reservation-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            z-index: 5;
+        }
+
+        .reservation-item:last-child {
+            margin-bottom: 0;
+        }
+
+        /* Estados - Colores de fondo */
+        .reservation-item.activa {
+            background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);
+            color: white;
+            border-left: 4px solid #2e7d32;
+        }
+
+        .reservation-item.en-revision {
+            background: linear-gradient(135deg, #ff9800 0%, #ffa726 100%);
+            color: white;
+            border-left: 4px solid #e65100;
+        }
+
+        .reservation-item.cancelada {
+            background: linear-gradient(135deg, #f44336 0%, #ef5350 100%);
+            color: white;
+            border-left: 4px solid #c62828;
+        }
+
+        .reservation-item.finalizada {
+            background: linear-gradient(135deg, #2196f3 0%, #42a5f5 100%);
+            color: white;
+            border-left: 4px solid #1565c0;
+        }
+
+        .reservation-item.bloqueada {
+            background: linear-gradient(135deg, #9c27b0 0%, #ab47bc 100%);
+            color: white;
+            border-left: 4px solid #6a1b9a;
+        }
+
+        .reservation-item.estudiantil {
+            background: linear-gradient(135deg, #00bcd4 0%, #26c6da 100%);
+            color: white;
+            border-left: 4px solid #00838f;
+        }
+
+        .reservation-title {
+            font-weight: 700;
+            font-size: 0.85rem;
+            margin-bottom: 3px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .reservation-info {
+            font-size: 0.75rem;
+            opacity: 0.95;
+            line-height: 1.3;
+        }
+
+        .reservation-badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            background: rgba(255, 255, 255, 0.3);
+            margin-top: 3px;
+        }
+
+        .empty-cell {
+            color: #ccc;
+            text-align: center;
+            padding: 20px 10px;
+            font-size: 0.85rem;
+        }
+
+        /* Modal de detalles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.8rem;
+            cursor: pointer;
+            color: #999;
+            transition: color 0.3s ease;
+        }
+
+        .modal-close:hover {
+            color: #333;
+        }
+
+        .modal-body {
+            display: grid;
+            gap: 15px;
+        }
+
+        .modal-field {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .modal-label {
+            font-size: 0.8rem;
+            color: #888;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .modal-value {
+            font-size: 1.1rem;
+            color: #333;
+            font-weight: 600;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .schedule-container {
+                max-height: 600px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .week-navigation {
+                flex-direction: column;
+            }
+
+            .view-controls {
+                flex-direction: column;
+            }
+
+            .filter-select,
+            .legend-btn {
+                width: 100%;
+            }
+
+            .schedule-table th,
+            .schedule-table td {
+                font-size: 0.85rem;
+                padding: 10px 6px;
+            }
+
+            .reservation-item {
+                font-size: 0.75rem;
+                padding: 6px 8px;
+            }
+
+            .reservation-title {
+                font-size: 0.8rem;
+            }
+
+            .reservation-info {
+                font-size: 0.7rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+
+            .header h1 {
+                font-size: 1.6rem;
+            }
+
+            .modal-content {
+                padding: 20px;
+            }
+        }
+
+        /* Stats rápidas */
+        .quick-stats {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .quick-stat {
+            text-align: center;
+            padding: 15px;
+            border-radius: 8px;
+            background: #f8f9fa;
+        }
+
+        .quick-stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .quick-stat-label {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>{{ laboratorio.nombre }}</h1>
+            <h2>📅 Horario de Reservas</h2>
+            <p>Vista completa de todas las reservas de la semana</p>
+        </div>
+
+        <!-- Estadísticas rápidas -->
+        <div class="quick-stats">
+            <div class="quick-stat">
+                <div class="quick-stat-value" id="totalReservasWeek">0</div>
+                <div class="quick-stat-label">Reservas Esta Semana</div>
+            </div>
+            <div class="quick-stat">
+                <div class="quick-stat-value" id="totalLabs">0</div>
+                <div class="quick-stat-label">Laboratorios</div>
+            </div>
+            <div class="quick-stat">
+                <div class="quick-stat-value" id="totalEstudiantes">0</div>
+                <div class="quick-stat-label">Estudiantes</div>
+            </div>
+        </div>
+
+        <!-- Controles -->
+        <div class="controls">
+            <div class="week-navigation">
+                <button class="week-nav-btn" onclick="previousWeek()">
+                    <span>←</span> Semana Anterior
+                </button>
+                <div class="current-week" id="currentWeek">
+                    Semana del 10 - 14 de Febrero, 2026
+                </div>
+                <button class="week-nav-btn" onclick="nextWeek()">
+                    Semana Siguiente <span>→</span>
+                </button>
+            </div>
+            <div class="view-controls">
+                <select class="filter-select" id="filterLab" onchange="filterSchedule()">
+                    <option value="TODOS">Todos los laboratorios</option>
+                </select>
+                <select class="filter-select" id="filterEstado" onchange="filterSchedule()">
+                    <option value="TODOS">Todos los estados</option>
+                    <option value="ACTIVA">Activas</option>
+                    <option value="EN REVISION">En Revisión</option>
+                    <option value="FINALIZADA">Finalizadas</option>
+                    <option value="CANCELADA">Canceladas</option>
+                    <option value="BLOQUEADA">Bloqueadas</option>
+                    <option value="ESTUDIANTIL">Estudiantiles</option>
+                </select>
+                <button class="legend-btn" onclick="toggleLegend()">
+                    🎨 Leyenda
+                </button>
+            </div>
+        </div>
+
+        <!-- Leyenda -->
+        <div class="legend" id="legend">
+            <h3>Leyenda de Estados</h3>
+            <div class="legend-grid">
+                <div class="legend-item">
+                    <div class="legend-color" style="background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);"></div>
+                    <span class="legend-label">✓ Activa</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: linear-gradient(135deg, #ff9800 0%, #ffa726 100%);"></div>
+                    <span class="legend-label">⏳ En Revisión</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: linear-gradient(135deg, #f44336 0%, #ef5350 100%);"></div>
+                    <span class="legend-label">✕ Cancelada</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: linear-gradient(135deg, #2196f3 0%, #42a5f5 100%);"></div>
+                    <span class="legend-label">✔ Finalizada</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: linear-gradient(135deg, #9c27b0 0%, #ab47bc 100%);"></div>
+                    <span class="legend-label">🔒 Bloqueada</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: linear-gradient(135deg, #00bcd4 0%, #26c6da 100%);"></div>
+                    <span class="legend-label">🎓 Estudiantil</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla de horarios -->
+        <div class="schedule-wrapper">
+            <div class="schedule-container">
+                <table class="schedule-table" id="scheduleTable">
+                    <thead>
+                        <tr>
+                            <th>Hora</th>
+                            <th>Lunes<br><small>10 Feb</small></th>
+                            <th>Martes<br><small>11 Feb</small></th>
+                            <th>Miércoles<br><small>12 Feb</small></th>
+                            <th>Jueves<br><small>13 Feb</small></th>
+                            <th>Viernes<br><small>14 Feb</small></th>
+                        </tr>
+                    </thead>
+                    <tbody id="scheduleBody">
+                        <!-- Se llenará dinámicamente -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de detalles -->
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalTitle">Detalles de la Reserva</h2>
+                <button class="modal-close" onclick="closeModal()">×</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Se llenará dinámicamente -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const reservas = JSON.parse('{{ reservas|escapejs }}');
+        const slotsData = JSON.parse('{{ slots|escapejs }}');
+        const timeSlots = slotsData.map(s => 
+            `${s.hora_inicio}-${s.hora_fin}`
+        );
+
+        const days = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'];
+
+        function getDayIndex(fechaStr) {
+            // fechaStr viene como "2026-02-10"
+            const parts = fechaStr.split('-');
+            
+            const year = parseInt(parts[0]);
+            const month = parseInt(parts[1]) - 1; // JS empieza en 0
+            const day = parseInt(parts[2]);
+
+            const date = new Date(year, month, day); // ← LOCAL TIME (NO UTC)
+            const dayOfWeek = date.getDay(); // 0=Domingo, 1=Lunes...
+
+            if (dayOfWeek === 0 || dayOfWeek === 6) return null;
+
+            return dayOfWeek - 1; // Lunes=0
+        }
+
+
+
+        let filteredReservations = [...reservas];
+
+        // Formatear hora
+        function formatTime(timeString) {
+            return timeString.substring(0, 5);
+        }
+
+        // Obtener clase de estado
+        function getEstadoClass(estado) {
+            return estado.toLowerCase().replace(/ /g, '-');
+        }
+
+        // Renderizar reserva en celda
+        function renderReservation(reserva) {
+            const estadoClass = getEstadoClass(reserva.estado);
+            const tipoIcon = reserva.estacion ? '💻' : '🔬';
+            
+            return `
+                <div class="reservation-item ${estadoClass}" onclick="showDetails(${reserva.id})">
+                    <div class="reservation-title">
+                        ${tipoIcon} ${reserva.laboratorio}
+                    </div>
+                    <div class="reservation-info">
+                        ${reserva.asignatura}<br>
+                        ${reserva.carrera ? reserva.carrera.nombre : ''} - ${reserva.ciclo ? reserva.ciclo.nombre : ''}<br>
+                        👥 ${reserva.estudiantes} est.
+                    </div>
+                    <span class="reservation-badge">${reserva.estado}</span>
+                </div>
+            `;
+        }
+
+        // Renderizar tabla de horarios
+        function renderSchedule(reservations) {
+            const tbody = document.getElementById('scheduleBody');
+            tbody.innerHTML = '';
+
+            // Crear estructura de datos para la tabla
+            const scheduleData = {};
+            
+            timeSlots.forEach(slot => {
+                scheduleData[slot] = {
+                    0: [], // Lunes
+                    1: [], // Martes
+                    2: [], // Miércoles
+                    3: [], // Jueves
+                    4: []  // Viernes
+                };
+            });
+
+            // Llenar con reservas
+            reservations.forEach(reserva => {
+                const slotKey = `${reserva.hora_inicio}-${reserva.hora_fin}`;
+                const dayIndex = getDayIndex(reserva.fecha);
+                
+                if (scheduleData[slotKey] && dayIndex !== undefined) {
+                    scheduleData[slotKey][dayIndex].push(reserva);
+                }
+            });
+
+            // Renderizar filas
+            timeSlots.forEach(slot => {
+                const [inicio, fin] = slot.split('-');
+                const row = document.createElement('tr');
+                
+                // Columna de hora
+                const timeCell = document.createElement('td');
+                timeCell.className = 'time-cell';
+                timeCell.innerHTML = `${formatTime(inicio)}<br>-<br>${formatTime(fin)}`;
+                row.appendChild(timeCell);
+
+                // Columnas de días
+                for (let day = 0; day < 5; day++) {
+                    const cell = document.createElement('td');
+                    const reservasEnCelda = scheduleData[slot][day];
+                    
+                    if (reservasEnCelda.length > 0) {
+                        cell.innerHTML = reservasEnCelda.map(r => renderReservation(r)).join('');
+                    } else {
+                        cell.innerHTML = '<div class="empty-cell">-</div>';
+                    }
+                    
+                    row.appendChild(cell);
+                }
+
+                tbody.appendChild(row);
+            });
+
+            updateStats(reservations);
+        }
+
+        // Actualizar estadísticas
+        function updateStats(reservations) {
+            const labs = new Set(reservations.map(r => r.laboratorio.nombre));
+            const totalEstudiantes = reservations.reduce((sum, r) => sum + r.estudiantes, 0);
+
+            document.getElementById('totalReservasWeek').textContent = reservations.length;
+            document.getElementById('totalLabs').textContent = labs.size;
+            document.getElementById('totalEstudiantes').textContent = totalEstudiantes;
+        }
+
+        // Poblar filtro de laboratorios
+        function populateLabFilter() {
+            const labFilter = document.getElementById('filterLab');
+            const labs = [...new Set(reservas.map(r => r.laboratorio.nombre))].sort();
+            
+            labs.forEach(lab => {
+                const option = document.createElement('option');
+                option.value = lab;
+                option.textContent = lab;
+                labFilter.appendChild(option);
+            });
+        }
+
+        // Filtrar horario
+        function filterSchedule() {
+            const labFilter = document.getElementById('filterLab').value;
+            const estadoFilter = document.getElementById('filterEstado').value;
+
+            let filtered = [...reservas];
+
+            if (labFilter !== 'TODOS') {
+                filtered = filtered.filter(r => r.laboratorio.nombre === labFilter);
+            }
+
+            if (estadoFilter !== 'TODOS') {
+                filtered = filtered.filter(r => r.estado === estadoFilter);
+            }
+
+            filteredReservations = filtered;
+            renderSchedule(filtered);
+        }
+
+        // Toggle leyenda
+        function toggleLegend() {
+            document.getElementById('legend').classList.toggle('show');
+        }
+
+        // Navegación de semanas
+        function previousWeek() {
+            alert('Cargar semana anterior');
+        }
+
+        function nextWeek() {
+            alert('Cargar semana siguiente');
+        }
+
+        // Mostrar detalles en modal
+        function showDetails(id) {
+            const reserva = reservas.find(r => r.id === id);
+            if (!reserva) return;
+
+            const modal = document.getElementById('modal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalBody = document.getElementById('modalBody');
+
+            modalTitle.textContent = reserva.laboratorio.nombre;
+            
+            modalBody.innerHTML = `
+                <div class="modal-field">
+                    <span class="modal-label">Estado</span>
+                    <span class="modal-value">${reserva.estado}</span>
+                </div>
+                <div class="modal-field">
+                    <span class="modal-label">Tipo de Reserva</span>
+                    <span class="modal-value">${reserva.tipo}</span>
+                </div>
+                <div class="modal-field">
+                    <span class="modal-label">Asignatura</span>
+                    <span class="modal-value">${reserva.asignatura}</span>
+                </div>
+                <div class="modal-field">
+                    <span class="modal-label">Carrera</span>
+                    <span class="modal-value">${reserva.carrera ? reserva.carrera.nombre : 'N/A'}</span>
+                </div>
+                <div class="modal-field">
+                    <span class="modal-label">Ciclo y Paralelo</span>
+                    <span class="modal-value">${reserva.ciclo ? reserva.ciclo.nombre : 'N/A'} - Paralelo ${reserva.paralelo ? reserva.paralelo.nombre : 'N/A'}</span>
+                </div>
+                <div class="modal-field">
+                    <span class="modal-label">Grupo</span>
+                    <span class="modal-value">Grupo ${reserva.grupo}</span>
+                </div>
+                <div class="modal-field">
+                    <span class="modal-label">Número de Estudiantes</span>
+                    <span class="modal-value">${reserva.estudiantes} estudiantes</span>
+                </div>
+                <div class="modal-field">
+                    <span class="modal-label">Horario</span>
+                    <span class="modal-value">${formatTime(reserva.slot.hora_inicio)} - ${formatTime(reserva.slot.hora_fin)}</span>
+                </div>
+                <div class="modal-field">
+                    <span class="modal-label">Solicitante</span>
+                    <span class="modal-value">${reserva.usuario.nombre}</span>
+                </div>
+                ${reserva.estacion ? `
+                <div class="modal-field">
+                    <span class="modal-label">Estación</span>
+                    <span class="modal-value">${reserva.estacion.nombre}</span>
+                </div>
+                ` : ''}
+            `;
+
+            modal.classList.add('show');
+        }
+
+        // Cerrar modal
+        function closeModal() {
+            document.getElementById('modal').classList.remove('show');
+        }
+
+        // Cerrar modal al hacer clic fuera
+        document.getElementById('modal').addEventListener('click', (e) => {
+            if (e.target.id === 'modal') {
+                closeModal();
+            }
+        });
+
+        // Inicializar
+        document.addEventListener('DOMContentLoaded', () => {
+            populateLabFilter();
+            renderSchedule(reservas);
+        });
+    </script>
+</body>
+</html>

@@ -44,3 +44,61 @@ def cambiar_estado_reserva(request, reserva_id):
         reserva.save()
 
     return redirect("gestion:listadoreservas", id_lab=reserva.laboratorio.id)
+
+def obtenerhorario(request, id_lab):
+    laboratorio = Laboratorio.objects.get(id=id_lab)
+    reservas = Reserva.objects.filter(laboratorio=laboratorio, estacion__isnull=True)
+    slots = TimeSlot.objects.all().order_by("hora_inicio")
+
+    contexto = {
+        "laboratorio": laboratorio,
+        "reservas":reservas,
+        "slots":slots
+    }
+    return render(request, "horariolaboratorio.html", contexto)
+
+
+def obtenerhorario(request, id_lab):
+    laboratorio = Laboratorio.objects.get(id=id_lab)
+
+    reservas_qs = Reserva.objects.filter(laboratorio=laboratorio,estacion__isnull=True
+    ).select_related(
+        "laboratorio", "slot", "carrera", "ciclo", "paralelo", "usuario"
+    )
+
+    slots_qs = TimeSlot.objects.all().order_by("hora_inicio")
+
+    # Convertir reservas a lista serializable
+    reservas = []
+    for r in reservas_qs:
+        reservas.append({
+            "id": r.id,
+            "laboratorio": r.laboratorio.nombre,
+            "fecha": r.fecha.strftime("%Y-%m-%d"),
+            "hora_inicio": r.slot.hora_inicio.strftime("%H:%M:%S"),
+            "hora_fin": r.slot.hora_fin.strftime("%H:%M:%S"),
+            "estado": r.estado,
+            "asignatura": r.asignatura,
+            "carrera": r.carrera.nombre if r.carrera else "",
+            "ciclo": r.ciclo.nombre if r.ciclo else "",
+            "paralelo": r.paralelo.nombre if r.paralelo else "",
+            "grupo": r.grupo,
+            "estudiantes": r.estudiantes,
+            "tipo": r.tipo,
+            "usuario": r.usuario.get_full_name() or r.usuario.username
+        })
+
+    slots = []
+    for s in slots_qs:
+        slots.append({
+            "hora_inicio": s.hora_inicio.strftime("%H:%M:%S"),
+            "hora_fin": s.hora_fin.strftime("%H:%M:%S"),
+        })
+
+    contexto = {
+        "laboratorio": laboratorio,
+        "reservas": json.dumps(reservas),
+        "slots": json.dumps(slots)
+    }
+
+    return render(request, "horariolaboratorio.html", contexto)

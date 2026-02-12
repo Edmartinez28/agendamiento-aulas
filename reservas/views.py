@@ -40,7 +40,7 @@ def reservaslaboratorios(request, id_lab):
     reservas = Reserva.objects.filter(
         laboratorio=laboratorio,
         fecha__range=[start_of_week, end_of_week],
-        #estado="ACTIVA" # --------------------------------------CONSIDERAR SI MOSTRAMOS SOLO LAS RESERVAS QUE YA ESTAN HECHAS Y APROBADAS O TODAS LAS QUE HAY
+        estado__in=["ACTIVA", "EN REVISION", "ESTUDIANTIL"]
     ).select_related("slot")
 
     reservas_data = [

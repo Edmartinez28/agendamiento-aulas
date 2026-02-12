@@ -43,7 +43,6 @@ class TimeSlot(models.Model):
     TIPO_CHOICES = [
         ("HABIL", "HABIL"),
         ("BLOQUEADA", "BLOQUEADA"),
-        ("ESTUDIANTIL","ESTUDIANTIL"),
     ]
     hora_inicio = models.TimeField()
     hora_fin = models.TimeField()
@@ -82,6 +81,7 @@ class Reserva(models.Model):
         ("CANCELADA", "CANCELADA"),
         ("FINALIZADA", "FINALIZADA"),
         ("BLOQUEADA", "BLOQUEADA"),
+        ("ESTUDIANTIL", "ESTUDIANTIL"),
     ]
 
     TIPO_CHOICES = [
@@ -94,7 +94,7 @@ class Reserva(models.Model):
     estacion = models.ForeignKey(Estacion, on_delete=models.CASCADE, null=True, blank=True) # Encaso de que la estacion este vacia se valida que se reserva el laboratorio completo
     fecha = models.DateField()
     slot = models.ForeignKey(TimeSlot, on_delete=models.CASCADE)
-    estado = models.CharField(max_length=20, choices=ESTADOS_CHOICES, default="ACTIVA")
+    estado = models.CharField(max_length=20, choices=ESTADOS_CHOICES, default="EN REVISION")
     fecha_creacion = models.DateTimeField(auto_now_add=True)
 
     carrera = models.ForeignKey(Carrera, on_delete=models.CASCADE, null=True, blank=True)
@@ -116,7 +116,7 @@ class Reserva(models.Model):
         reservas_conflicto = Reserva.objects.filter(
             fecha=self.fecha,
             slot=self.slot,
-            estado="ACTIVA"
+            estado__in=["ACTIVA", "EN REVISION"]
         ).exclude(pk=self.pk)
 
         # CASO 1 — reserva del laboratorio completo
@@ -133,7 +133,6 @@ class Reserva(models.Model):
 
         # CASO 2 — reserva de estación
         else:
-
             conflicto = reservas_conflicto.filter(
                 Q(laboratorio=self.laboratorio, estacion__isnull=True)
                 |
@@ -146,8 +145,13 @@ class Reserva(models.Model):
                 )
 
     def save(self, *args, **kwargs):
+        if self.estacion is not None:
+            self.estado = "ESTUDIANTIL" 
         self.full_clean()
         super().save(*args, **kwargs)
+    
+    def __str__(self):
+        return f"{self.laboratorio.nombre} - {self.fecha} - {self.slot.hora_inicio}-{self.slot.hora_fin} - {self.estado}"
 
 class Programa(models.Model):
     nombre = models.CharField(max_length=100)

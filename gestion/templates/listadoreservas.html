@@ -1,0 +1,806 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Reservas</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #4C758A 0%, #F2F2F2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.95;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            background: #696969;
+            color: white;
+        }
+
+        .stat-info h3 {
+            font-size: 0.85rem;
+            color: #888;
+            font-weight: 500;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .stat-info p {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .section {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            margin-bottom: 30px;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .section-title h2 {
+            font-size: 1.6rem;
+            color: #333;
+            font-weight: 700;
+        }
+
+        .section-icon {
+            font-size: 1.8rem;
+        }
+
+        .section-count {
+            background: #4C758A;
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .filter-bar {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-select {
+            padding: 10px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .reservations-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .reservation-card {
+            border: 2px solid #f0f0f0;
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            background: #fafafa;
+        }
+
+        .reservation-card:hover {
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.1);
+        }
+
+        .reservation-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .reservation-info {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .reservation-name {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .reservation-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .reservation-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+        }
+
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .detail-label {
+            font-size: 0.8rem;
+            color: #888;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .detail-value {
+            font-size: 1rem;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .reservation-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .reservation-actions form {
+            display: flex;
+            align-items: center;
+            gap: 10px; /* espacio entre select y botón */
+        }
+
+        .status-select {
+            padding: 10px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 160px;
+            background: white;
+        }
+
+        .status-select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .status-select.en-revision {
+            border-color: #ff9800;
+        }
+
+        .status-select.activa {
+            border-color: #4caf50;
+        }
+
+        .status-select.bloqueada {
+            border-color: #f44336;
+        }
+
+        .status-select.cancelada {
+            border-color: #9e9e9e;
+        }
+
+        .status-select.finalizada {
+            border-color: #819aff;
+        }
+
+        .btn-save {
+            padding: 10px 25px;
+            background:#4C758A;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        .btn-save:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-save:active {
+            transform: translateY(0);
+        }
+
+        .btn-save:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        .status-badge {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-badge.en-revision {
+            background: #fff3e0;
+            color: #ff9800;
+        }
+
+        .status-badge.activa {
+            background: #e8f5e9;
+            color: #4caf50;
+        }
+
+        .status-badge.bloqueada {
+            background: #ffebee;
+            color: #f44336;
+        }
+
+        .status-badge.cancelada {
+            background: #f5f5f5;
+            color: #9e9e9e;
+        }
+
+        .status-badge.finalizada {
+            background: #d7dffd;
+            color: #819aff;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        .empty-state h3 {
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            color: #666;
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 18px 25px;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            display: none;
+            align-items: center;
+            gap: 12px;
+            z-index: 1000;
+            animation: slideInRight 0.3s ease;
+        }
+
+        .toast.show {
+            display: flex;
+        }
+
+        .toast.success {
+            border-left: 4px solid #4caf50;
+        }
+
+        .toast.error {
+            border-left: 4px solid #f44336;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 968px) {
+            .reservation-header {
+                flex-direction: column;
+            }
+
+            .reservation-actions {
+                width: 100%;
+            }
+
+            .status-select {
+                flex: 1;
+            }
+
+            .btn-save {
+                flex: 1;
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .section {
+                padding: 20px;
+            }
+
+            .section-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .reservation-details {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+
+            .header h1 {
+                font-size: 1.6rem;
+            }
+
+            .section {
+                padding: 15px;
+            }
+
+            .reservation-card {
+                padding: 15px;
+            }
+
+            .reservation-name {
+                font-size: 1.1rem;
+            }
+        }
+
+        .btn-horario {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+
+            padding: 8px 16px;
+            border-radius: 8px;
+
+            background: linear-gradient(135deg, #4f46e5, #6366f1);
+            color: #ffffff;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 20px;
+
+            transition: all 0.25s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+            margin-bottom: 10px;
+        }
+
+        .btn-horario:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-horario:active {
+            transform: scale(0.98);
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>{{ laboratorio.nombre}}</h1>
+            <h2>📋 Gestión de Reservas</h2>
+            <p>Administra y actualiza el estado de todas las reservas</p>
+        </div>
+
+        <!-- Estadísticas -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">📊</div>
+                <div class="stat-info">
+                    <h3>Total Reservas</h3>
+                    <p id="totalReservas">{{ total }}</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">⏳</div>
+                <div class="stat-info">
+                    <h3>Pendientes</h3>
+                    <p id="totalPendientes">{{ pendientes }}</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">✅</div>
+                <div class="stat-info">
+                    <h3>Aprobadas</h3>
+                    <p id="totalAprobadas">{{ aprobadas }}</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">❌</div>
+                <div class="stat-info">
+                    <h3>Rechazadas</h3>
+                    <p id="totalRechazadas">{{ rechazadas }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div style="align-items: center; text-align: center;">
+            <a href="" class="btn-horario">📅 Ver en Horario</a>
+        </div>
+
+        <!-- Sección: Reservas de Laboratorios -->
+        <div class="section">
+            <div class="section-header">
+                <div class="section-title">
+                    <span class="section-icon">🔬</span>
+                    <h2>Reservas del Laboratorio {{ laboratorio.nombre}}</h2>
+                </div>
+                <span class="section-count" id="labCount">0 reservas</span>
+            </div>
+
+            <div class="filter-bar">
+                <select class="filter-select" id="labFilter" onchange="filterReservations('laboratorio')">
+                    <option value="TODAS">Todas las reservas</option>
+                    <option value="ACTIVA">Activa</option>
+                    <option value="EN REVISION">En revision</option>
+                    <option value="CANCELADA">Cancelada</option>
+                    <option value="FINALIZADA">Finalizada</option>
+                    <option value="BLOQUEADA">Bloqueada</option>
+                </select>
+            </div>
+
+            <div class="reservations-list" id="laboratoriosList">
+            {% if reservaslaboratorio %}
+                {% for reserva in reservaslaboratorio %}
+                <div class="reservation-card" data-estado="{{ reserva.estado }}">
+
+                    <div class="reservation-header">
+                        <div class="reservation-info">
+                            <div class="reservation-name">
+                                🔬 {{ reserva.carrera.nombre }} - {{ reserva.ciclo.nombre }} {{ reserva.paralelo.nombre }}
+                            </div>
+
+                            <div class="reservation-meta">
+                                <span class="meta-item">
+                                    👤 <strong>Solicita:</strong> {{ reserva.usuario.get_full_name }}        
+                                </span>
+                                <span class="meta-item">
+                                    📅 <strong>Fecha Solicitud:</strong>{{ reserva.fecha_creacion|date:"d/m/Y H:i" }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <span class="status-badge {{ reserva.estado|slugify }}">
+                            {{ reserva.estado }}
+                        </span>
+                    </div>
+
+                    <div class="reservation-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Asignatura</span>
+                            <span class="detail-value">
+                                📚 {{ reserva.asignatura }}
+                            </span>
+                        </div>
+
+                        <div class="detail-item">
+                            <span class="detail-label">Fecha</span>
+                            <span class="detail-value">
+                                📅 {{ reserva.fecha|date:"Y/m/d" }}
+                            </span>
+                        </div>
+
+                        <div class="detail-item">
+                            <span class="detail-label">Horario</span>
+                            <span class="detail-value">
+                                🕒 {{ reserva.slot.hora_inicio }} - {{ reserva.slot.hora_fin }}
+                            </span>
+                        </div>
+
+                        <div class="detail-item">
+                            <span class="detail-label">Grupo</span>
+                            <span class="detail-value">
+                                Grupo {{ reserva.grupo }}
+                            </span>
+                        </div>
+
+                        <div class="detail-item">
+                            <span class="detail-label">Estudiantes</span>
+                            <span class="detail-value">
+                                👥 {{ reserva.estudiantes }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="reservation-actions">
+                        <form method="post" action="{% url 'gestion:cambiar_estado_reserva' reserva.id %}">
+                            {% csrf_token %}
+                            <select name="estado" class="status-select {{ reserva.estado|slugify }}">
+                                {% for key, value in reserva.ESTADOS_CHOICES %}
+                                    <option value="{{ key }}"
+                                        {% if reserva.estado == key %}selected{% endif %}>
+                                        {{ value }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            <button type="submit" class="btn-save">
+                                💾 Guardar Cambio
+                            </button>
+                        </form>
+                    </div>
+
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <h3>No hay reservas de laboratorio</h3>
+                </div>
+            {% endif %}
+            </div>
+
+        </div>
+
+        <!-- Sección: Reservas de Estaciones -->
+        <div class="section">
+            <div class="section-header">
+                <div class="section-title">
+                    <span class="section-icon">💻</span>
+                    <h2>Reservas de Estaciones {{ laboratorio.nombre}}</h2>
+                </div>
+                <span class="section-count" id="estacionCount">0 reservas</span>
+            </div>
+
+            <div class="filter-bar">
+                <select class="filter-select" id="estacionFilter" onchange="filterReservations('estacion')">
+                    <option value="TODAS">Todas las reservas</option>
+                    <option value="ACTIVA">Activa</option>
+                    <option value="EN REVISION">En revision</option>
+                    <option value="CANCELADA">Cancelada</option>
+                    <option value="FINALIZADA">Finalizada</option>
+                    <option value="BLOQUEADA">Bloqueada</option>
+                </select>
+            </div>
+
+            <div class="reservations-list" id="estacionesList">
+                {% if reservasestaciones%}
+                    {% for reserva in reservasestaciones %}
+                    <div class="reservation-card" data-estado="{{ reserva.estado }}">
+
+                        <div class="reservation-header">
+                            <div class="reservation-info">
+                                <div class="reservation-name">
+                                    🔬 {{ reserva.carrera.nombre }} - {{ reserva.ciclo.nombre }} {{ reserva.paralelo.nombre }} <br>
+                                    🖥️ {{ reserva.estacion.codigo}}
+                                </div>
+
+                                <div class="reservation-meta">
+                                    <span class="meta-item">
+                                        👤 <strong>Solicita:</strong> {{ reserva.usuario.get_full_name }}        
+                                    </span>
+                                    <span class="meta-item">
+                                        📅 <strong>Fecha Solicitud:</strong>{{ reserva.fecha_creacion|date:"d/m/Y H:i" }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <span class="status-badge {{ reserva.estado|slugify }}">
+                                {{ reserva.estado }}
+                            </span>
+                        </div>
+
+                        <div class="reservation-details">
+                            <div class="detail-item">
+                                <span class="detail-label">Asignatura</span>
+                                <span class="detail-value">
+                                    📚 {{ reserva.asignatura }}
+                                </span>
+                            </div>
+
+                            <div class="detail-item">
+                                <span class="detail-label">Fecha</span>
+                                <span class="detail-value">
+                                    📅 {{ reserva.fecha|date:"Y/m/d" }}
+                                </span>
+                            </div>
+
+                            <div class="detail-item">
+                                <span class="detail-label">Horario</span>
+                                <span class="detail-value">
+                                    🕒 {{ reserva.slot.hora_inicio }} - {{ reserva.slot.hora_fin }}
+                                </span>
+                            </div>
+
+                            <div class="detail-item">
+                                <span class="detail-label">Grupo</span>
+                                <span class="detail-value">
+                                    Grupo {{ reserva.grupo }}
+                                </span>
+                            </div>
+
+                            <div class="detail-item">
+                                <span class="detail-label">Estudiantes</span>
+                                <span class="detail-value">
+                                    👥 {{ reserva.estudiantes }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="reservation-actions">
+                            <form method="post" action="{% url 'gestion:cambiar_estado_reserva' reserva.id %}">
+                                {% csrf_token %}
+                                <select name="estado" class="status-select {{ reserva.estado|slugify }}">
+                                    {% for key, value in reserva.ESTADOS_CHOICES %}
+                                        <option value="{{ key }}"
+                                            {% if reserva.estado == key %}selected{% endif %}>
+                                            {{ value }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                <button type="submit" class="btn-save">
+                                    💾 Guardar Cambio
+                                </button>
+                            </form>
+                        </div>
+
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">
+                        <h3>No hay reservas de estaciones</h3>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast de notificaciones -->
+    <div id="toast" class="toast">
+        <span id="toastIcon">✓</span>
+        <span id="toastMessage"></span>
+    </div>
+
+    <script>
+        function filterReservations(tipo) {
+
+            const selectId = tipo === 'laboratorio' ? 'labFilter' : 'estacionFilter';
+            const listId   = tipo === 'laboratorio' ? 'laboratoriosList' : 'estacionesList';
+
+            const filtro = document.getElementById(selectId).value;
+            const cards  = document.querySelectorAll(`#${listId} .reservation-card`);
+
+            cards.forEach(card => {
+                const estado = card.getAttribute("data-estado");
+
+                if (filtro === "TODAS" || estado === filtro) {
+                    card.style.display = "block";
+                } else {
+                    card.style.display = "none";
+                }
+            });
+        }
+    </script>
+
+</body>
+</html>

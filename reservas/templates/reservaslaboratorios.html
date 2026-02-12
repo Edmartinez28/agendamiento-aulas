@@ -1,1 +1,875 @@
-<h1>HOLA MUNDO</h1>
+{% load static %}
+{{ slots|json_script:"slots-data" }}
+{{ reservas_json|json_script:"reservas-data" }}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Reserva de Laboratorio</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #4C758A 0%, #F2F2F2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            margin-bottom: 30px;
+        }
+
+        .form-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        .form-group input,
+        .form-group select {
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #4C758A;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .schedule-section {
+            margin-top: 30px;
+        }
+
+        .schedule-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+
+        .schedule-container {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .schedule-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 600px;
+        }
+
+        .schedule-table th {
+            background: #4C758A;
+            color: white;
+            padding: 15px 10px;
+            text-align: center;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .schedule-table th:first-child {
+            border-top-left-radius: 8px;
+        }
+
+        .schedule-table th:last-child {
+            border-top-right-radius: 8px;
+        }
+
+        .schedule-table td {
+            padding: 12px 8px;
+            text-align: center;
+            border: 1px solid #e0e0e0;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: white;
+        }
+
+        .schedule-table td:hover {
+            background: #f5f5f5;
+        }
+
+        .schedule-table td.selected {
+            background: #4C758A;
+            color: white;
+            font-weight: 600;
+        }
+
+        .schedule-table td.occupied {
+            background: #ffebee;
+            color: #c62828;
+            cursor: not-allowed;
+        }
+
+        .schedule-table td.occupied:hover {
+            background: #ffebee;
+        }
+
+        .schedule-table td.bloqued {
+            background: rgb(230, 230, 230);
+            color: #7d7d7d;
+            cursor: not-allowed;
+        }
+
+        .schedule-table td.bloqued:hover { 
+            background: rgb(230, 230, 230);
+        }
+
+        .time-column {
+            font-weight: 600;
+            color:#4C758A;
+            background: #f5f7ff !important;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 14px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .btn-primary {
+            background:#4C758A;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .alert {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .alert.success {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border-left: 4px solid #4caf50;
+        }
+
+        .alert.error {
+            background: #ffebee;
+            color: #c62828;
+            border-left: 4px solid #f44336;
+        }
+
+        .alert.show {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .legend {
+            display: flex;
+            gap: 20px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+            font-size: 0.9rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend-box {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+
+        .legend-box.available {
+            background: white;
+            border: 2px solid #e0e0e0;
+        }
+
+        .legend-box.selected {
+            background:#4C758A;
+        }
+
+        .legend-box.occupied {
+            background: #ffebee;
+            border: 2px solid #c62828;
+        }
+
+        .legend-box.bloqued {
+            background: rgb(230, 230, 230);
+            border: 2px solid #7d7d7d;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.5rem;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+            .schedule-table th,
+            .schedule-table td {
+                padding: 10px 5px;
+                font-size: 0.85rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+
+            .header h1 {
+                font-size: 1.3rem;
+            }
+
+            .card {
+                padding: 15px;
+            }
+
+            .schedule-table {
+                min-width: 500px;
+            }
+        }
+
+        .ficha-tecnica {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 12px;
+            margin-top: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+
+        .ficha-tecnica h2 {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .ficha-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .ficha-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 5px solid #007bff;
+        }
+
+        .estado.activo {
+            color: green;
+            font-weight: bold;
+        }
+
+        .estado.inactivo {
+            color: red;
+            font-weight: bold;
+        }
+
+        .week-navigation {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 25px;
+            margin-bottom: 25px;
+            padding: 12px 20px;
+            background: #f8f9fb;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .week-label {
+            font-size: 16px;
+            font-weight: 600;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .week-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background:#4C758A;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+        .week-btn i {
+            font-size: 14px;
+        }
+
+        .week-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 14px rgba(37, 99, 235, 0.3);
+        }
+
+        .week-btn:active {
+            transform: translateY(0);
+        }
+
+    </style>
+</head>
+<body>
+    {% csrf_token %}
+    <div class="container">
+        <div class="header">
+            <h1>🔬 Sistema de Reserva de {{laboratorio.nombre}}</h1>
+            <p>Gestiona tus reservas de forma fácil y rápida</p>
+        </div>
+
+        <div style="text-align:center; margin-bottom:20px;">
+            {% if laboratorio.imagen %}
+                <img src="{{ laboratorio.imagen.url }}" 
+                    alt="Imagen del laboratorio"
+                    style="max-width: 100%; height: 300px; object-fit: cover; border-radius: 10px;">
+            {% else %}
+                <p>No hay imagen disponible</p>
+            {% endif %}
+        </div>
+
+        <div class="ficha-tecnica" style="text-align:center; margin-bottom:20px;">
+            <h2>Ficha Técnica del Laboratorio</h2>
+            
+            <div class="ficha-grid">
+                <div class="ficha-item">
+                    <strong>Nombre:</strong>
+                    <span>{{ laboratorio.nombre }}</span>
+                </div>
+
+                <div class="ficha-item">
+                    <strong>Ubicación:</strong>
+                    <span>
+                        {% if laboratorio.ubicacion %}
+                            {{ laboratorio.ubicacion }}
+                        {% else %}
+                            No especificada
+                        {% endif %}
+                    </span>
+                </div>
+
+                <div class="ficha-item">
+                    <strong>Responsable:</strong>
+                    <span>{{ laboratorio.responsable }}</span>
+                </div>
+
+                <div class="ficha-item">
+                    <strong>Capacidad:</strong>
+                    <span>{{ laboratorio.capacidad }} estudiantes</span>
+                </div>
+
+                <div class="ficha-item">
+                    <strong>Estado:</strong>
+                    <span class="estado {{ laboratorio.estado|lower }}">
+                        {{ laboratorio.estado }}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="card">
+            <div class="form-section">
+                <h2>Información de la Reserva</h2>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="carrera">Carrera *</label>
+                        <select id="carrera" name="carrera" required>
+                            <option value="">Seleccione su carrera</option>
+                            {% for carrera in carreras %}
+                                <option value="{{ carrera.id }}">{{ carrera.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="ciclo">Ciclo *</label>
+                        <select id="ciclo" name="ciclo" required>
+                            <option value="">Seleccione su ciclo</option>
+                            {% for ciclo in ciclos %}
+                                <option value="{{ ciclo.id }}">{{ ciclo.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="paralelo">Paralelo *</label>
+                        <select id="paralelo" name="paralelo" required>
+                            <option value="">Seleccionar paralelo</option>
+                            {% for paralelo in paralelos %}
+                                <option value="{{ paralelo.id }}">{{ paralelo.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="asignatura">Asignatura *</label>
+                        <input type="text" id="asignatura" placeholder="Ej: Química Orgánica" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="grupo">Grupo *</label>
+                        <select id="grupo" name="grupo" required>
+                            <option value="">Indique el grupo</option>
+                            <option value="1">Grupo 1</option>
+                            <option value="2">Grupo 2</option>
+                            <option value="3">Grupo 3</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="numEstudiantes">N° de Alumnos * (Max. {{laboratorio.capacidad}} estudiantes)</label>
+                        <input type="number" id="numEstudiantes" min="1" max="{{laboratorio.capacidad}}" placeholder="Ej: 12" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="tipo">Tipo de Clase *</label>
+                        <select id="tipo" name="tipo" required>
+                            <option value="">Indique el tipo de clase</option>
+                            <option value="INDUCCION DOCENTE">Inducción Docente</option>
+                            <option value="INDUCCION ESTUDIANTIL">Inducción Estudiantil</option>
+                            <option value="CLASES NORMALES">Clases Normales</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group confirmacion-box" id="confirmacionContainer" style="display:none;">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="confirmacionCheck" name="confirmacion">
+                            <span>
+                                Confirmo que entiendo que se requiere capacitación previa para usar el aula y,
+                                en caso de necesitarla generaré una reserva de inducción o contactaré con la
+                                jefatura (<strong>innovacion@ucacue.edu.ec</strong>).
+                            </span>
+                        </label>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="schedule-section">
+                <h2>Selecciona el Horario</h2>
+                <p style="color: #666; margin-bottom: 15px;">Haz clic en las celdas para seleccionar el horario deseado</p>
+                
+                <div class="legend" style="margin-bottom: 7px;">
+                    <div class="legend-item">
+                        <div class="legend-box available"></div>
+                        <span>Disponible</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-box selected"></div>
+                        <span>Seleccionado</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-box occupied"></div>
+                        <span>Ocupado</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-box bloqued"></div> 
+                        <span>Bloqueado</span>
+                    </div>
+                </div>
+
+                <div class="schedule-container">
+                    <div class="week-navigation">
+                        <button class="week-btn" onclick="changeWeek(-1)">
+                            <i class="fa-solid fa-chevron-left"></i>
+                            <span>Semana Anterior</span>
+                        </button>
+
+                        <div class="week-label">
+                            <i class="fa-regular fa-calendar"></i>
+                            <span id="weekLabel">
+                                {{ start_of_week }} - {{ end_of_week }}
+                            </span>
+                        </div>
+
+                        <button class="week-btn" onclick="changeWeek(1)">
+                            <span>Semana Siguiente</span>
+                            <i class="fa-solid fa-chevron-right"></i>
+                        </button>
+                    </div>
+
+                    <table class="schedule-table" id="scheduleTable">
+                        <thead>
+                            <tr>
+                                <th>Hora</th>
+                                <th>Lunes</th>
+                                <th>Martes</th>
+                                <th>Miércoles</th>
+                                <th>Jueves</th>
+                                <th>Viernes</th>
+                            </tr>
+                        </thead>
+                        <tbody id="scheduleBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="submitReservation()">
+                    ✓ Confirmar Reserva
+                </button>
+                <button class="btn btn-secondary" onclick="clearForm()">
+                    ↺ Limpiar Formulario
+                </button>
+            </div>
+
+            <div id="alert" class="alert"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentWeekOffset = 0;
+
+        function getWeekDates(startDateStr) {
+            const [year, month, day] = startDateStr.split('-').map(Number);
+            const startDate = new Date(year, month - 1, day);
+
+            const days = [];
+
+            for (let i = 0; i < 5; i++) {
+                const d = new Date(startDate);
+                d.setDate(startDate.getDate() + i);
+
+                const yyyy = d.getFullYear();
+                const mm = String(d.getMonth() + 1).padStart(2, '0');
+                const dd = String(d.getDate()).padStart(2, '0');
+
+                days.push({
+                    label: d.toLocaleDateString('es-ES', { weekday: 'long' }),
+                    date: `${yyyy}-${mm}-${dd}`
+                });
+            }
+
+            return days;
+        }
+    </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            const tipoSelect = document.getElementById("tipo");
+            const container = document.getElementById("confirmacionContainer");
+            const checkbox = document.getElementById("confirmacionCheck");
+
+            function validarTipo() {
+                if (tipoSelect.value === "CLASES NORMALES") {
+                    container.style.display = "block";
+                    checkbox.required = true;
+                } else {
+                    container.style.display = "none";
+                    checkbox.required = false;
+                    checkbox.checked = false;
+                }
+            }
+
+            tipoSelect.addEventListener("change", validarTipo);
+        });
+    </script>
+
+
+
+    <script>
+        const initialReservas = JSON.parse(
+            document.getElementById('reservas-data').textContent
+        );
+        const weekStart = "{{ start_of_week|date:'Y-m-d' }}";
+    </script>
+
+    <script>
+        // Horarios del laboratorio (7:00 AM a 9:00 PM)
+        const hours = JSON.parse(document.getElementById('slots-data').textContent);
+        const days = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'];
+        let selectedSlots = [];
+        let occupiedSlots = [];
+        let weekDays = [];
+
+        // Inicializar la tabla de horarios
+        function initSchedule(reservas = initialReservas, startDate = weekStart) {
+            const tbody = document.getElementById('scheduleBody');
+            tbody.innerHTML = '';
+
+            weekDays = getWeekDates(startDate);
+
+            occupiedSlots = reservas.map(r => `${r.fecha}-${r.slot_id}`);
+
+            hours.forEach(hourObj => {
+                const row = document.createElement('tr');
+
+                const timeCell = document.createElement('td');
+                timeCell.className = 'time-column';
+                timeCell.textContent = hourObj.label;
+                row.appendChild(timeCell);
+
+                weekDays.forEach(day => {
+                    const cell = document.createElement('td');
+                    const slotKey = `${day.date}-${hourObj.id}`;
+
+                    if (occupiedSlots.includes(slotKey)) {
+                        cell.className = 'occupied';
+                        cell.innerHTML = '✕';
+                    } else if (hourObj.tipo === "BLOQUEADA"){
+                        cell.className = 'bloqued';
+                        cell.innerHTML = '-';
+                    } else {
+                        cell.innerHTML = '○';
+                        cell.addEventListener('click', () => toggleSlot(slotKey, cell));
+                    }
+
+                    row.appendChild(cell);
+                });
+
+                tbody.appendChild(row);
+            });
+        }
+
+        // Alternar selección de horario
+        function toggleSlot(slotId, cell) {
+            if (occupiedSlots.includes(slotId)) return;
+
+            const index = selectedSlots.indexOf(slotId);
+            
+            if (index > -1) {
+                selectedSlots.splice(index, 1);
+                cell.classList.remove('selected');
+                cell.innerHTML = '○';
+            } else {
+                selectedSlots.push(slotId);
+                cell.classList.add('selected');
+                cell.innerHTML = '✓';
+            }
+        }
+
+        // Validar formulario
+        function validateForm() {
+            const asignatura = document.getElementById('asignatura').value.trim();
+            const carrera = document.getElementById('carrera').value;
+            const ciclo = document.getElementById('ciclo').value;
+            const paralelo = document.getElementById('paralelo').value;
+            const grupo = document.getElementById('grupo').value.trim();
+            const numEstudiantes = document.getElementById('numEstudiantes').value;
+            const tipo = document.getElementById('tipo').value;
+            const confirmacion = document.getElementById('confirmacionCheck').checked;
+
+            if (!asignatura || !carrera || !ciclo || !paralelo || !grupo || !numEstudiantes || !tipo) {
+                return 'Por favor, completa todos los campos obligatorios';
+            }
+
+            // ✅ VALIDACIÓN NUEVA
+            if (tipo === "CLASES NORMALES" && !confirmacion) {
+                return 'Debe confirmar que entiende el requisito de capacitación.';
+            }
+
+            if (selectedSlots.length === 0) {
+                return 'Por favor, selecciona al menos un horario';
+            }
+
+            return null;
+        }
+
+
+        function getCSRFToken() {
+            return document.querySelector('[name=csrfmiddlewaretoken]').value;
+        }
+
+        // Enviar reserva
+        function submitReservation() {
+            const error = validateForm();
+
+            if (error) {
+                showAlert(error, 'error');
+                return;
+            }
+
+            const reservationData = {
+                asignatura: document.getElementById('asignatura').value,
+                carrera: document.getElementById('carrera').value,
+                ciclo: document.getElementById('ciclo').value,
+                paralelo: document.getElementById('paralelo').value,
+                grupo: document.getElementById('grupo').value,
+                numEstudiantes: document.getElementById('numEstudiantes').value,
+                tipo: document.getElementById('tipo').value,
+                confirmacion: document.getElementById('confirmacionCheck').checked,
+
+                horarios: selectedSlots
+            };
+
+            fetch(`guardar/`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": getCSRFToken()
+                },
+                body: JSON.stringify(reservationData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert("Reserva guardada correctamente", "success");
+                    changeWeek(0);  // recargar semana actual
+                    selectedSlots = [];
+                } else {
+                    showAlert(data.error, "error");
+                }
+            })
+            .catch(error => {
+                showAlert("Error al guardar la reserva", "error");
+            });
+        }
+
+        function changeWeek(offset) {
+            currentWeekOffset += offset;
+
+            fetch(`?week=${currentWeekOffset}`, {
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest"
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+
+                document.getElementById('weekLabel').textContent =
+                    `${data.start_of_week} - ${data.end_of_week}`;
+
+                initSchedule(data.reservas, data.start_of_week);
+            });
+        }
+
+        // Limpiar formulario
+        function clearForm() {
+            document.getElementById('asignatura').value = '';
+            document.getElementById('carrera').value = '';
+            document.getElementById('ciclo').value = '';
+            document.getElementById('paralelo').value = '';
+            document.getElementById('grupo').value = '';
+            document.getElementById('numEstudiantes').value = '';
+            document.getElementById('tipo').value = '';
+            document.getElementById('confirmacionCheck').checked = false;
+            selectedSlots = [];
+            initSchedule();
+            hideAlert();
+        }
+
+        // Mostrar alerta
+        function showAlert(message, type) {
+            const alert = document.getElementById('alert');
+            alert.textContent = message;
+            alert.className = `alert ${type} show`;
+        }
+
+        // Ocultar alerta
+        function hideAlert() {
+            const alert = document.getElementById('alert');
+            alert.className = 'alert';
+        }
+
+        // Inicializar al cargar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            initSchedule();
+        });
+    </script>
+</body>
+</html>

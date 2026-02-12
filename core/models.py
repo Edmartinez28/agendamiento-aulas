@@ -6,11 +6,19 @@ from django.utils import timezone
 
 
 class Laboratorio(models.Model):
+    ESTADO_CHOICES = [
+        ("ACTIVO", "ACTIVO"),
+        ("INACTIVO", "INACTIVO"),
+        ("EN MANTENIMIENTO", "EN MANTENIMIENTO"),
+    ]
+
     nombre = models.CharField(max_length=100)
     ubicacion = models.CharField(max_length=150, blank=True, null=True)
-    estado = models.CharField(max_length=20, default="ACTIVO")
+    estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default="ACTIVO")
     responsable = models.CharField(max_length=100)
     capacidad = models.IntegerField(null=False, default=15)
+
+    imagen = models.ImageField(upload_to='laboratorios/', null=True, blank=True)
 
     def __str__(self):
         return self.nombre
@@ -35,6 +43,7 @@ class TimeSlot(models.Model):
     TIPO_CHOICES = [
         ("HABIL", "HABIL"),
         ("BLOQUEADA", "BLOQUEADA"),
+        ("ESTUDIANTIL","ESTUDIANTIL"),
     ]
     hora_inicio = models.TimeField()
     hora_fin = models.TimeField()
@@ -47,14 +56,39 @@ class TimeSlot(models.Model):
     def __str__(self):
         return f"{self.hora_inicio} - {self.hora_fin}"
 
+class Carrera(models.Model):
+    nombre = models.CharField(max_length=100)
+
+    def __str__(self):
+        return f"{self.nombre}"
+
+class Ciclo(models.Model):
+    nombre = models.CharField(max_length=100)
+
+    def __str__(self):
+        return f"{self.nombre}"
+
+class Paralelo(models.Model):
+    nombre = models.CharField(max_length=100)
+
+    def __str__(self):
+        return f"{self.nombre}"
+
 class Reserva(models.Model):
 
     ESTADOS_CHOICES = [
         ("ACTIVA", "ACTIVA"),
+        ("EN REVISION", "EN REVISION"),
         ("CANCELADA", "CANCELADA"),
         ("FINALIZADA", "FINALIZADA"),
+        ("BLOQUEADA", "BLOQUEADA"),
     ]
 
+    TIPO_CHOICES = [
+        ("INDUCCION DOCENTE","INDUCCION DOCENTE"),
+        ("INDUCCION ESTUDIANTIL","INDUCCION ESTUDIANTIL"),
+        ("CLASES NORMALES","CLASES NORMALES"),
+    ]
     usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     laboratorio = models.ForeignKey(Laboratorio, on_delete=models.CASCADE)
     estacion = models.ForeignKey(Estacion, on_delete=models.CASCADE, null=True, blank=True) # Encaso de que la estacion este vacia se valida que se reserva el laboratorio completo
@@ -62,6 +96,15 @@ class Reserva(models.Model):
     slot = models.ForeignKey(TimeSlot, on_delete=models.CASCADE)
     estado = models.CharField(max_length=20, choices=ESTADOS_CHOICES, default="ACTIVA")
     fecha_creacion = models.DateTimeField(auto_now_add=True)
+
+    carrera = models.ForeignKey(Carrera, on_delete=models.CASCADE, null=True, blank=True)
+    ciclo = models.ForeignKey(Ciclo, on_delete=models.CASCADE, null=True, blank=True)
+    paralelo = models.ForeignKey(Paralelo, on_delete=models.CASCADE, null=True, blank=True)
+    asignatura = models.CharField(max_length=200, null=True, blank=True)
+
+    grupo = models.IntegerField(null=False, default=1)
+    estudiantes = models.IntegerField(null=False, default=1)
+    tipo = models.CharField(max_length=30, choices=TIPO_CHOICES, default="CLASES NORMALES")
 
     class Meta:
         indexes = [

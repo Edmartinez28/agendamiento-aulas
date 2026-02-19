@@ -16,6 +16,8 @@ class Laboratorio(models.Model):
     ubicacion = models.CharField(max_length=150, blank=True, null=True)
     estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default="ACTIVO")
     responsable = models.CharField(max_length=100)
+    correo_responsable = models.CharField(max_length=100, default="innovacion@ucacue.edu.ec")
+    numero_responsable = models.CharField(max_length=100, null=True, blank=True)
     capacidad = models.IntegerField(null=False, default=15)
 
     imagen = models.ImageField(upload_to='laboratorios/', null=True, blank=True)
@@ -33,6 +35,7 @@ class Estacion(models.Model):
 
     laboratorio = models.ForeignKey(Laboratorio, on_delete=models.CASCADE, related_name="estaciones")
     codigo = models.CharField(max_length=50)
+    modelo = models.CharField(max_length=50, blank=True, null=True)
     estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default="ACTIVO")
 
     def __str__(self):
@@ -145,8 +148,8 @@ class Reserva(models.Model):
                 )
 
     def save(self, *args, **kwargs):
-        if self.estacion is not None:
-            self.estado = "ESTUDIANTIL" 
+        #if self.estacion is not None:
+        #    self.estado = "ESTUDIANTIL" 
         self.full_clean()
         super().save(*args, **kwargs)
     

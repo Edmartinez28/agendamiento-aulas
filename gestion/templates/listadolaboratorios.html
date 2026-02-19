@@ -428,7 +428,10 @@
                                         📅 Ver Reservas
                                     </a>
                                     <a href="{% url 'reservas:reservaslaboratorios' lab.id %}" class="btn-reserve">
-                                        📅 Reservar Ahora
+                                        📅 Reservar Laboratorio
+                                    </a>
+                                    <a href="{% url 'reservas:reservasestaciones' lab.id %}" class="btn-reserve">
+                                        📅 Reservar Estación
                                     </a>
                                 {% else %}
                                     <button class="btn-reserve" disabled>

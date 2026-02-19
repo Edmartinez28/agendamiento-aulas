@@ -18,8 +18,8 @@ def obtenerlaboratorios(request):
 def listadoreservas(request, id_lab):
     laboratorio = Laboratorio.objects.get(id=id_lab)
 
-    reservas_laboratorio = Reserva.objects.filter(laboratorio=laboratorio, estacion__isnull=True)
-    reservas_estaciones = Reserva.objects.filter(laboratorio=laboratorio, estacion__isnull=False)
+    reservas_laboratorio = Reserva.objects.filter(laboratorio=laboratorio, estacion__isnull=True).order_by('-fecha')
+    reservas_estaciones = Reserva.objects.filter(laboratorio=laboratorio, estacion__isnull=False).order_by('-fecha')
 
     total = reservas_laboratorio.count() + reservas_estaciones.count()
     pendientes = Reserva.objects.filter(laboratorio=laboratorio,estado="EN REVISION").count()

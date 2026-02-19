@@ -13,7 +13,6 @@ from django.contrib.auth.decorators import login_required
 from django.utils.dateparse import parse_date
 from django.db import transaction
 
-# Create your views here.
 
 def reservaslaboratorios(request, id_lab):
     carreras = Carrera.objects.all()
@@ -51,8 +50,6 @@ def reservaslaboratorios(request, id_lab):
         }
         for r in reservas
     ]
-
-    print(reservas_data)
 
     # Si es petición AJAX → solo devolver JSON
     if request.headers.get("x-requested-with") == "XMLHttpRequest":
@@ -123,3 +120,128 @@ def guardar_reserva(request, id_lab):
 
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=400)
+
+
+def reservasestaciones(request, id_lab):
+
+    carreras = Carrera.objects.all()
+    ciclos = Ciclo.objects.all()
+    paralelos = Paralelo.objects.all()
+
+    laboratorio = Laboratorio.objects.get(id=id_lab)
+    slots = list(TimeSlot.objects.all().order_by("hora_inicio").values("id", "hora_inicio", "hora_fin", "tipo"))
+    for s in slots:
+        s["hora_inicio"] = s["hora_inicio"].strftime("%H:%M")
+        s["hora_fin"] = s["hora_fin"].strftime("%H:%M")
+        s["label"] = f"{s['hora_inicio']} - {s['hora_fin']}"
+    
+    # Obtenemos la semana y las reservas ------------------------------
+    week_offset = int(request.GET.get("week", 0))
+    today = timezone.localdate()
+
+    # Obtener lunes de la semana actual
+    start_of_week = today - timedelta(days=today.weekday())
+    start_of_week += timedelta(weeks=week_offset)
+
+    end_of_week = start_of_week + timedelta(days=4)  # lunes a viernes
+
+    habilitadas = Reserva.objects.filter(
+        laboratorio=laboratorio,
+        fecha__range=[start_of_week, end_of_week],
+        estado__in=["ESTUDIANTIL"]
+    ).select_related("slot")
+
+    habilitadas_data = [
+        {
+            "fecha": r.fecha.strftime("%Y-%m-%d"),
+            "slot_id": r.slot.id,
+            "estado":r.estado,
+        }
+        for r in habilitadas
+    ]
+
+    # Si es petición AJAX → solo devolver JSON
+    if request.headers.get("x-requested-with") == "XMLHttpRequest":
+        return JsonResponse({
+            "start_of_week": start_of_week.strftime("%Y-%m-%d"),
+            "end_of_week": end_of_week.strftime("%Y-%m-%d"),
+            "habilitadas": habilitadas_data,
+        })
+
+    contexto = {
+        "laboratorio":laboratorio,
+        "carreras":carreras,
+        "ciclos":ciclos,
+        "paralelos":paralelos,
+        "slots": slots,
+        "start_of_week": start_of_week,
+        "end_of_week": end_of_week,
+        "habilitadas_json": habilitadas_data,
+    }
+    return render(request, "reservasestaciones.html", contexto)
+
+
+def estaciones_disponibles(request, id_lab):
+    fecha = request.GET.get("fecha")
+    slot_id = request.GET.get("slot_id")
+
+    laboratorio = Laboratorio.objects.get(id=id_lab)
+
+    estaciones = Estacion.objects.filter(laboratorio=laboratorio, estado="ACTIVO")
+
+    # Reservas existentes en ese slot
+    reservas = Reserva.objects.filter(
+        laboratorio=laboratorio,
+        fecha=fecha,
+        slot_id=slot_id,
+        estado__in=["ACTIVA", "EN REVISION"]
+    )
+
+    estaciones_ocupadas = reservas.values_list("estacion_id", flat=True)
+
+    data = []
+    for e in estaciones:
+        data.append({
+            "id": e.id,
+            "codigo": e.codigo,
+            "modelo": e.modelo,
+            "estado": e.estado,
+            "ocupada": e.id in estaciones_ocupadas
+        })
+
+    return JsonResponse({"estaciones": data})
+
+
+def guardar_reserva_estacion(request, id_lab):
+
+    laboratorio = Laboratorio.objects.get(id=id_lab)
+
+    if request.method == "POST":
+        data = json.loads(request.body)
+
+        asignatura = data.get("asignatura")
+        carrera_id = data.get("carrera")
+        ciclo_id = data.get("ciclo")
+        paralelo_id = data.get("paralelo")
+        estacion_id = data.get("estacion_id")
+        slot_id = data.get("slot_id")
+        fecha = data.get("fecha")
+
+        print(data)  # 👈 DEBUG
+
+        # ejemplo guardado
+        Reserva.objects.create(
+            laboratorio = laboratorio,
+            asignatura=asignatura,
+            carrera_id=carrera_id,
+            ciclo_id=ciclo_id,
+            paralelo_id=paralelo_id,
+            estacion_id=estacion_id,
+            slot_id=slot_id,
+            fecha=fecha,
+            usuario=request.user
+        )
+
+        return JsonResponse({"success": True})
+
+    return JsonResponse({"success": False, "error": "Método no permitido"})

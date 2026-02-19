@@ -1,6 +1,6 @@
 {% load static %}
 {{ slots|json_script:"slots-data" }}
-{{ reservas_json|json_script:"reservas-data" }}
+{{ habilitadas_json|json_script:"habilitadas-data" }}
 
 <!DOCTYPE html>
 <html lang="es">
@@ -350,21 +350,11 @@
             gap: 15px;
         }
 
-        .ficha-item {
+        .ficha-item-lab {
             background: white;
             padding: 15px;
             border-radius: 8px;
             border-left: 5px solid #007bff;
-        }
-
-        .estado.activo {
-            color: green;
-            font-weight: bold;
-        }
-
-        .estado.inactivo {
-            color: red;
-            font-weight: bold;
         }
 
         .week-navigation {
@@ -415,6 +405,308 @@
             transform: translateY(0);
         }
 
+        #estacionesContainer {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            margin-top: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+
+        #estacionesContainer.show {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .estaciones-header {
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .estaciones-header h3 {
+            font-size: 1.5rem;
+            color: #333;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .estaciones-subtitle {
+            color: #666;
+            font-size: 0.95rem;
+        }
+
+        /* Leyenda de estados */
+        .estaciones-legend {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-bottom: 25px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        /* Grid de estaciones */
+        #estacionesGrid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        /* Tarjeta de estación */
+        .ficha-item {
+            position: relative;
+            padding: 25px 20px;
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 3px solid;
+            font-weight: 700;
+            font-size: 1.1rem;
+            min-height: 140px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Estación disponible */
+        .ficha-item.available {
+            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+            border-color: #4caf50;
+            color: #2e7d32;
+        }
+
+        .ficha-item.available:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(76, 175, 80, 0.3);
+            background: linear-gradient(135deg, #c8e6c9 0%, #a5d6a7 100%);
+        }
+
+        /* Estación ocupada */
+        .ficha-item.occupied {
+            background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+            border-color: #f44336;
+            color: #c62828;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .ficha-item.occupied:hover {
+            transform: none;
+        }
+
+        /* Estación seleccionada */
+        .ficha-item.selected {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-color: #5568d3;
+            color: white;
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .ficha-item.selected::before {
+            content: "✓";
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            width: 32px;
+            height: 32px;
+            background: #4caf50;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            font-weight: 700;
+            box-shadow: 0 4px 10px rgba(76, 175, 80, 0.4);
+            animation: checkmark 0.3s ease;
+        }
+
+        @keyframes checkmark {
+            0% {
+                transform: scale(0) rotate(0deg);
+            }
+            50% {
+                transform: scale(1.2) rotate(180deg);
+            }
+            100% {
+                transform: scale(1) rotate(360deg);
+            }
+        }
+
+        /* Estación inactiva/suspendida */
+        .ficha-item.inactive {
+            background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
+            border-color: #9e9e9e;
+            color: #757575;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        /* Icono de la estación */
+        .estacion-icon {
+            font-size: 2.5rem;
+            margin-bottom: 5px;
+        }
+
+        /* Código de estación */
+        .estacion-codigo {
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        /* Modelo de estación */
+        .estacion-modelo {
+            font-size: 0.75rem;
+            opacity: 0.8;
+            font-weight: 500;
+        }
+
+        /* Estado badge */
+        .estacion-estado {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .estacion-estado.activo {
+            background: #4caf50;
+            color: white;
+        }
+
+        .estacion-estado.inactivo {
+            background: #9e9e9e;
+            color: white;
+        }
+
+        .estacion-estado.suspendido {
+            background: #ff9800;
+            color: white;
+        }
+
+        /* Información de ocupación */
+        .estacion-ocupada-info {
+            position: absolute;
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.7rem;
+            padding: 3px 8px;
+            background: rgba(0, 0, 0, 0.6);
+            color: white;
+            border-radius: 10px;
+            white-space: nowrap;
+        }
+
+        /* Contador de selección */
+        .selection-info {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: 600;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .selection-info.show {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        .selection-info-text {
+            font-size: 1.1rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            #estacionesGrid {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+                gap: 12px;
+            }
+
+            .ficha-item {
+                min-height: 120px;
+                padding: 20px 15px;
+                font-size: 1rem;
+            }
+
+            .estacion-icon {
+                font-size: 2rem;
+            }
+
+            .estaciones-legend {
+                gap: 15px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            #estacionesGrid {
+                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+                gap: 10px;
+            }
+
+            .ficha-item {
+                min-height: 100px;
+                padding: 15px 10px;
+                font-size: 0.9rem;
+            }
+
+            .estacion-icon {
+                font-size: 1.8rem;
+            }
+
+            .estaciones-header h3 {
+                font-size: 1.3rem;
+            }
+        }
+
+        /* Animación de carga */
+        .loading-skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+            border-radius: 12px;
+            height: 140px;
+        }
+
+        @keyframes loading {
+            0% {
+                background-position: 200% 0;
+            }
+            100% {
+                background-position: -200% 0;
+            }
+        }
+
     </style>
 </head>
 <body>
@@ -439,12 +731,12 @@
             <h2>Ficha Técnica del Laboratorio</h2>
             
             <div class="ficha-grid">
-                <div class="ficha-item">
+                <div class="ficha-item-lab">
                     <strong>Nombre:</strong>
                     <span>{{ laboratorio.nombre }}</span>
                 </div>
 
-                <div class="ficha-item">
+                <div class="ficha-item-lab">
                     <strong>Ubicación:</strong>
                     <span>
                         {% if laboratorio.ubicacion %}
@@ -455,29 +747,29 @@
                     </span>
                 </div>
 
-                <div class="ficha-item">
+                <div class="ficha-item-lab">
                     <strong>Capacidad:</strong>
                     <span>{{ laboratorio.capacidad }} estudiantes</span>
                 </div>
 
-                <div class="ficha-item">
+                <div class="ficha-item-lab">
                     <strong>Estado:</strong>
                     <span class="estado {{ laboratorio.estado|lower }}">
                         {{ laboratorio.estado }}
                     </span>
                 </div>
 
-                <div class="ficha-item">
+                <div class="ficha-item-lab">
                     <strong>Responsable:</strong>
                     <span>{{ laboratorio.responsable }}</span>
                 </div>
 
-                <div class="ficha-item">
+                <div class="ficha-item-lab">
                     <strong>Correo del Responsable:</strong>
                     <span>{{ laboratorio.correo_responsable }}</span>
                 </div>
 
-                <div class="ficha-item">
+                <div class="ficha-item-lab">
                     <strong>Teléfono del Responsable:</strong>
                     <span>{{ laboratorio.numero_responsable }}</span>
                 </div>
@@ -520,41 +812,6 @@
                         <label for="asignatura">Asignatura *</label>
                         <input type="text" id="asignatura" placeholder="Ej: Química Orgánica" required>
                     </div>
-                    <div class="form-group">
-                        <label for="grupo">Grupo *</label>
-                        <select id="grupo" name="grupo" required>
-                            <option value="">Indique el grupo</option>
-                            <option value="1">Grupo 1</option>
-                            <option value="2">Grupo 2</option>
-                            <option value="3">Grupo 3</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="numEstudiantes">N° de Alumnos * (Max. {{laboratorio.capacidad}} estudiantes)</label>
-                        <input type="number" id="numEstudiantes" min="1" max="{{laboratorio.capacidad}}" placeholder="Ej: 12" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="tipo">Tipo de Clase *</label>
-                        <select id="tipo" name="tipo" required>
-                            <option value="">Indique el tipo de clase</option>
-                            <option value="INDUCCION DOCENTE">Inducción Docente</option>
-                            <option value="INDUCCION ESTUDIANTIL">Inducción Estudiantil</option>
-                            <option value="CLASES NORMALES">Clases Normales</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group confirmacion-box" id="confirmacionContainer" style="display:none;">
-                        <label class="checkbox-label">
-                            <input type="checkbox" id="confirmacionCheck" name="confirmacion">
-                            <span>
-                                Confirmo que entiendo que se requiere capacitación previa para usar el aula y,
-                                en caso de necesitarla generaré una reserva de inducción o contactaré con la
-                                jefatura (<strong>innovacion@ucacue.edu.ec</strong>).
-                            </span>
-                        </label>
-                    </div>
-
                 </div>
             </div>
 
@@ -573,7 +830,7 @@
                     </div>
                     <div class="legend-item">
                         <div class="legend-box occupied"></div>
-                        <span>Ocupado</span>
+                        <span>No Habilitado</span>
                     </div>
                     <div class="legend-item">
                         <div class="legend-box bloqued"></div> 
@@ -618,6 +875,23 @@
                 </div>
             </div>
 
+            <div id="estacionesContainer" class="card" style="margin-top:20px; display:none;">
+                <h3>Selecciona una estación</h3><hr><br>
+                <div id="estacionesGrid" class="ficha-grid"></div>
+            </div>
+
+            <!-- Grid de estaciones -->
+            <div id="estacionesGrid">
+                <!-- Las estaciones se cargarán aquí dinámicamente -->
+            </div>
+
+            <!-- Información de selección -->
+            <div class="selection-info" id="selectionInfo">
+                <div class="selection-info-text">
+                    ✓ Estación <strong id="selectedStation">-</strong> seleccionada
+                </div>
+            </div>
+
             <div class="button-group">
                 <button class="btn btn-primary" onclick="submitReservation()">
                     ✓ Confirmar Reserva
@@ -659,32 +933,8 @@
     </script>
 
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
-
-            const tipoSelect = document.getElementById("tipo");
-            const container = document.getElementById("confirmacionContainer");
-            const checkbox = document.getElementById("confirmacionCheck");
-
-            function validarTipo() {
-                if (tipoSelect.value === "CLASES NORMALES") {
-                    container.style.display = "block";
-                    checkbox.required = true;
-                } else {
-                    container.style.display = "none";
-                    checkbox.required = false;
-                    checkbox.checked = false;
-                }
-            }
-
-            tipoSelect.addEventListener("change", validarTipo);
-        });
-    </script>
-
-
-
-    <script>
         const initialReservas = JSON.parse(
-            document.getElementById('reservas-data').textContent
+            document.getElementById('habilitadas-data').textContent
         );
         const weekStart = "{{ start_of_week|date:'Y-m-d' }}";
     </script>
@@ -694,7 +944,7 @@
         const hours = JSON.parse(document.getElementById('slots-data').textContent);
         const days = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'];
         let selectedSlots = [];
-        let occupiedSlots = [];
+        let enabledSlots = [];
         let weekDays = [];
 
         // Inicializar la tabla de horarios
@@ -704,7 +954,7 @@
 
             weekDays = getWeekDates(startDate);
 
-            occupiedSlots = reservas.map(r => `${r.fecha}-${r.slot_id}`);
+            enabledSlots = reservas.map(r => `${r.fecha}-${r.slot_id}`);
 
             hours.forEach(hourObj => {
                 const row = document.createElement('tr');
@@ -718,40 +968,179 @@
                     const cell = document.createElement('td');
                     const slotKey = `${day.date}-${hourObj.id}`;
 
-                    if (occupiedSlots.includes(slotKey)) {
-                        cell.className = 'occupied';
-                        cell.innerHTML = '✕';
-                    } else if (hourObj.tipo === "BLOQUEADA"){
-                        cell.className = 'bloqued';
-                        cell.innerHTML = '-';
-                    } else {
+                    if (enabledSlots.includes(slotKey)) {
                         cell.innerHTML = '○';
                         cell.addEventListener('click', () => toggleSlot(slotKey, cell));
+
+                    } else if (hourObj.tipo == "BLOQUEADA") {
+                        // 🔴 Todo lo que NO esté habilitado se bloquea
+                        cell.className = 'bloqued';
+                        cell.innerHTML = '-';
+
+                    } else {
+                        cell.className = 'occupied';
+                        cell.innerHTML = 'x';
                     }
 
                     row.appendChild(cell);
                 });
 
+
                 tbody.appendChild(row);
             });
         }
 
-        // Alternar selección de horario
         function toggleSlot(slotId, cell) {
-            if (occupiedSlots.includes(slotId)) return;
 
-            const index = selectedSlots.indexOf(slotId);
-            
-            if (index > -1) {
-                selectedSlots.splice(index, 1);
+            //if (selectedSlots.includes(slotId)) return;
+
+            // 🔴 Si ya estaba seleccionada → deseleccionar
+            if (selectedSlots.includes(slotId)) {
+                selectedSlots = [];
                 cell.classList.remove('selected');
                 cell.innerHTML = '○';
-            } else {
-                selectedSlots.push(slotId);
-                cell.classList.add('selected');
-                cell.innerHTML = '✓';
+                return;
             }
+
+            // 🧹 Limpiar cualquier selección previa en la tabla
+            document.querySelectorAll('.schedule-table td.selected').forEach(td => {
+                td.classList.remove('selected');
+                td.innerHTML = '○';
+            });
+
+            // ✅ Seleccionar solo la nueva
+            selectedSlots = [slotId];
+            cell.classList.add('selected');
+            cell.innerHTML = '✓';
+
+            // 🔥 pedir estaciones disponibles
+            const [year, month, day, slot] = slotId.split("-");
+            const fecha = `${year}-${month}-${day}`;
+
+            cargarEstaciones(fecha, slot);
         }
+
+        let selectedEstacion = null;
+
+        /*function cargarEstaciones(fecha, slot) {
+
+            fetch(`estaciones/?fecha=${fecha}&slot_id=${slot}`)
+            .then(r => r.json())
+            .then(data => {
+
+                const container = document.getElementById("estacionesContainer");
+                const grid = document.getElementById("estacionesGrid");
+
+                grid.innerHTML = "";
+                container.style.display = "block";
+
+                console.log(data)
+
+                data.estaciones.forEach(e => {
+
+                    const div = document.createElement("div");
+                    div.className = "ficha-item";
+                    div.textContent = e.codigo;
+
+                    if (e.ocupada) {
+                        div.classList.add("occupied");
+                    } else {
+                        div.classList.add("available");
+                        div.addEventListener("click", () => seleccionarEstacion(e.id, div));
+                    }
+
+                    grid.appendChild(div);
+                });
+
+            });
+        }*/
+
+        // Tu función mejorada
+        function cargarEstaciones(fecha, slot) {
+            const container = document.getElementById("estacionesContainer");
+            const grid = document.getElementById("estacionesGrid");
+
+            // Mostrar loading
+            grid.innerHTML = `
+                <div class="loading-skeleton"></div>
+                <div class="loading-skeleton"></div>
+                <div class="loading-skeleton"></div>
+                <div class="loading-skeleton"></div>
+            `;
+            container.style.display = "block";
+            container.classList.add("show");
+
+            fetch(`estaciones/?fecha=${fecha}&slot_id=${slot}`)
+                .then(r => r.json())
+                .then(data => {
+                    grid.innerHTML = "";
+
+                    // Resetear selección
+                    estacionSeleccionada = null;
+                    document.getElementById("selectionInfo").classList.remove("show");
+
+                    data.estaciones.forEach(e => {
+                        const div = document.createElement("div");
+                        div.className = "ficha-item";
+
+                        // Icono según estado
+                        let icon = "💻";
+                        if (e.estado === "INACTIVO" || e.estado === "SUSPENDIDO") {
+                            icon = "🚫";
+                        } else if (e.ocupada) {
+                            icon = "🔒";
+                        }
+
+                        // Construir contenido
+                        div.innerHTML = `
+                            <div class="estacion-icon">${icon}</div>
+                            <div class="estacion-codigo">${e.codigo}</div>
+                            ${e.modelo ? `<div class="estacion-modelo">${e.modelo}</div>` : ''}
+                        `;
+
+                        // Badge de estado
+                        if (e.estado !== "ACTIVO") {
+                            const badge = document.createElement("div");
+                            badge.className = `estacion-estado ${e.estado.toLowerCase()}`;
+                            badge.textContent = e.estado;
+                            div.appendChild(badge);
+                        }
+
+                        // Clases según disponibilidad
+                        if (e.estado === "INACTIVO" || e.estado === "SUSPENDIDO") {
+                            div.classList.add("inactive");
+                        } else if (e.ocupada) {
+                            div.classList.add("occupied");
+                            const ocupadaInfo = document.createElement("div");
+                            ocupadaInfo.className = "estacion-ocupada-info";
+                            ocupadaInfo.textContent = "Reservada";
+                            div.appendChild(ocupadaInfo);
+                        } else {
+                            div.classList.add("available");
+                            //div.addEventListener("click", () => seleccionarEstacion(e, div));
+                            div.addEventListener("click", () => seleccionarEstacion(e.id, div));
+
+                        }
+
+                        grid.appendChild(div);
+                    });
+                });
+        }
+
+        function seleccionarEstacion(id, div) {
+
+            document.querySelectorAll("#estacionesGrid .selected")
+                .forEach(d => d.classList.remove("selected"));
+
+            div.classList.add("selected");
+            selectedEstacion = id;
+
+            // Mostrar info visual
+            document.getElementById("selectedStation").textContent = div.innerText.trim();
+            document.getElementById("selectionInfo").classList.add("show");
+        }
+
+
 
         // Validar formulario
         function validateForm() {
@@ -759,18 +1148,9 @@
             const carrera = document.getElementById('carrera').value;
             const ciclo = document.getElementById('ciclo').value;
             const paralelo = document.getElementById('paralelo').value;
-            const grupo = document.getElementById('grupo').value.trim();
-            const numEstudiantes = document.getElementById('numEstudiantes').value;
-            const tipo = document.getElementById('tipo').value;
-            const confirmacion = document.getElementById('confirmacionCheck').checked;
 
-            if (!asignatura || !carrera || !ciclo || !paralelo || !grupo || !numEstudiantes || !tipo) {
+            if (!asignatura || !carrera || !ciclo || !paralelo || !selectedEstacion) {
                 return 'Por favor, completa todos los campos obligatorios';
-            }
-
-            // ✅ VALIDACIÓN NUEVA
-            if (tipo === "CLASES NORMALES" && !confirmacion) {
-                return 'Debe confirmar que entiende el requisito de capacitación.';
             }
 
             if (selectedSlots.length === 0) {
@@ -794,18 +1174,21 @@
                 return;
             }
 
+            // 🔥 separar fecha y slotguardar_reserva_estacion
+            const [year, month, day, slot] = selectedSlots[0].split("-");
+            const fecha = `${year}-${month}-${day}`;
+
             const reservationData = {
                 asignatura: document.getElementById('asignatura').value,
                 carrera: document.getElementById('carrera').value,
                 ciclo: document.getElementById('ciclo').value,
                 paralelo: document.getElementById('paralelo').value,
-                grupo: document.getElementById('grupo').value,
-                numEstudiantes: document.getElementById('numEstudiantes').value,
-                tipo: document.getElementById('tipo').value,
-                confirmacion: document.getElementById('confirmacionCheck').checked,
-
-                horarios: selectedSlots
+                estacion_id: selectedEstacion,
+                slot_id: slot,
+                fecha: fecha
             };
+            
+            console.log(reservationData); // 👈 DEBUG
 
             fetch(`guardar/`, {
                 method: "POST",
@@ -819,7 +1202,7 @@
             .then(data => {
                 if (data.success) {
                     showAlert("Reserva guardada correctamente", "success");
-                    changeWeek(0);  // recargar semana actual
+                    changeWeek(0);  // recargar semana actualguardar_reserva_estacion
                     selectedSlots = [];
                 } else {
                     showAlert(data.error, "error");
@@ -854,10 +1237,6 @@
             document.getElementById('carrera').value = '';
             document.getElementById('ciclo').value = '';
             document.getElementById('paralelo').value = '';
-            document.getElementById('grupo').value = '';
-            document.getElementById('numEstudiantes').value = '';
-            document.getElementById('tipo').value = '';
-            document.getElementById('confirmacionCheck').checked = false;
             selectedSlots = [];
             initSchedule();
             hideAlert();

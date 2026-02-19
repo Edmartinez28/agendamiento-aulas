@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Perfil</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #4C758A 0%, #F2F2F2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.95;
+        }
+
+        .profile-grid {
+            display: grid;
+            grid-template-columns: 350px 2fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        /* Sección de datos personales */
+        .profile-card {
+            background: white;
+            border-radius: 16px;
+            padding: 0;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            height: fit-content;
+        }
+
+        .profile-header {
+            background: linear-gradient(135deg, #4C758A 0%, #7397cb 100%);
+            padding: 40px 30px;
+            text-align: center;
+            color: white;
+        }
+
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: white;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3.5rem;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .profile-name {
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .profile-email {
+            font-size: 0.95rem;
+            opacity: 0.95;
+        }
+
+        .profile-body {
+            padding: 30px;
+        }
+
+        .profile-field {
+            margin-bottom: 25px;
+            padding-bottom: 25px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .profile-field:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .profile-label {
+            font-size: 0.8rem;
+            color: #888;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .profile-value {
+            font-size: 1.1rem;
+            color: #333;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-type-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .user-type-badge.estudiante {
+            background: linear-gradient(135deg, #00bcd4 0%, #26c6da 100%);
+            color: white;
+        }
+
+        .user-type-badge.docente {
+            background: linear-gradient(135deg, #9c27b0 0%, #ab47bc 100%);
+            color: white;
+        }
+
+        .user-type-badge.administrador {
+            background: linear-gradient(135deg, #ff9800 0%, #ffa726 100%);
+            color: white;
+        }
+
+        .profile-actions {
+            padding: 0 30px 30px;
+        }
+
+        /* Sección de reservas */
+        .reservations-section {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .reservations-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .reservations-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .reservations-title h2 {
+            font-size: 1.8rem;
+            color: #333;
+            font-weight: 700;
+        }
+
+        .reservations-count {
+            background: #4C758A;
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .btn-new-reservation {
+            padding: 12px 25px;
+            background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        .btn-new-reservation:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+        }
+
+        /* Filtros de reservas */
+        .reservations-filters {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 8px 18px;
+            border-radius: 20px;
+            border: 2px solid #e0e0e0;
+            background: white;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .filter-btn:hover {
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        .filter-btn.active {
+            background: #4C758A;
+            color: white;
+            border-color: transparent;
+        }
+
+        /* Lista de reservas */
+        .reservations-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .reservation-item {
+            border: 2px solid #f0f0f0;
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            background: #fafafa;
+            cursor: pointer;
+        }
+
+        .reservation-item:hover {
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .reservation-header-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .reservation-main-info {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .reservation-lab-name {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .reservation-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .reservation-badges {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .status-badge {
+            padding: 6px 14px;
+            border-radius: 16px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-badge.activa {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .status-badge.en-revision {
+            background: #fff3e0;
+            color: #e65100;
+        }
+
+        .status-badge.cancelada {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .status-badge.finalizada {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+
+        .status-badge.bloqueada {
+            background: #f3e5f5;
+            color: #6a1b9a;
+        }
+
+        .status-badge.estudiantil {
+            background: #e0f7fa;
+            color: #00838f;
+        }
+
+        .type-badge {
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background: #f5f5f5;
+            color: #555;
+        }
+
+        .reservation-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+        }
+
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .detail-label {
+            font-size: 0.75rem;
+            color: #888;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .detail-value {
+            font-size: 0.95rem;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: #999;
+        }
+
+        .empty-state-icon {
+            font-size: 5rem;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        .empty-state h3 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            color: #666;
+        }
+
+        .empty-state p {
+            font-size: 1rem;
+        }
+
+        /* Stats rápidas */
+        .stats-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card-small {
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            border: 2px solid #f0f0f0;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: #666;
+            font-weight: 600;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .profile-grid {
+                grid-template-columns: 2fr;
+            }
+
+            .profile-card {
+                max-width: 100%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .profile-avatar {
+                width: 100px;
+                height: 100px;
+                font-size: 3rem;
+            }
+
+            .profile-name {
+                font-size: 1.4rem;
+            }
+
+            .reservations-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .btn-new-reservation {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .reservation-details {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+
+            .header h1 {
+                font-size: 1.6rem;
+            }
+
+            .profile-card,
+            .reservations-section {
+                border-radius: 12px;
+                padding: 20px;
+            }
+
+            .profile-header {
+                padding: 30px 20px;
+            }
+
+            .profile-body {
+                padding: 20px;
+            }
+
+            .stats-cards {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>👤 Mi Perfil</h1>
+            <p>Administra tu información y tus reservas</p>
+        </div>
+
+        <div class="profile-grid">
+            <!-- Sección de datos personales -->
+            <div class="profile-card">
+                <div class="profile-header">
+                    <div class="profile-avatar">
+                        👤
+                    </div>
+                    <div class="profile-name" id="userName">{{ usuario.get_full_name }}</div>
+                    <div class="profile-email" id="userEmail">{{ usuario.email }}</div>
+                </div>
+
+                <div class="profile-body">
+                    <div class="profile-field">
+                        <div class="profile-label">📧 Correo Electrónico</div>
+                        <div class="profile-value" id="displayEmail">
+                            {{ usuario.email }}
+                        </div>
+                    </div>
+
+                    <div class="profile-field">
+                        <div class="profile-label">👤 Nombres Completos</div>
+                        <div class="profile-value" id="displayFullName">
+                            {{ usuario.get_full_name }}
+                        </div>
+                    </div>
+
+                    <div class="profile-field">
+                        <div class="profile-label">🎓 Tipo de Usuario</div>
+                        <div class="profile-value">
+                            <span class="user-type-badge estudiante" id="userTypeBadge">
+                                Estudiante
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="profile-field">
+                        <div class="profile-label">📅 Miembro Desde</div>
+                        <div class="profile-value" id="memberSince">
+                            🗓 {{ usuario.date_joined }}
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Sección de reservas -->
+            <div class="reservations-section">
+                <div class="reservations-header">
+                    <div class="reservations-title">
+                        <h2>📅 Mis Reservas</h2>
+                        <span class="reservations-count" id="reservationsCount">0 reservas</span>
+                    </div>
+                    <a class="btn-new-reservation" href="{% url 'gestion:obtenerlaboratorios' %}" style="text-decoration: none;">
+                        <span>➕</span>
+                        Visitar Laboratorios
+                    </a>
+                </div>
+
+                <!-- Estadísticas rápidas -->
+                <div class="stats-cards">
+                    <div class="stat-card-small">
+                        <div class="stat-number" id="statActivas">0</div>
+                        <div class="stat-label">Activas</div>
+                    </div>
+                    <div class="stat-card-small">
+                        <div class="stat-number" id="statRevision">0</div>
+                        <div class="stat-label">En Revisión</div>
+                    </div>
+                    <div class="stat-card-small">
+                        <div class="stat-number" id="statFinalizadas">0</div>
+                        <div class="stat-label">Finalizadas</div>
+                    </div>
+                    <div class="stat-card-small">
+                        <div class="stat-number" id="statTotal">0</div>
+                        <div class="stat-label">Total</div>
+                    </div>
+                </div>
+
+                <!-- Filtros -->
+                <div class="reservations-filters">
+                    <button class="filter-btn active" onclick="filterReservations('TODAS')">Todas</button>
+                    <button class="filter-btn" onclick="filterReservations('ACTIVA')">Activas</button>
+                    <button class="filter-btn" onclick="filterReservations('EN REVISION')">En Revisión</button>
+                    <button class="filter-btn" onclick="filterReservations('FINALIZADA')">Finalizadas</button>
+                </div>
+
+                <!-- Lista de reservas -->
+                <div class="reservations-list" id="reservationsList">
+                    {% for reserva in reservas%}
+
+                    <div class="reservation-item" data-estado="{{ reserva.estado|upper }}">
+                        <div class="reservation-header-item">
+                            <div class="reservation-main-info">
+                                <div class="reservation-lab-name">
+                                    {{reserva.laboratorio.nombre}}
+                                </div>
+                                <div class="reservation-meta">
+                                    <span class="meta-item">📅 {{reserva.fecha}}</span>
+                                    <span class="meta-item">🕐 {{reserva.slot.hora_inicio}} - {{reserva.slot.hora_fin}}</span>
+                                    {% if reserva.estacion %}
+                                    <span class="meta-item">💻 {{reserva.estacion.codigo}}</span>
+                                    {% else %}
+                                    <span class="meta-item">🏢 Lab. Completo</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="reservation-badges">
+                                <span class="status-badge {{ reserva.estado|slugify }}">{{ reserva.estado }}</span>
+                                <span class="type-badge">{{ reserva.tipo }}</span>
+                            </div>
+                        </div>
+
+                        <div class="reservation-details">
+
+                            <div class="detail-item">
+                                <span class="detail-label">Asignatura</span>
+                                <span class="detail-value">{{ reserva.asignatura|default:"N/A" }}</span>
+                            </div>
+
+                            <div class="detail-item">
+                                <span class="detail-label">Carrera</span>
+                                <span class="detail-value">
+                                    {{ reserva.carrera.nombre|default:"N/A" }}
+                                </span>
+                            </div>
+
+                            <div class="detail-item">
+                                <span class="detail-label">Ciclo - Paralelo</span>
+                                <span class="detail-value">
+                                    {{ reserva.ciclo.nombre|default:"N/A" }} - {{ reserva.paralelo.nombre|default:"N/A" }}
+                                </span>
+                            </div>
+
+                            <div class="detail-item">
+                                <span class="detail-label">Grupo</span>
+                                <span class="detail-value">Grupo {{ reserva.grupo|default:"N/A" }}</span>
+                            </div>
+
+                            <div class="detail-item">
+                                <span class="detail-label">Estudiantes</span>
+                                <span class="detail-value">👥 {{ reserva.estudiantes|default:"0" }}</span>
+                            </div>
+
+                        </div>
+
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            const reservations = document.querySelectorAll(".reservation-item");
+
+            let activas = 0;
+            let revision = 0;
+            let finalizadas = 0;
+
+            reservations.forEach(res => {
+                const estado = res.dataset.estado?.trim();
+
+                if (estado === "ACTIVA") activas++;
+                if (estado === "EN REVISION") revision++;
+                if (estado === "FINALIZADA") finalizadas++;
+            });
+
+            // Totales
+            document.getElementById("statActivas").innerText = activas;
+            document.getElementById("statRevision").innerText = revision;
+            document.getElementById("statFinalizadas").innerText = finalizadas;
+            document.getElementById("statTotal").innerText = reservations.length;
+            document.getElementById("reservationsCount").innerText = reservations.length + " reservas";
+        });
+
+
+        function filterReservations(estado) {
+            const reservations = document.querySelectorAll(".reservation-item");
+            const buttons = document.querySelectorAll(".filter-btn");
+
+            // activar botón seleccionado
+            buttons.forEach(btn => btn.classList.remove("active"));
+            event.target.classList.add("active");
+
+            reservations.forEach(res => {
+                const resEstado = res.dataset.estado?.trim();
+
+                if (estado === "TODAS" || resEstado === estado) {
+                    res.style.display = "block";
+                } else {
+                    res.style.display = "none";
+                }
+            });
+        }
+    </script>
+
+</body>
+</html>

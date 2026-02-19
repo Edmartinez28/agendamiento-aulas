@@ -6,6 +6,9 @@ import json
 from django.db.models import Count, Q
 from django.shortcuts import redirect, get_object_or_404
 
+from datetime import datetime, timedelta
+from django.utils import timezone
+
 # Create your views here.
 def obtenerlaboratorios(request):
     laboratorios = Laboratorio.objects.all()
@@ -59,16 +62,31 @@ def obtenerhorario(request, id_lab):
 
 
 def obtenerhorario(request, id_lab):
-    laboratorio = Laboratorio.objects.get(id=id_lab)
+    laboratorio = get_object_or_404(Laboratorio, id=id_lab)
 
-    reservas_qs = Reserva.objects.filter(laboratorio=laboratorio,estacion__isnull=True
+    # 📅 Obtener fecha base desde GET o usar hoy
+    week_str = request.GET.get("week")
+
+    if week_str:
+        base_date = datetime.strptime(week_str, "%Y-%m-%d").date()
+    else:
+        base_date = timezone.localdate()
+
+    # 📅 Calcular lunes de esa semana
+    start_week = base_date - timedelta(days=base_date.weekday())
+    end_week = start_week + timedelta(days=4)  # Viernes
+
+    # 🔎 Filtrar reservas solo de esa semana
+    reservas_qs = Reserva.objects.filter(
+        laboratorio=laboratorio,
+        estacion__isnull=True,
+        fecha__range=(start_week, end_week)
     ).select_related(
         "laboratorio", "slot", "carrera", "ciclo", "paralelo", "usuario"
     )
 
     slots_qs = TimeSlot.objects.all().order_by("hora_inicio")
 
-    # Convertir reservas a lista serializable
     reservas = []
     for r in reservas_qs:
         reservas.append({
@@ -98,7 +116,9 @@ def obtenerhorario(request, id_lab):
     contexto = {
         "laboratorio": laboratorio,
         "reservas": json.dumps(reservas),
-        "slots": json.dumps(slots)
+        "slots": json.dumps(slots),
+        "start_week": start_week.strftime("%Y-%m-%d"),
+        "end_week": end_week.strftime("%Y-%m-%d"),
     }
 
     return render(request, "horariolaboratorio.html", contexto)

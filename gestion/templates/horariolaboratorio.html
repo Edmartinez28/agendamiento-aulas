@@ -16,7 +16,7 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #4C758A 0%, #F2F2F2 100%);
             min-height: 100vh;
             padding: 20px;
         }
@@ -64,7 +64,7 @@
         }
 
         .week-nav-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #4C758A;
             color: white;
             border: none;
             padding: 10px 20px;
@@ -105,13 +105,13 @@
 
         .filter-select:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: #4C758A;
         }
 
         .legend-btn {
             background: white;
-            border: 2px solid #667eea;
-            color: #667eea;
+            border: 2px solid #4C758A;
+            color: #4C758A;
             padding: 10px 20px;
             border-radius: 8px;
             font-weight: 600;
@@ -198,7 +198,7 @@
         }
 
         .schedule-table th {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #4C758A;
             color: white;
             padding: 20px 15px;
             text-align: center;
@@ -235,7 +235,7 @@
             left: 0;
             background: #f8f9fa;
             font-weight: 700;
-            color: #667eea;
+            color: #4C758A;
             text-align: center;
             border-right: 2px solid #e0e0e0;
             z-index: 9;
@@ -523,7 +523,7 @@
         .quick-stat-value {
             font-size: 2rem;
             font-weight: 700;
-            color: #667eea;
+            color: #4C758A;
         }
 
         .quick-stat-label {
@@ -548,8 +548,8 @@
                 <div class="quick-stat-label">Reservas Esta Semana</div>
             </div>
             <div class="quick-stat">
-                <div class="quick-stat-value" id="totalLabs">0</div>
-                <div class="quick-stat-label">Laboratorios</div>
+                <div class="quick-stat-value" id="totalAsignatura">0</div>
+                <div class="quick-stat-label">Asignaturas</div>
             </div>
             <div class="quick-stat">
                 <div class="quick-stat-value" id="totalEstudiantes">0</div>
@@ -564,16 +564,16 @@
                     <span>←</span> Semana Anterior
                 </button>
                 <div class="current-week" id="currentWeek">
-                    Semana del 10 - 14 de Febrero, 2026
+                    <div class="current-week" id="currentWeek">
+                    Semana del {{ start_week }} al {{ end_week }}
+                </div>
+
                 </div>
                 <button class="week-nav-btn" onclick="nextWeek()">
                     Semana Siguiente <span>→</span>
                 </button>
             </div>
             <div class="view-controls">
-                <select class="filter-select" id="filterLab" onchange="filterSchedule()">
-                    <option value="TODOS">Todos los laboratorios</option>
-                </select>
                 <select class="filter-select" id="filterEstado" onchange="filterSchedule()">
                     <option value="TODOS">Todos los estados</option>
                     <option value="ACTIVA">Activas</option>
@@ -627,11 +627,11 @@
                     <thead>
                         <tr>
                             <th>Hora</th>
-                            <th>Lunes<br><small>10 Feb</small></th>
-                            <th>Martes<br><small>11 Feb</small></th>
-                            <th>Miércoles<br><small>12 Feb</small></th>
-                            <th>Jueves<br><small>13 Feb</small></th>
-                            <th>Viernes<br><small>14 Feb</small></th>
+                            <th>Lunes</th>
+                            <th>Martes</th>
+                            <th>Miércoles</th>
+                            <th>Jueves</th>
+                            <th>Viernes</th>
                         </tr>
                     </thead>
                     <tbody id="scheduleBody">
@@ -679,8 +679,6 @@
 
             return dayOfWeek - 1; // Lunes=0
         }
-
-
 
         let filteredReservations = [...reservas];
 
@@ -750,7 +748,7 @@
                 // Columna de hora
                 const timeCell = document.createElement('td');
                 timeCell.className = 'time-cell';
-                timeCell.innerHTML = `${formatTime(inicio)}<br>-<br>${formatTime(fin)}`;
+                timeCell.innerHTML = `${formatTime(inicio)} - ${formatTime(fin)}`;
                 row.appendChild(timeCell);
 
                 // Columnas de días
@@ -775,37 +773,20 @@
 
         // Actualizar estadísticas
         function updateStats(reservations) {
-            const labs = new Set(reservations.map(r => r.laboratorio.nombre));
             const totalEstudiantes = reservations.reduce((sum, r) => sum + r.estudiantes, 0);
+            const totalAsignaturasUnicas = new Set(reservations.map(r => r.asignatura)).size;
 
             document.getElementById('totalReservasWeek').textContent = reservations.length;
-            document.getElementById('totalLabs').textContent = labs.size;
+            document.getElementById('totalAsignatura').textContent = totalAsignaturasUnicas;
             document.getElementById('totalEstudiantes').textContent = totalEstudiantes;
         }
 
-        // Poblar filtro de laboratorios
-        function populateLabFilter() {
-            const labFilter = document.getElementById('filterLab');
-            const labs = [...new Set(reservas.map(r => r.laboratorio.nombre))].sort();
-            
-            labs.forEach(lab => {
-                const option = document.createElement('option');
-                option.value = lab;
-                option.textContent = lab;
-                labFilter.appendChild(option);
-            });
-        }
 
         // Filtrar horario
         function filterSchedule() {
-            const labFilter = document.getElementById('filterLab').value;
             const estadoFilter = document.getElementById('filterEstado').value;
 
             let filtered = [...reservas];
-
-            if (labFilter !== 'TODOS') {
-                filtered = filtered.filter(r => r.laboratorio.nombre === labFilter);
-            }
 
             if (estadoFilter !== 'TODOS') {
                 filtered = filtered.filter(r => r.estado === estadoFilter);
@@ -815,19 +796,49 @@
             renderSchedule(filtered);
         }
 
+
         // Toggle leyenda
         function toggleLegend() {
             document.getElementById('legend').classList.toggle('show');
         }
 
-        // Navegación de semanas
+        const currentWeekStart = new Date("{{ start_week }}");
+
+        function getCurrentWeekDate() {
+            const parts = "{{ start_week }}".split("-");
+            return new Date(
+                parseInt(parts[0]),      // año
+                parseInt(parts[1]) - 1,  // mes (0-index)
+                parseInt(parts[2])       // día
+            );
+        }
+
+        function changeWeek(offsetDays) {
+            const currentDate = getCurrentWeekDate();
+            currentDate.setDate(currentDate.getDate() + offsetDays);
+
+            const year = currentDate.getFullYear(); 
+            const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+            const day = String(currentDate.getDate()).padStart(2, '0');
+
+            const formatted = `${year}-${month}-${day}`;
+
+            // 🔥 Importante: mantener la misma ruta
+            const url = new URL(window.location.href);
+            url.searchParams.set("week", formatted);
+
+            window.location.href = url.toString();
+        }
+
         function previousWeek() {
-            alert('Cargar semana anterior');
+            changeWeek(-7);
         }
 
         function nextWeek() {
-            alert('Cargar semana siguiente');
+            changeWeek(7);
         }
+
+
 
         // Mostrar detalles en modal
         function showDetails(id) {
@@ -871,7 +882,7 @@
                 </div>
                 <div class="modal-field">
                     <span class="modal-label">Horario</span>
-                    <span class="modal-value">${formatTime(reserva.slot.hora_inicio)} - ${formatTime(reserva.slot.hora_fin)}</span>
+                    <span class="modal-value">${formatTime(reserva.hora_inicio)} - ${formatTime(reserva.hora_fin)}</span>
                 </div>
                 <div class="modal-field">
                     <span class="modal-label">Solicitante</span>
@@ -902,7 +913,6 @@
 
         // Inicializar
         document.addEventListener('DOMContentLoaded', () => {
-            populateLabFilter();
             renderSchedule(reservas);
         });
     </script>

@@ -148,8 +148,9 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Configuracion para el apartado de autenticacion
 
-LOGOUT_REDIRECT_URL = "/cuentas/login/"
-LOGIN_URL = "/cuentas/perfil/"
+if not DEBUG:
+    LOGOUT_REDIRECT_URL = "/cuentas/login/"
+    LOGIN_URL = "/cuentas/perfil/"
 
 INSTALLED_APPS += [
     "mozilla_django_oidc",

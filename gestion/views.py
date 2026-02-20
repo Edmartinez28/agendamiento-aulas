@@ -11,9 +11,17 @@ from django.utils import timezone
 
 # Create your views here.
 def obtenerlaboratorios(request):
-    laboratorios = Laboratorio.objects.all()
+    laboratorios = Laboratorio.objects.all().prefetch_related(
+        "estaciones__estacion_programas__programa"
+    )
 
-    return render(request, "listadolaboratorios.html", {"laboratorios":laboratorios})
+    for lab in laboratorios:
+        programas = Programa.objects.filter(
+            programa_estaciones__estacion__laboratorio=lab
+        ).distinct()
+        lab.programas_unicos = programas
+
+    return render(request, "listadolaboratorios.html", {"laboratorios": laboratorios})
 
 def listadoreservas(request, id_lab):
     laboratorio = Laboratorio.objects.get(id=id_lab)

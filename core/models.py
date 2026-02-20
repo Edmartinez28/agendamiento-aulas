@@ -164,8 +164,8 @@ class Programa(models.Model):
         return f"{self.nombre}"
 
 class EstacionPrograma(models.Model):
-    estacion = models.ForeignKey(Estacion, on_delete=models.CASCADE, related_name="estaciones")
-    programa = models.ForeignKey(Programa, on_delete=models.CASCADE, related_name="programas")
+    estacion = models.ForeignKey(Estacion, on_delete=models.CASCADE, related_name="estacion_programas")
+    programa = models.ForeignKey(Programa, on_delete=models.CASCADE, related_name="programa_estaciones")
 
     def __str__(self):
-        return f"{self.estacion.laboratorio.nombre} - {self.estacion.nombre} - {self.programa.nombre}"
+        return f"{self.estacion.laboratorio.nombre} - {self.estacion.codigo} - {self.programa.nombre}"

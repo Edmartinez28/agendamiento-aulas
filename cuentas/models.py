@@ -27,5 +27,12 @@ class User(AbstractUser):
 
     synced_with_erp = models.BooleanField(default=False)
 
+    # 👉 Campo de imagen
+    avatar = models.ImageField(
+        upload_to="avatars/",   # carpeta dentro de MEDIA_ROOT
+        null=True,
+        blank=True
+    )
+
     def __str__(self):
         return f"{self.username} - {self.rol}"

@@ -18,6 +18,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from cuentas.views import redirect_by_role
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -25,6 +26,8 @@ urlpatterns = [
     path("cuentas/", include("cuentas.urls"), name="cuentas"),
     path("gestion/", include("gestion.urls"), name="gestion"),
     path("reservas/", include("reservas.urls"), name="reservas"),
+    path("oidc/", include("mozilla_django_oidc.urls")),  # 👈 ESTA LÍNEA ES CLAVE
+    path("redirect/", redirect_by_role),
 ]
 
 if settings.DEBUG:

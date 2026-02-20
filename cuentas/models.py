@@ -1,3 +1,31 @@
 from django.db import models
+from django.contrib.auth.models import AbstractUser
 
-# Create your models here.
+
+class User(AbstractUser):
+
+    ROLES = [
+        ("ADMIN", "Administrador"),
+        ("DOCENTE", "Docente"),
+        ("ESTUDIANTE", "Estudiante"),
+        ("TECNICO", "Técnico"),
+    ]
+
+    rol = models.CharField(
+        max_length=20,
+        choices=ROLES,
+        null=True,
+        blank=True
+    )
+
+    external_id = models.CharField(
+        max_length=150,
+        unique=True,
+        null=True,
+        blank=True
+    )
+
+    synced_with_erp = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.username} - {self.rol}"

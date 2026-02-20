@@ -145,3 +145,28 @@ STATICFILES_DIRS = [
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# Configuracion para el apartado de autenticacion
+
+LOGOUT_REDIRECT_URL = "/cuentas/login/"
+LOGIN_URL = "/cuentas/perfil/"
+
+INSTALLED_APPS += [
+    "mozilla_django_oidc",
+]
+AUTHENTICATION_BACKENDS = (
+    'cuentas.auth.MyOIDCBackend',
+    'django.contrib.auth.backends.ModelBackend',
+)
+
+OIDC_RP_CLIENT_ID = "tu-client-id"
+OIDC_RP_CLIENT_SECRET = "tu-secret"
+AUTH_USER_MODEL = "cuentas.User"
+
+OIDC_OP_AUTHORIZATION_ENDPOINT = "https://erp.edu/authorize"
+OIDC_OP_TOKEN_ENDPOINT = "https://erp.edu/token"
+OIDC_OP_USER_ENDPOINT = "https://erp.edu/userinfo"
+OIDC_OP_JWKS_ENDPOINT = "https://erp.edu/certs"
+
+LOGIN_REDIRECT_URL = "/redirect/"
+LOGOUT_REDIRECT_URL = "/"

@@ -478,18 +478,26 @@
                                 </div>
                             </div>
 
-                            <div class="lab-actions">
+                            <div class="lab-actions d-flex flex-column flex-md-row gap-2">
                                 {% if lab.estado == "ACTIVO" %}
-                                    <a href="{% url 'gestion:listadoreservas' lab.id %}" class="btn-reserve" style="text-decoration: none;">
+                                    <a href="{% url 'gestion:listadoreservas' lab.id %}" 
+                                    class="btn-reserve text-center">
                                         📅 Ver Reservas
                                     </a>
-                                    <a href="{% url 'reservas:reservaslaboratorios' lab.id %}" class="btn-reserve" style="text-decoration: none;">
+
+                                    <a href="{% url 'reservas:reservaslaboratorios' lab.id %}" 
+                                    class="btn-reserve text-center">
                                         📅 Reservar Laboratorio
                                     </a>
-                                    <a href="{% url 'reservas:reservasestaciones' lab.id %}" class="btn-reserve" style="text-decoration: none;">
+
+                                    <a href="{% url 'reservas:reservasestaciones' lab.id %}" 
+                                    class="btn-reserve text-center">
                                         📅 Reservar Estación
                                     </a>
-                                    <button class="btn-reserve" data-bs-toggle="modal" data-bs-target="#modalProgramas{{ lab.id }}">
+
+                                    <button class="btn-reserve"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#modalProgramas{{ lab.id }}">
                                         🧪 Ver Programas
                                     </button>
                                 {% else %}

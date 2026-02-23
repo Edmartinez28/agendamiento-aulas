@@ -23,7 +23,7 @@ from cuentas.views import redirect_by_role
 urlpatterns = [
     path('admin/', admin.site.urls),
     #path("core/", include("core.urls"), name="core"),
-    path("cuentas/", include("cuentas.urls"), name="cuentas"),
+    path("", include("cuentas.urls"), name="cuentas"),
     path("gestion/", include("gestion.urls"), name="gestion"),
     path("reservas/", include("reservas.urls"), name="reservas"),
     path("oidc/", include("mozilla_django_oidc.urls")),  # 👈 ESTA LÍNEA ES CLAVE

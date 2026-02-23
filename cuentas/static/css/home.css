@@ -1,0 +1,149 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+body {
+    background: #0f0f0f;
+    color: white;
+}
+
+/* NAVBAR */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 60px;
+    background: black;
+}
+
+.navbar nav a {
+    color: white;
+    margin-left: 25px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: 0.3s;
+}
+
+.navbar nav a:hover {
+    color: #e10600;
+}
+
+.btn-login {
+    background: #e10600;
+    padding: 8px 18px;
+    border-radius: 20px;
+}
+
+/* HERO */
+.hero {
+    height: 90vh;
+    background: url('../img/fondo-vr.jpg') center/cover no-repeat;
+    display: flex;
+    align-items: center;
+    padding: 0 80px;
+    position: relative;
+}
+
+.hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+}
+
+.hero-content {
+    position: relative;
+    max-width: 600px;
+}
+
+.hero h1 {
+    font-size: 48px;
+    margin-bottom: 10px;
+}
+
+.red-line {
+    color: #e10600;
+    font-weight: bold;
+}
+
+.hero h2 {
+    font-weight: 300;
+    margin-bottom: 20px;
+}
+
+.hero p {
+    margin-bottom: 30px;
+    line-height: 1.6;
+}
+
+.btn-primary {
+    background: #e10600;
+    padding: 12px 30px;
+    border-radius: 30px;
+    text-decoration: none;
+    color: white;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+.btn-primary:hover {
+    background: #ff1a1a;
+}
+
+/* INFO SECTION */
+.info {
+    padding: 80px;
+    background: #1a1a1a;
+    text-align: center;
+}
+
+.info h2 {
+    margin-bottom: 20px;
+    font-size: 32px;
+}
+
+.info p {
+    max-width: 800px;
+    margin: auto;
+    margin-bottom: 30px;
+}
+
+.btn-secondary {
+    background: transparent;
+    border: 2px solid #e10600;
+    padding: 10px 25px;
+    border-radius: 25px;
+    color: white;
+    text-decoration: none;
+    transition: 0.3s;
+}
+
+.btn-secondary:hover {
+    background: #e10600;
+}
+
+/* FOOTER */
+footer {
+    text-align: center;
+    padding: 20px;
+    background: black;
+    font-size: 14px;
+}
+
+.logo img {
+    height: 50px;   /* tamaño recomendado navbar */
+    width: auto;
+    object-fit: contain;
+}
+
+.hero {
+    height: 70vh;   /* antes 90vh */
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+}

@@ -25,7 +25,7 @@
 
         .header {
             text-align: center;
-            color: white;
+            color: #3C3C3C;
             margin-bottom: 40px;
         }
 
@@ -538,6 +538,110 @@
                 grid-template-columns: repeat(2, 1fr);
             }
         }
+
+        /* Fondo modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 999;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
+        }
+
+        .avatar-modal{
+            position: relative;
+            z-index: 1000;
+        }
+
+        /* Caja modal */
+        .avatar-modal {
+            background: white;
+            width: 380px;
+            margin: 8% auto;
+            padding: 25px;
+            border-radius: 14px;
+            text-align: center;
+            position: relative;
+            animation: modalFade 0.25s ease;
+        }
+
+        #id_avatar{
+            position:absolute;
+            opacity:0;
+            width:0;
+            height:0;
+        }
+
+        @keyframes modalFade {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .close {
+            position: absolute;
+            right: 15px;
+            top: 10px;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        /* Preview */
+        .avatar-preview {
+            width: 130px;
+            height: 130px;
+            margin: 15px auto;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 3px solid #eee;
+        }
+
+        .avatar-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Ocultar input real */
+        .file-label input {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .file-label {
+            display: inline-block;
+            background: #f1f1f1;
+            padding: 10px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: 0.2s;
+        }
+
+        .file-label:hover {
+            background: #e4e4e4;
+        }
+
+        /* Botón guardar */
+        .btn-save {
+            display: block;
+            width: 100%;
+            margin-top: 15px;
+            padding: 11px;
+            border: none;
+            border-radius: 8px;
+            background: #4CAF50;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn-save:hover {
+            background: #43a047;
+        }
     </style>
 </head>
 <body>
@@ -594,11 +698,48 @@
                     </div>
                 </div>
 
-                <div class="profile-actions">
+                <!-- <div class="profile-actions">
                     <a href="{% url 'cuentas:editar_avatar' %}" class="btn-edit-profile" style="text-decoration:none;">
                         <span>✏️</span>
                         Editar Perfil
                     </a>
+                </div> -->
+                
+                <div class="profile-actions">
+                    <button class="btn-edit-profile" onclick="openAvatarModal()">
+                        <span>✏️</span>
+                        Editar Perfil
+                    </button>
+                </div>
+
+                <!-- MODAL AVATAR -->
+                <div id="avatarModal" class="modal">
+                    <div class="modal-content avatar-modal">
+                        <span class="close" onclick="closeAvatarModal()">&times;</span>
+
+                        <h2>Cambiar foto de perfil</h2>
+
+                        <form method="POST" enctype="multipart/form-data" action="{% url 'cuentas:editar_avatar' %}">
+                            {% csrf_token %}
+
+                            <!-- Preview -->
+                            <div class="avatar-preview">
+                                {% if user.avatar %}
+                                    <img id="previewImg" src="{{ user.avatar.url }}">
+                                {% else %}
+                                    <img id="previewImg" src="https://imgs.search.brave.com/8qyEaGUob0Wn32iZ_6C51NWBNj-ZFD1lGX9VqWRyWZs/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9tZWRp/YS5pc3RvY2twaG90/by5jb20vaWQvMTM0/NTAwMjYwMC92ZWN0/b3IvZ2VuZGVyLW5l/dXRyYWwtcHJvZmls/ZS1hdmF0YXItZnJv/bnQtdmlldy1vZi1h/bi1hbm9ueW1vdXMt/cGVyc29uLWZhY2Uu/anBnP3M9NjEyeDYx/MiZ3PTAmaz0yMCZj/PTA4MnFqLWxwcFl4/b0haa0RFVEx2d0xT/d3QxV2FUaVJnUmFh/UURjc2RiZmc9">
+                                {% endif %}
+                            </div>
+
+                            <!-- Input oculto -->
+                            <label for="id_avatar" class="file-label">Seleccionar imagen</label>
+                            <input type="file" name="avatar" id="id_avatar" accept="image/*">
+
+                            {{ form.avatar }}
+
+                            <button type="submit" class="btn-save">Guardar cambios</button>
+                        </form>
+                    </div>
                 </div>
 
             </div>
@@ -754,6 +895,27 @@
                 }
             });
         }
+    </script>
+    
+    <script>
+        function openAvatarModal() {
+            document.getElementById("avatarModal").style.display = "block";
+        }
+
+        function closeAvatarModal() {
+            document.getElementById("avatarModal").style.display = "none";
+        }
+
+        /* Preview imagen */
+        document.addEventListener("change", function(e){
+            if(e.target.type === "file"){
+                const reader = new FileReader();
+                reader.onload = function(){
+                    document.getElementById("previewImg").src = reader.result;
+                }
+                reader.readAsDataURL(e.target.files[0]);
+            }
+        });
     </script>
 
 </body>

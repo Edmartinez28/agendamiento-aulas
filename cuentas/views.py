@@ -4,6 +4,10 @@ from core.models import *
 
 from django.contrib.auth.decorators import login_required
 
+
+def home(request):
+    return render(request, "home.html")
+    
 @login_required
 def mostrarperfil(request):
     usuario = request.user

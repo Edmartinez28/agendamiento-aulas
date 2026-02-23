@@ -8,4 +8,5 @@ urlpatterns = [
     path("perfil/", mostrarperfil , name="mostrarperfil"),
     path("logout/", LogoutView.as_view(), name="logout"),
     path("editar-avatar/", editar_avatar, name="editar_avatar"),
+    path('', home, name='home'),
 ]

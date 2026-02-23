@@ -1,0 +1,51 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Aula ITE VR</title>
+    <link rel="stylesheet" href="{% static 'css/home.css' %}">
+</head>
+<body>
+
+<header class="navbar">
+    <div class="logo">
+        <img src="{% static 'img/logo-aula.png' %}" alt="Aula ITE VR">
+    </div>
+    <nav>
+        <a href="#">Inicio</a>
+        <a href="#">Reserva</a>
+        <a href="#">Contacto</a>
+        <a href="{% url 'cuentas:mostrarperfil'%}" class="btn-login">Ingresar</a>
+    </nav>
+</header>
+
+<section class="hero">
+    <div class="hero-content">
+        <h1><span class="red-line">—</span> Aula ITE VR</h1>
+        <h2>Laboratorio de Realidad Virtual Avanzada</h2>
+        <p>
+            Espacio especializado para clases de  realidad virtual, con estudiantes de las diferentes carreras 
+            innovación educativa y tecnología inmersiva.
+        </p>
+        <a href="{% url 'cuentas:mostrarperfil' %}" class="btn-primary">Reservar Ahora</a>
+    </div>
+</section>
+
+<section class="info">
+    <div class="info-content">
+        <h2>Aula ITE VR </h2>
+        <p>
+            El Aula ITE VR ofrece un entorno moderno equipado con tecnología
+            de última generación para estudiantes y docentes.
+        </p>
+        <a href="#" class="btn-secondary">Más Información</a>
+    </div>
+</section>
+
+<footer>
+    © 2026 Universidad Católica de Cuenca - Jefatura de Innovación y Emprendimiento
+</footer>
+
+</body>
+</html>

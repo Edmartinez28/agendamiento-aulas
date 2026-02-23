@@ -6,6 +6,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <title>Horario de Reservas</title>
     <style>
         * {
@@ -27,9 +28,33 @@
         }
 
         .header {
+            position: relative;
             text-align: center;
-            color: white;
+            padding: 10px 40px;
+            color: #3C3C3C;
             margin-bottom: 30px;
+        }
+
+        .header-content {
+            margin: 0 auto;
+        }
+
+        .btn-back {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            padding: 8px 14px;
+            background: #4C758A;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .btn-back:hover {
+            background: white;
+            color: #4C758A;
         }
 
         .header h1 {
@@ -536,9 +561,13 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>{{ laboratorio.nombre }}</h1>
-            <h2>📅 Horario de Reservas</h2>
-            <p>Vista completa de todas las reservas de la semana</p>
+            <div class="header-content">
+                <h1>{{ laboratorio.nombre }}</h1>
+                <h2>📅 Horario de Reservas</h2>
+                <p>Vista completa de todas las reservas de la semana</p>
+            </div>
+
+            <a class="btn-back" href="{% url 'gestion:listadoreservas' laboratorio.id %}"><i class="fa-solid fa-circle-arrow-left"></i> Volver</a>
         </div>
 
         <!-- Estadísticas rápidas -->

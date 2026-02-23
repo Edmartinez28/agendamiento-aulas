@@ -29,9 +29,33 @@
         }
 
         .header {
+            position: relative;
             text-align: center;
-            color: white;
+            padding: 10px 40px;
+            color: #3C3C3C;
             margin-bottom: 30px;
+        }
+
+        .header-content {
+            margin: 0 auto;
+        }
+
+        .btn-back {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            padding: 8px 14px;
+            background: #4C758A;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .btn-back:hover {
+            background: white;
+            color: #4C758A;
         }
 
         .header h1 {
@@ -713,8 +737,12 @@
     {% csrf_token %}
     <div class="container">
         <div class="header">
-            <h1>🔬 Sistema de Reserva de {{laboratorio.nombre}}</h1>
-            <p>Gestiona tus reservas de forma fácil y rápida</p>
+            <div class="header-content">
+                <h1>🔬 Sistema de Reserva de {{laboratorio.nombre}}</h1>
+                <p>Gestiona tus reservas de forma fácil y rápida</p>
+            </div>
+
+            <a class="btn-back" href="{% url 'gestion:obtenerlaboratorios' %}"><i class="fa-solid fa-circle-arrow-left"></i> Volver</a>
         </div>
 
         <div style="text-align:center; margin-bottom:20px;">
@@ -1022,39 +1050,6 @@
 
         let selectedEstacion = null;
 
-        /*function cargarEstaciones(fecha, slot) {
-
-            fetch(`estaciones/?fecha=${fecha}&slot_id=${slot}`)
-            .then(r => r.json())
-            .then(data => {
-
-                const container = document.getElementById("estacionesContainer");
-                const grid = document.getElementById("estacionesGrid");
-
-                grid.innerHTML = "";
-                container.style.display = "block";
-
-                console.log(data)
-
-                data.estaciones.forEach(e => {
-
-                    const div = document.createElement("div");
-                    div.className = "ficha-item";
-                    div.textContent = e.codigo;
-
-                    if (e.ocupada) {
-                        div.classList.add("occupied");
-                    } else {
-                        div.classList.add("available");
-                        div.addEventListener("click", () => seleccionarEstacion(e.id, div));
-                    }
-
-                    grid.appendChild(div);
-                });
-
-            });
-        }*/
-
         // Tu función mejorada
         function cargarEstaciones(fecha, slot) {
             const container = document.getElementById("estacionesContainer");
@@ -1165,12 +1160,44 @@
             return document.querySelector('[name=csrfmiddlewaretoken]').value;
         }
 
+        function validarFechaHoraActual() {
+
+            if (selectedSlots.length === 0) return null;
+
+            const ahora = new Date();
+
+            const [year, month, day, slotId] = selectedSlots[0].split("-");
+            const fecha = `${year}-${month}-${day}`;
+
+            // Buscar el slot en hours
+            const slotObj = hours.find(h => h.id == slotId);
+            if (!slotObj) return null;
+
+            // Ejemplo label: "07:00 - 08:00"
+            const horaInicio = slotObj.label.split(" - ")[0];
+
+            // Crear fecha completa
+            const fechaHoraReserva = new Date(`${fecha}T${horaInicio}:00`);
+
+            if (fechaHoraReserva < ahora) {
+                return "No puede reservar en una fecha u hora pasada.";
+            }
+
+            return null;
+        }
+
         // Enviar reserva
         function submitReservation() {
             const error = validateForm();
 
             if (error) {
                 showAlert(error, 'error');
+                return;
+            }
+
+            const errorFecha = validarFechaHoraActual();
+            if (errorFecha) {
+                showAlert(errorFecha, 'error');
                 return;
             }
 
@@ -1223,11 +1250,10 @@
             })
             .then(response => response.json())
             .then(data => {
-
                 document.getElementById('weekLabel').textContent =
                     `${data.start_of_week} - ${data.end_of_week}`;
 
-                initSchedule(data.reservas, data.start_of_week);
+                initSchedule(data.habilitadas, data.start_of_week);
             });
         }
 

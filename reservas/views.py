@@ -178,6 +178,7 @@ def reservasestaciones(request, id_lab):
         "end_of_week": end_of_week,
         "habilitadas_json": habilitadas_data,
     }
+
     return render(request, "reservasestaciones.html", contexto)
 
 

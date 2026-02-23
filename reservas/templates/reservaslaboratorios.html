@@ -29,9 +29,33 @@
         }
 
         .header {
+            position: relative;
             text-align: center;
-            color: white;
+            padding: 10px 40px;
+            color: #3C3C3C;
             margin-bottom: 30px;
+        }
+
+        .header-content {
+            margin: 0 auto;
+        }
+
+        .btn-back {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            padding: 8px 14px;
+            background: #4C758A;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .btn-back:hover {
+            background: white;
+            color: #4C758A;
         }
 
         .header h1 {
@@ -421,8 +445,12 @@
     {% csrf_token %}
     <div class="container">
         <div class="header">
-            <h1>🔬 Sistema de Reserva de {{laboratorio.nombre}}</h1>
-            <p>Gestiona tus reservas de forma fácil y rápida</p>
+            <div class="header-content">
+                <h1>🔬 Sistema de Reserva de {{laboratorio.nombre}}</h1>
+                <p>Gestiona tus reservas de forma fácil y rápida</p>
+            </div>
+
+            <a class="btn-back" href="{% url 'gestion:obtenerlaboratorios' %}"><i class="fa-solid fa-circle-arrow-left"></i> Volver</a>
         </div>
 
         <div style="text-align:center; margin-bottom:20px;">
@@ -785,12 +813,55 @@
             return document.querySelector('[name=csrfmiddlewaretoken]').value;
         }
 
+        function validarFechaHoraActual() {
+            const ahora = new Date();
+
+            for (let slot of selectedSlots) {
+
+                // ✅ Separar correctamente
+                const [year, month, day, slotId] = slot.split("-");
+
+                // Buscar el slot en hours
+                const slotObj = hours.find(h => h.id == slotId);
+                if (!slotObj) continue;
+
+                // label ejemplo: "07:00 - 08:00"
+                const horaInicio = slotObj.label.split(" - ")[0];
+
+                // Separar hora y minuto
+                const [h, m] = horaInicio.split(":");
+
+                // ✅ Crear fecha segura (evita bug de zona horaria)
+                const fechaHoraReserva = new Date(
+                    parseInt(year),
+                    parseInt(month) - 1,
+                    parseInt(day),
+                    parseInt(h),
+                    parseInt(m)
+                );
+
+                console.log("Reserva:", fechaHoraReserva, "Ahora:", ahora);
+
+                if (fechaHoraReserva < ahora) {
+                    return "No puede reservar en una fecha u hora pasada.";
+                }
+            }
+
+            return null;
+        }
+
         // Enviar reserva
         function submitReservation() {
             const error = validateForm();
 
             if (error) {
                 showAlert(error, 'error');
+                return;
+            }
+
+            const errorFecha = validarFechaHoraActual();
+            if (errorFecha) {
+                showAlert(errorFecha, 'error');
                 return;
             }
 

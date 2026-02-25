@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Correos Pendientes</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .page-header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .page-header h2 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .page-header p {
+            font-size: 1.1rem;
+            opacity: 0.95;
+        }
+
+        /* Empty state */
+        .empty-state {
+            background: white;
+            border-radius: 16px;
+            padding: 80px 20px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .empty-state-icon {
+            font-size: 5rem;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        .empty-state h3 {
+            font-size: 1.5rem;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .empty-state p {
+            color: #999;
+            font-size: 1rem;
+        }
+
+        /* Solicitante card */
+        .solicitante-card {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .solicitante-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .solicitante-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .solicitante-info {
+            flex: 1;
+        }
+
+        .solicitante-name {
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .solicitante-email {
+            font-size: 1rem;
+            opacity: 0.95;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .pending-count {
+            background: rgba(255, 255, 255, 0.25);
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .pending-count-label {
+            font-size: 0.85rem;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+
+        .pending-count-number {
+            font-size: 1.8rem;
+        }
+
+        /* Table wrapper */
+        .table-wrapper {
+            padding: 25px;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+        }
+
+        .reservations-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 900px;
+            background: white;
+        }
+
+        .reservations-table thead {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        }
+
+        .reservations-table th {
+            padding: 15px 12px;
+            text-align: left;
+            font-weight: 700;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            color: #495057;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .reservations-table tbody tr {
+            border-bottom: 1px solid #f0f0f0;
+            transition: all 0.2s ease;
+        }
+
+        .reservations-table tbody tr:hover {
+            background: #f8f9ff;
+        }
+
+        .reservations-table tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        .reservations-table td {
+            padding: 15px 12px;
+            font-size: 0.9rem;
+            color: #333;
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            white-space: nowrap;
+        }
+
+        .badge.estado-activa {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .badge.estado-en-revision {
+            background: #fff3e0;
+            color: #e65100;
+        }
+
+        .badge.estado-cancelada {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .badge.estado-finalizada {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+
+        .badge.estado-bloqueada {
+            background: #f3e5f5;
+            color: #6a1b9a;
+        }
+
+        .badge.estado-estudiantil {
+            background: #e0f7fa;
+            color: #00838f;
+        }
+
+        .badge.tipo {
+            background: #f5f5f5;
+            color: #555;
+        }
+
+        .badge.lab-completo {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .badge.estacion {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        /* Cell icons */
+        .cell-with-icon {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Actions */
+        .actions-container {
+            padding: 0 25px 25px;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            flex: 1;
+            min-width: 150px;
+            padding: 14px 25px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-send {
+            background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        .btn-send:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+        }
+
+        .btn-cancel {
+            background: linear-gradient(135deg, #f44336 0%, #ef5350 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(244, 67, 54, 0.3);
+        }
+
+        .btn-cancel:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(244, 67, 54, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .page-header h2 {
+                font-size: 2rem;
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .solicitante-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .solicitante-name {
+                font-size: 1.3rem;
+            }
+
+            .pending-count {
+                width: 100%;
+            }
+
+            .table-wrapper {
+                padding: 20px;
+            }
+
+            .reservations-table th,
+            .reservations-table td {
+                font-size: 0.8rem;
+                padding: 12px 8px;
+            }
+
+            .actions-container {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+
+            .page-header h2 {
+                font-size: 1.6rem;
+            }
+
+            .solicitante-card {
+                border-radius: 12px;
+                margin-bottom: 20px;
+            }
+
+            .solicitante-header {
+                padding: 20px;
+            }
+
+            .table-wrapper {
+                padding: 15px;
+            }
+        }
+
+        /* Loading animation */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .solicitante-card {
+            animation: fadeIn 0.5s ease;
+        }
+
+        /* Summary stats */
+        .summary-stats {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+            border-radius: 12px;
+            border: 2px solid #f0f0f0;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #666;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="page-header">
+            <h2>
+                <span>📧</span>
+                Correos Pendientes Agrupados
+                <span>📋</span>
+            </h2>
+            <p>Gestiona los correos de notificación pendientes por solicitante</p>
+        </div>
+
+        {% if not grupos %}
+            <!-- Empty State -->
+            <div class="empty-state">
+                <div class="empty-state-icon">✅</div>
+                <h3>No hay correos pendientes</h3>
+                <p>Todos los correos han sido procesados</p>
+            </div>
+        {% else %}
+            <!-- Summary Statistics -->
+            <div class="summary-stats">
+                <div class="stat-item">
+                    <div class="stat-number">{{ grupos|length }}</div>
+                    <div class="stat-label">Solicitantes</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="totalCorreos">0</div>
+                    <div class="stat-label">Total Correos</div>
+                </div>
+            </div>
+
+            <!-- Solicitantes -->
+            {% for solicitante, correos in grupos.items %}
+                <div class="solicitante-card">
+                    <!-- Header del solicitante -->
+                    <div class="solicitante-header">
+                        <div class="solicitante-info">
+                            <div class="solicitante-name">
+                                <span>👤</span>
+                                {{ solicitante.get_full_name|default:solicitante.username }}
+                            </div>
+                            {% if solicitante.email %}
+                                <div class="solicitante-email">
+                                    <span>📧</span>
+                                    {{ solicitante.email }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="pending-count">
+                            <div class="pending-count-label">Pendientes</div>
+                            <div class="pending-count-number">{{ correos|length }}</div>
+                        </div>
+                    </div>
+
+                    <!-- Tabla de reservas -->
+                    <div class="table-wrapper">
+                        <div class="table-container">
+                            <table class="reservations-table">
+                                <thead>
+                                    <tr>
+                                        <th>📅 Fecha</th>
+                                        <th>🕐 Horario</th>
+                                        <th>🔬 Laboratorio</th>
+                                        <th>💻 Estación</th>
+                                        <th>📊 Estado</th>
+                                        <th>📚 Tipo</th>
+                                        <th>📖 Asignatura</th>
+                                        <th>👥 Grupo</th>
+                                        <th>🧑‍🎓 Estudiantes</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for c in correos %}
+                                        <tr>
+                                            <td>
+                                                <div class="cell-with-icon">
+                                                    <span>📅</span>
+                                                    {{ c.reserva.fecha }}
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="cell-with-icon">
+                                                    <span>🕐</span>
+                                                    {{ c.reserva.slot.hora_inicio }} - {{ c.reserva.slot.hora_fin }}
+                                                </div>
+                                            </td>
+                                            <td>{{ c.reserva.laboratorio.nombre }}</td>
+                                            <td>
+                                                {% if c.reserva.estacion %}
+                                                    <span class="badge estacion">💻 {{ c.reserva.estacion.codigo }}</span>
+                                                {% else %}
+                                                    <span class="badge lab-completo">🏢 LAB COMPLETO</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <span class="badge estado-{{ c.reserva.estado|lower|cut:' ' }}">
+                                                    {{ c.reserva.estado }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span class="badge tipo">{{ c.reserva.tipo }}</span>
+                                            </td>
+                                            <td>{{ c.reserva.asignatura|default:"-" }}</td>
+                                            <td>
+                                                <div class="cell-with-icon">
+                                                    <span>👥</span>
+                                                    {{ c.reserva.grupo }}
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="cell-with-icon">
+                                                    <span>🧑‍🎓</span>
+                                                    {{ c.reserva.estudiantes }}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="actions-container">
+                        <!-- ENVIAR -->
+                        <form method="post" action="" style="flex: 1; min-width: 150px;">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="enviar">
+                            <input type="hidden" name="solicitante_id" value="{{ solicitante.id }}">
+                            <button type="submit" class="btn btn-send">
+                                <span>📤</span>
+                                Enviar Correos
+                            </button>
+                        </form>
+
+                        <!-- CANCELAR -->
+                        <form method="post" action="" style="flex: 1; min-width: 150px;">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="cancelar">
+                            <input type="hidden" name="solicitante_id" value="{{ solicitante.id }}">
+                            <button type="submit" class="btn btn-cancel">
+                                <span>❌</span>
+                                Cancelar Todo
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    <script>
+        // Calcular total de correos
+        document.addEventListener('DOMContentLoaded', () => {
+            const cards = document.querySelectorAll('.solicitante-card');
+            let total = 0;
+            
+            cards.forEach(card => {
+                const countElement = card.querySelector('.pending-count-number');
+                if (countElement) {
+                    total += parseInt(countElement.textContent);
+                }
+            });
+
+            const totalElement = document.getElementById('totalCorreos');
+            if (totalElement) {
+                totalElement.textContent = total;
+            }
+        });
+
+        // Confirmación antes de enviar o cancelar
+        document.querySelectorAll('form').forEach(form => {
+            form.addEventListener('submit', (e) => {
+                const action = form.querySelector('input[name="action"]').value;
+                const mensaje = action === 'enviar' 
+                    ? '¿Estás seguro de que deseas enviar estos correos?' 
+                    : '¿Estás seguro de que deseas cancelar todos estos correos?';
+                
+                if (!confirm(mensaje)) {
+                    e.preventDefault();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

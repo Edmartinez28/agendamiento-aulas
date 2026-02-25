@@ -169,3 +169,26 @@ class EstacionPrograma(models.Model):
 
     def __str__(self):
         return f"{self.estacion.laboratorio.nombre} - {self.estacion.codigo} - {self.programa.nombre}"
+
+class Correo(models.Model):
+    ESTADO_CHOICES = [
+        ("ENVIADO", "ENVIADO"),
+        ("PENDIENTE", "PENDIENTE"),
+        ("CANCELADO", "CANCELADO"),
+    ]
+
+    reserva = models.ForeignKey(Reserva, on_delete=models.CASCADE, related_name="correos")
+    tecnico = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="correos_como_tecnico")
+    solicitante = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="correos_como_solicitante")
+    estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default="PENDIENTE")
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Correo #{self.pk} - Reserva {self.reserva_id} - {self.estado}"
+
+class Parametro(models.Model):
+    etiqueta = models.CharField(max_length=100, unique=True)
+    valor = models.TextField()
+
+    def __str__(self):
+        return f"{self.etiqueta}"

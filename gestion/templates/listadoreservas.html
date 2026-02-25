@@ -593,7 +593,7 @@
             <div class="section-header">
                 <div class="section-title">
                     <span class="section-icon">🔬</span>
-                    <h2>Reservas del Laboratorio {{ laboratorio.nombre}}</h2>
+                    <h2>Reservas del Aula {{ laboratorio.nombre}}</h2>
                 </div>
                 <span class="section-count" id="labCount">0 reservas</span>
             </div>
@@ -618,7 +618,7 @@
                     <div class="reservation-header">
                         <div class="reservation-info">
                             <div class="reservation-name">
-                                🔬 {{ reserva.carrera.nombre }} - {{ reserva.ciclo.nombre }} {{ reserva.paralelo.nombre }}
+                                🔬 Reserva({{ reserva.id }}) {{ reserva.carrera.nombre }} - {{ reserva.ciclo.nombre }} {{ reserva.paralelo.nombre }}
                             </div>
 
                             <div class="reservation-meta">
@@ -730,7 +730,7 @@
                         <div class="reservation-header">
                             <div class="reservation-info">
                                 <div class="reservation-name">
-                                    🔬 {{ reserva.carrera.nombre }} - {{ reserva.ciclo.nombre }} {{ reserva.paralelo.nombre }} <br>
+                                    🔬 Reserva({{ reserva.id }}) {{ reserva.carrera.nombre }} - {{ reserva.ciclo.nombre }} {{ reserva.paralelo.nombre }} <br>
                                     🖥️ {{ reserva.estacion.codigo}}
                                 </div>
 

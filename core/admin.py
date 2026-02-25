@@ -12,3 +12,6 @@ admin.site.register(EstacionPrograma)
 admin.site.register(Carrera)
 admin.site.register(Ciclo)
 admin.site.register(Paralelo)
+
+admin.site.register(Correo)
+admin.site.register(Parametro)

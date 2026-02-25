@@ -1,0 +1,225 @@
+{% load static %}
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="x-apple-disable-message-reformatting">
+  <title>Detalle de reservas</title>
+  <style>
+    /* Reset suave */
+    html, body { margin:0 !important; padding:0 !important; height:100% !important; width:100% !important; }
+    * { -ms-text-size-adjust:100%; -webkit-text-size-adjust:100%; }
+    table, td { mso-table-lspace:0pt; mso-table-rspace:0pt; border-collapse:collapse; }
+    img { -ms-interpolation-mode:bicubic; border:0; outline:none; text-decoration:none; display:block; }
+    a { text-decoration:none; }
+    /* Responsive */
+    @media (max-width: 640px) {
+      .container { width:100% !important; }
+      .p-24 { padding:16px !important; }
+      .hide-mobile { display:none !important; }
+      .stack { display:block !important; width:100% !important; }
+      .btn { display:block !important; width:100% !important; }
+      .table { display:none !important; }
+      .cards { display:block !important; }
+      .card { border:1px solid #e7e9ee; border-radius:14px; padding:12px; margin-bottom:10px; background:#ffffff; }
+      .row { margin:6px 0; font-size:14px; color:#111827; }
+      .label { color:#6b7280; font-size:12px; display:block; }
+    }
+    /* Default: cards hidden in desktop */
+    .cards { display:none; }
+  </style>
+</head>
+
+<body style="background:#f6f7fb; margin:0; padding:0;">
+  <center style="width:100%; background:#f6f7fb;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f6f7fb;">
+      <tr>
+        <td align="center" class="p-24" style="padding:24px;">
+
+          <!-- Container -->
+          <table role="presentation" width="720" cellpadding="0" cellspacing="0" class="container" style="width:720px; max-width:720px;">
+            <!-- Header -->
+            <tr>
+              <td style="padding:0 0 12px 0;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+                       style="background:#3c3c3c; border-radius:16px; overflow:hidden;">
+                  <tr>
+                    <td style="padding:16px 18px;">
+                      <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                        <tr>
+                          <td class="stack" valign="middle" style="width:64px;">
+                            <!-- Logo (static reference) -->
+                            <img
+                              src="{% static 'img/logo-compartido-jefatura.png' %}"
+                              width="auto"
+                              height="44"
+                              alt="UCACUE"
+                              style="width:auto; height:44px; border-radius:10px; background:#3c3c3c;"
+                            >
+                          </td>
+                          <td class="stack" valign="middle" style="padding-left:12px;">
+                            <div style="font-family:Arial, Helvetica, sans-serif; color:#ffffff;">
+                              <div style="font-size:14px; opacity:.9;">Jefatura de Innovación y Emprendimiento</div>
+                              <div style="font-size:20px; font-weight:bold; margin-top:2px;">Detalle de reservas</div>
+                            </div>
+                          </td>
+                          <td class="hide-mobile" valign="middle" align="right">
+                            <div style="font-family:Arial, Helvetica, sans-serif; color:#ffffff; font-size:12px;">
+                              {{ hoy|default:"" }}
+                            </div>
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                </table>
+
+                <!-- Note about logo (optional) -->
+                <div style="font-family:Arial, Helvetica, sans-serif; font-size:11px; color:#9ca3af; margin-top:6px;">
+                  Si el logo no se muestra, tu cliente de correo puede estar bloqueando imágenes.
+                </div>
+              </td>
+            </tr>
+
+            <!-- Body card -->
+            <tr>
+              <td style="background:#ffffff; border-radius:16px; padding:18px; border:1px solid #e7e9ee;">
+                <div style="font-family:Arial, Helvetica, sans-serif;">
+                  <p style="margin:0 0 10px; color:#111827; font-size:14px;">
+                    Hola <strong>{{ nombre }}</strong>,
+                  </p>
+                  <p style="margin:0 0 14px; color:#374151; font-size:14px;">
+                    A continuación encontrarás el detalle de tus reservas registradas en laboratorios.
+                  </p>
+
+                  <!-- Summary -->
+                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:10px 0 16px;">
+                    <tr>
+                      <td style="background:#f9fafb; border:1px solid #eef2f7; border-radius:14px; padding:12px;">
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                          <tr>
+                            <td class="stack" style="font-family:Arial, Helvetica, sans-serif; color:#111827; font-size:13px;">
+                              Total de reservas: <strong>{{ total }}</strong>
+                            </td>
+                            <td class="stack" align="right" style="padding-top:8px;">
+                              <a href="http://itevr.ucacue.edu.ec/perfil/"
+                                 class="btn"
+                                 style="display:inline-block; background:#2563eb; color:#ffffff; font-family:Arial, Helvetica, sans-serif; font-size:13px; font-weight:bold; padding:10px 14px; border-radius:12px;">
+                                Ver reservas
+                              </a>
+                            </td>
+                          </tr>
+                        </table>
+                      </td>
+                    </tr>
+                  </table>
+
+                  <!-- Desktop Table -->
+                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="table" style="border:1px solid #eef2f7; border-radius:14px; overflow:hidden;">
+                    <thead>
+                      <tr style="background:#f9fafb;">
+                        <th align="left" style="padding:10px 10px; font-size:12px; color:#6b7280; font-family:Arial, Helvetica, sans-serif; border-bottom:1px solid #eef2f7;">Fecha</th>
+                        <th align="left" style="padding:10px 10px; font-size:12px; color:#6b7280; font-family:Arial, Helvetica, sans-serif; border-bottom:1px solid #eef2f7;">Horario</th>
+                        <th align="left" style="padding:10px 10px; font-size:12px; color:#6b7280; font-family:Arial, Helvetica, sans-serif; border-bottom:1px solid #eef2f7;">Laboratorio</th>
+                        <th align="left" style="padding:10px 10px; font-size:12px; color:#6b7280; font-family:Arial, Helvetica, sans-serif; border-bottom:1px solid #eef2f7;">Estación</th>
+                        <th align="left" style="padding:10px 10px; font-size:12px; color:#6b7280; font-family:Arial, Helvetica, sans-serif; border-bottom:1px solid #eef2f7;">Estado</th>
+                        <th align="left" style="padding:10px 10px; font-size:12px; color:#6b7280; font-family:Arial, Helvetica, sans-serif; border-bottom:1px solid #eef2f7;">Tipo</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for r in reservas %}
+                      <tr>
+                        <td style="padding:12px 10px; font-size:13px; color:#111827; font-family:Arial, Helvetica, sans-serif; border-bottom:1px solid #f0f2f5;">
+                          {{ r.fecha }}
+                        </td>
+                        <td style="padding:12px 10px; font-size:13px; color:#111827; font-family:Arial, Helvetica, sans-serif; border-bottom:1px solid #f0f2f5;">
+                          {{ r.hora_inicio }} - {{ r.hora_fin }}
+                        </td>
+                        <td style="padding:12px 10px; font-size:13px; color:#111827; font-family:Arial, Helvetica, sans-serif; border-bottom:1px solid #f0f2f5;">
+                          {{ r.laboratorio }}
+                        </td>
+                        <td style="padding:12px 10px; font-size:13px; color:#111827; font-family:Arial, Helvetica, sans-serif; border-bottom:1px solid #f0f2f5;">
+                          {{ r.estacion }}
+                        </td>
+                        <td style="padding:12px 10px; font-size:13px; font-family:Arial, Helvetica, sans-serif; border-bottom:1px solid #f0f2f5;">
+                          {% if r.estado == "ACTIVA" %}
+                            <span style="background:#dcfce7; color:#166534; padding:4px 10px; border-radius:999px; font-size:12px; font-weight:bold;">ACTIVA</span>
+                          {% elif r.estado == "EN REVISION" %}
+                            <span style="background:#fef9c3; color:#854d0e; padding:4px 10px; border-radius:999px; font-size:12px; font-weight:bold;">EN REVISIÓN</span>
+                          {% elif r.estado == "CANCELADA" %}
+                            <span style="background:#fee2e2; color:#991b1b; padding:4px 10px; border-radius:999px; font-size:12px; font-weight:bold;">CANCELADA</span>
+                          {% elif r.estado == "FINALIZADA" %}
+                            <span style="background:#e0e7ff; color:#3730a3; padding:4px 10px; border-radius:999px; font-size:12px; font-weight:bold;">FINALIZADA</span>
+                          {% else %}
+                            <span style="background:#f3f4f6; color:#374151; padding:4px 10px; border-radius:999px; font-size:12px; font-weight:bold;">{{ r.estado }}</span>
+                          {% endif %}
+                        </td>
+                        <td style="padding:12px 10px; font-size:13px; color:#111827; font-family:Arial, Helvetica, sans-serif; border-bottom:1px solid #f0f2f5;">
+                          {{ r.tipo }}
+                        </td>
+                      </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+
+                  <!-- Mobile Cards -->
+                  <div class="cards" style="margin-top:10px;">
+                    {% for r in reservas %}
+                      <div class="card">
+                        <div class="row"><span class="label">Fecha</span>{{ r.fecha }}</div>
+                        <div class="row"><span class="label">Horario</span>{{ r.hora_inicio }} - {{ r.hora_fin }}</div>
+                        <div class="row"><span class="label">Laboratorio</span>{{ r.laboratorio }}</div>
+                        <div class="row"><span class="label">Estación</span>{{ r.estacion }}</div>
+
+                        <div class="row">
+                          <span class="label">Estado</span>
+                          {% if r.estado == "ACTIVA" %}
+                            <span style="background:#dcfce7; color:#166534; padding:4px 10px; border-radius:999px; font-size:12px; font-weight:bold;">ACTIVA</span>
+                          {% elif r.estado == "EN REVISION" %}
+                            <span style="background:#fef9c3; color:#854d0e; padding:4px 10px; border-radius:999px; font-size:12px; font-weight:bold;">EN REVISIÓN</span>
+                          {% elif r.estado == "CANCELADA" %}
+                            <span style="background:#fee2e2; color:#991b1b; padding:4px 10px; border-radius:999px; font-size:12px; font-weight:bold;">CANCELADA</span>
+                          {% elif r.estado == "FINALIZADA" %}
+                            <span style="background:#e0e7ff; color:#3730a3; padding:4px 10px; border-radius:999px; font-size:12px; font-weight:bold;">FINALIZADA</span>
+                          {% else %}
+                            <span style="background:#f3f4f6; color:#374151; padding:4px 10px; border-radius:999px; font-size:12px; font-weight:bold;">{{ r.estado }}</span>
+                          {% endif %}
+                        </div>
+
+                        <div class="row"><span class="label">Tipo</span>{{ r.tipo }}</div>
+                      </div>
+                    {% endfor %}
+                  </div>
+
+                  <!-- Footer -->
+                  <div style="margin-top:18px; padding-top:14px; border-top:1px solid #e5e7eb;">
+                    <p style="margin:0; font-size:12px; color:#6b7280; font-family:Arial, Helvetica, sans-serif;">
+                      Saludos,<br>
+                      <strong>Jefatura de Innovación y Emprendimiento</strong>
+                    </p>
+                    <p style="margin:8px 0 0; font-size:11px; color:#9ca3af; font-family:Arial, Helvetica, sans-serif;">
+                      Este mensaje fue generado automáticamente. Por favor no respondas a este correo.
+                    </p>
+                  </div>
+
+                </div>
+              </td>
+            </tr>
+
+            <!-- Footer small -->
+            <tr>
+              <td style="padding:12px 6px 0; text-align:center; font-family:Arial, Helvetica, sans-serif; font-size:11px; color:#9ca3af;">
+                © {{ anio|default:"" }} UCAcUE
+              </td>
+            </tr>
+
+          </table>
+          <!-- /Container -->
+
+        </td>
+      </tr>
+    </table>
+  </center>
+</body>
+</html>

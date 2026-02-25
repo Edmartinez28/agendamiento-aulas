@@ -1,13 +1,25 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect, get_object_or_404
 from django.core.serializers import serialize
 from core.models import *
 import json
 
 from django.db.models import Count, Q
-from django.shortcuts import redirect, get_object_or_404
 
 from datetime import datetime, timedelta
 from django.utils import timezone
+
+
+from collections import defaultdict
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.core.mail import send_mail
+from django.db import transaction
+from django.db.models import Prefetch
+from django.shortcuts import render, redirect
+from django.conf import settings
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
 
 # Create your views here.
 def obtenerlaboratorios(request):
@@ -51,12 +63,24 @@ def cambiar_estado_reserva(request, reserva_id):
 
     if request.method == "POST":
         nuevo_estado = request.POST.get("estado")
-        reserva.estado = nuevo_estado
-        reserva.save()
+        estado_anterior = reserva.estado
+
+        ESTADOS_VALIDOS = {"ACTIVA", "EN REVISION", "CANCELADA"}
+
+        if nuevo_estado and nuevo_estado != estado_anterior and nuevo_estado in ESTADOS_VALIDOS: # Solo si cambia el estado, actualiza y crea correo
+            reserva.estado = nuevo_estado
+            reserva.save()
+
+            Correo.objects.create(
+                reserva=reserva,
+                tecnico=request.user,
+                solicitante=reserva.usuario,
+                estado="PENDIENTE"
+            )
 
     return redirect("gestion:listadoreservas", id_lab=reserva.laboratorio.id)
 
-def obtenerhorario(request, id_lab):
+"""def obtenerhorario(request, id_lab):
     laboratorio = Laboratorio.objects.get(id=id_lab)
     reservas = Reserva.objects.filter(laboratorio=laboratorio, estacion__isnull=True)
     slots = TimeSlot.objects.all().order_by("hora_inicio")
@@ -66,7 +90,7 @@ def obtenerhorario(request, id_lab):
         "reservas":reservas,
         "slots":slots
     }
-    return render(request, "horariolaboratorio.html", contexto)
+    return render(request, "horariolaboratorio.html", contexto)"""
 
 
 def obtenerhorario(request, id_lab):
@@ -130,3 +154,138 @@ def obtenerhorario(request, id_lab):
     }
 
     return render(request, "horariolaboratorio.html", contexto)
+
+
+@login_required
+def correos_pendientes_agrupados(request):
+    # Traemos correos pendientes con sus reservas (optimizado)
+    correos_qs = (
+        Correo.objects
+        .filter(estado="PENDIENTE")
+        .select_related(
+            "solicitante",
+            "tecnico",
+            "reserva",
+            "reserva__laboratorio",
+            "reserva__slot",
+            "reserva__estacion",
+            "reserva__carrera",
+            "reserva__ciclo",
+            "reserva__paralelo",
+        )
+        .order_by("solicitante__id", "reserva__fecha", "reserva__slot__hora_inicio")
+    )
+
+    # Agrupar en Python por solicitante (fácil de renderizar)
+    grupos = defaultdict(list)
+    for c in correos_qs:
+        grupos[c.solicitante].append(c)
+
+    # Acción: enviar o cancelar (por solicitante)
+    if request.method == "POST":
+        action = request.POST.get("action")  # "enviar" | "cancelar"
+        solicitante_id = request.POST.get("solicitante_id")
+
+        if not action or not solicitante_id:
+            messages.error(request, "Solicitud inválida.")
+            return redirect("gestion:correos_pendientes_agrupados")
+
+        # Re-consulta segura en BD para ese solicitante (evitar manipulación)
+        correos_solicitante = (
+            Correo.objects
+            .filter(estado="PENDIENTE", solicitante_id=solicitante_id)
+            .select_related(
+                "solicitante",
+                "tecnico",
+                "reserva",
+                "reserva__laboratorio",
+                "reserva__slot",
+                "reserva__estacion",
+                "reserva__carrera",
+                "reserva__ciclo",
+                "reserva__paralelo",
+            )
+            .order_by("reserva__fecha", "reserva__slot__hora_inicio")
+        )
+
+        if not correos_solicitante.exists():
+            messages.warning(request, "No hay correos pendientes para ese solicitante.")
+            return redirect("gestion:correos_pendientes_agrupados")
+
+        solicitante = correos_solicitante.first().solicitante
+        tecnico = request.user  # el que ejecuta la acción (opcional)
+
+        if action == "cancelar":
+            with transaction.atomic():
+                correos_solicitante.update(estado="CANCELADO")
+            messages.success(request, f"Registros de correo cancelados para {solicitante}.")
+            return redirect("gestion:correos_pendientes_agrupados")
+
+        if action == "enviar":
+            subject = "Detalle de reservas de laboratorio"
+            to_email = getattr(solicitante, "email", None)
+            if not to_email:
+                messages.error(request, "El solicitante no tiene correo registrado.")
+                return redirect("gestion:correos_pendientes_agrupados")
+
+            # Armar datos para el template
+            reservas_data = []
+            for c in correos_solicitante:
+                r = c.reserva
+                reservas_data.append({
+                    "fecha": r.fecha,
+                    "hora_inicio": r.slot.hora_inicio,
+                    "hora_fin": r.slot.hora_fin,
+                    "laboratorio": r.laboratorio.nombre,
+                    "estacion": r.estacion.codigo if r.estacion else "LABORATORIO COMPLETO",
+                    "estado": r.estado,
+                    "tipo": r.tipo,
+                })
+
+            nombre = (solicitante.get_full_name() or getattr(solicitante, "username", "Usuario")).strip()
+
+            context = {
+                "nombre": nombre,
+                "total": len(reservas_data),
+                "reservas": reservas_data,
+                "hoy": timezone.localdate().strftime("%d/%m/%Y"),
+                "anio": timezone.localdate().year,
+            }
+
+            html_content = render_to_string("emails/reservas_detalle.html", context)
+            text_content = strip_tags(html_content)  # fallback texto
+
+            from_email = getattr(settings, "DEFAULT_FROM_EMAIL", None) or "no-reply@ucacue.edu.ec"
+
+            email = EmailMultiAlternatives(
+                subject=subject,
+                body=text_content,
+                from_email=from_email,
+                to=[to_email],
+            )
+            email.attach_alternative(html_content, "text/html")
+
+            try:
+                email.send(fail_silently=False)
+            except Exception as e:
+                messages.error(request, f"No se pudo enviar el correo: {e}")
+                return redirect("gestion:correos_pendientes_agrupados")
+
+            with transaction.atomic():
+                correos_solicitante.update(estado="ENVIADO")
+
+            messages.success(request, f"Correo enviado a {to_email} y registros marcados como ENVIADO.")
+            return redirect("gestion:correos_pendientes_agrupados")
+
+        messages.error(request, "Acción no reconocida.")
+        return redirect("gestion:correos_pendientes_agrupados")
+
+    # GET: render pantalla
+    context = {
+        "grupos": dict(grupos),  # {User: [Correo, Correo, ...]}
+    }
+    return render(request, "correos_pendientes_agrupados.html", context)
+
+
+def testcorreo(request):
+    return render(request, "emails/reservas_detalle.html")

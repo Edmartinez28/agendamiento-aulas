@@ -878,7 +878,7 @@
             const modalTitle = document.getElementById('modalTitle');
             const modalBody = document.getElementById('modalBody');
 
-            modalTitle.textContent = reserva.laboratorio.nombre;
+            modalTitle.textContent = "Reserva("+reserva.id+") "+reserva.laboratorio;
             
             modalBody.innerHTML = `
                 <div class="modal-field">
@@ -895,11 +895,11 @@
                 </div>
                 <div class="modal-field">
                     <span class="modal-label">Carrera</span>
-                    <span class="modal-value">${reserva.carrera ? reserva.carrera.nombre : 'N/A'}</span>
+                    <span class="modal-value">${reserva.carrera ? reserva.carrera : 'N/A'}</span>
                 </div>
                 <div class="modal-field">
                     <span class="modal-label">Ciclo y Paralelo</span>
-                    <span class="modal-value">${reserva.ciclo ? reserva.ciclo.nombre : 'N/A'} - Paralelo ${reserva.paralelo ? reserva.paralelo.nombre : 'N/A'}</span>
+                    <span class="modal-value">${reserva.ciclo ? reserva.ciclo : 'N/A'} - Paralelo ${reserva.paralelo ? reserva.paralelo : 'N/A'}</span>
                 </div>
                 <div class="modal-field">
                     <span class="modal-label">Grupo</span>
@@ -915,7 +915,7 @@
                 </div>
                 <div class="modal-field">
                     <span class="modal-label">Solicitante</span>
-                    <span class="modal-value">${reserva.usuario.nombre}</span>
+                    <span class="modal-value">${reserva.usuario}</span>
                 </div>
                 ${reserva.estacion ? `
                 <div class="modal-field">

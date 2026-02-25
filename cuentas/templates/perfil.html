@@ -753,7 +753,7 @@
                     </div>
                     <a class="btn-new-reservation" href="{% url 'gestion:obtenerlaboratorios' %}" style="text-decoration: none;">
                         <span>➕</span>
-                        Visitar Laboratorios
+                        Visitar Aulas ITE-VR
                     </a>
                 </div>
 
@@ -812,6 +812,11 @@
                         </div>
 
                         <div class="reservation-details">
+
+                            <div class="detail-item">
+                                <span class="detail-label">N° de Reserva</span>
+                                <span class="detail-value">{{ reserva.id }}</span>
+                            </div>
 
                             <div class="detail-item">
                                 <span class="detail-label">Asignatura</span>

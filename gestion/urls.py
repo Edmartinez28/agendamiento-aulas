@@ -7,4 +7,6 @@ urlpatterns = [
     path("laboratorios/horario/<int:id_lab>/", obtenerhorario , name="obtenerhorario"),
     path("reservas/<int:id_lab>/", listadoreservas , name="listadoreservas"),
     path("reservas/<int:reserva_id>/estado/",cambiar_estado_reserva,name="cambiar_estado_reserva"),
+    path("correos/pendientes/", correos_pendientes_agrupados, name="correos_pendientes_agrupados"),
+    path("testcorreo/", testcorreo, name="testcorreo"),
 ]

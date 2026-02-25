@@ -8,7 +8,8 @@ from django.db.models import Count, Q
 from datetime import datetime, timedelta
 from django.utils import timezone
 
-
+import socket
+import smtplib
 from collections import defaultdict
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -95,21 +96,17 @@ def cambiar_estado_reserva(request, reserva_id):
 
 def obtenerhorario(request, id_lab):
     laboratorio = get_object_or_404(Laboratorio, id=id_lab)
-
-    # 📅 Obtener fecha base desde GET o usar hoy
-    week_str = request.GET.get("week")
+    week_str = request.GET.get("week") # Obtener fecha base desde GET o usar hoy
 
     if week_str:
         base_date = datetime.strptime(week_str, "%Y-%m-%d").date()
     else:
         base_date = timezone.localdate()
 
-    # 📅 Calcular lunes de esa semana
-    start_week = base_date - timedelta(days=base_date.weekday())
+    start_week = base_date - timedelta(days=base_date.weekday()) # Calcular lunes de esa semana
     end_week = start_week + timedelta(days=4)  # Viernes
 
-    # 🔎 Filtrar reservas solo de esa semana
-    reservas_qs = Reserva.objects.filter(
+    reservas_qs = Reserva.objects.filter( # Filtrar reservas solo de esa semana
         laboratorio=laboratorio,
         estacion__isnull=True,
         fecha__range=(start_week, end_week)
@@ -267,6 +264,24 @@ def correos_pendientes_agrupados(request):
 
             try:
                 email.send(fail_silently=False)
+
+            except (socket.timeout, TimeoutError) as e:
+                messages.error(request, f"Timeout conectando al servidor de correo: {e}")
+                return redirect("gestion:correos_pendientes_agrupados")
+
+            except (ConnectionError, OSError) as e:
+                # OSError cubre: Network is unreachable, Connection refused, etc.
+                messages.error(request, f"No hay conectividad con el servidor de correo (red/puerto bloqueado): {e}")
+                return redirect("gestion:correos_pendientes_agrupados")
+
+            except smtplib.SMTPAuthenticationError as e:
+                messages.error(request, f"Autenticación SMTP falló (usuario/clave): {e}")
+                return redirect("gestion:correos_pendientes_agrupados")
+
+            except smtplib.SMTPException as e:
+                messages.error(request, f"Error SMTP: {e}")
+                return redirect("gestion:correos_pendientes_agrupados")
+
             except Exception as e:
                 messages.error(request, f"No se pudo enviar el correo: {e}")
                 return redirect("gestion:correos_pendientes_agrupados")

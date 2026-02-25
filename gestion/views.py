@@ -44,7 +44,7 @@ def listadoreservas(request, id_lab):
 
     total = reservas_laboratorio.count() + reservas_estaciones.count()
     pendientes = Reserva.objects.filter(laboratorio=laboratorio,estado="EN REVISION").count()
-    aprobadas = Reserva.objects.filter(laboratorio=laboratorio,estado="ACTIVA").count()
+    aprobadas = Reserva.objects.filter(laboratorio=laboratorio,estado="APROBADA").count()
     rechazadas = Reserva.objects.filter(laboratorio=laboratorio,estado="CANCELADA").count()
 
     contexto = {
@@ -66,7 +66,7 @@ def cambiar_estado_reserva(request, reserva_id):
         nuevo_estado = request.POST.get("estado")
         estado_anterior = reserva.estado
 
-        ESTADOS_VALIDOS = {"ACTIVA", "EN REVISION", "CANCELADA"}
+        ESTADOS_VALIDOS = {"APROBADA", "EN REVISION", "CANCELADA"}
 
         if nuevo_estado and nuevo_estado != estado_anterior and nuevo_estado in ESTADOS_VALIDOS: # Solo si cambia el estado, actualiza y crea correo
             reserva.estado = nuevo_estado

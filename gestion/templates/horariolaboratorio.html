@@ -300,7 +300,7 @@
         }
 
         /* Estados - Colores de fondo */
-        .reservation-item.activa {
+        .reservation-item.aprobada {
             background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);
             color: white;
             border-left: 4px solid #2e7d32;
@@ -605,7 +605,7 @@
             <div class="view-controls">
                 <select class="filter-select" id="filterEstado" onchange="filterSchedule()">
                     <option value="TODOS">Todos los estados</option>
-                    <option value="ACTIVA">Activas</option>
+                    <option value="APROBADA">Aprobadas</option>
                     <option value="EN REVISION">En Revisión</option>
                     <option value="FINALIZADA">Finalizadas</option>
                     <option value="CANCELADA">Canceladas</option>
@@ -624,7 +624,7 @@
             <div class="legend-grid">
                 <div class="legend-item">
                     <div class="legend-color" style="background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);"></div>
-                    <span class="legend-label">✓ Activa</span>
+                    <span class="legend-label">✓ Aprobada</span>
                 </div>
                 <div class="legend-item">
                     <div class="legend-color" style="background: linear-gradient(135deg, #ff9800 0%, #ffa726 100%);"></div>

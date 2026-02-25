@@ -79,7 +79,7 @@ class Paralelo(models.Model):
 class Reserva(models.Model):
 
     ESTADOS_CHOICES = [
-        ("ACTIVA", "ACTIVA"),
+        ("APROBADA", "APROBADA"),
         ("EN REVISION", "EN REVISION"),
         ("CANCELADA", "CANCELADA"),
         ("FINALIZADA", "FINALIZADA"),
@@ -119,7 +119,7 @@ class Reserva(models.Model):
         reservas_conflicto = Reserva.objects.filter(
             fecha=self.fecha,
             slot=self.slot,
-            estado__in=["ACTIVA", "EN REVISION"]
+            estado__in=["APROBADA", "EN REVISION"]
         ).exclude(pk=self.pk)
 
         # CASO 1 — reserva del laboratorio completo

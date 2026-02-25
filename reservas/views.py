@@ -39,7 +39,7 @@ def reservaslaboratorios(request, id_lab):
     reservas = Reserva.objects.filter(
         laboratorio=laboratorio,
         fecha__range=[start_of_week, end_of_week],
-        estado__in=["ACTIVA", "EN REVISION", "ESTUDIANTIL"]
+        estado__in=["APROBADA", "EN REVISION", "ESTUDIANTIL"]
     ).select_related("slot")
 
     reservas_data = [
@@ -195,7 +195,7 @@ def estaciones_disponibles(request, id_lab):
         laboratorio=laboratorio,
         fecha=fecha,
         slot_id=slot_id,
-        estado__in=["ACTIVA", "EN REVISION"]
+        estado__in=["APROBADA", "EN REVISION"]
     )
 
     estaciones_ocupadas = reservas.values_list("estacion_id", flat=True)

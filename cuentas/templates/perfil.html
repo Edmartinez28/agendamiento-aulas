@@ -326,7 +326,7 @@
             letter-spacing: 0.5px;
         }
 
-        .status-badge.activa {
+        .status-badge.aprobada {
             background: #e8f5e9;
             color: #2e7d32;
         }
@@ -760,8 +760,8 @@
                 <!-- Estadísticas rápidas -->
                 <div class="stats-cards">
                     <div class="stat-card-small">
-                        <div class="stat-number" id="statActivas">0</div>
-                        <div class="stat-label">Activas</div>
+                        <div class="stat-number" id="statAprobadas">0</div>
+                        <div class="stat-label">Aprobadas</div>
                     </div>
                     <div class="stat-card-small">
                         <div class="stat-number" id="statRevision">0</div>
@@ -780,7 +780,7 @@
                 <!-- Filtros -->
                 <div class="reservations-filters">
                     <button class="filter-btn active" onclick="filterReservations('TODAS')">Todas</button>
-                    <button class="filter-btn" onclick="filterReservations('ACTIVA')">Activas</button>
+                    <button class="filter-btn" onclick="filterReservations('APROBADA')">Aprobadas</button>
                     <button class="filter-btn" onclick="filterReservations('EN REVISION')">En Revisión</button>
                     <button class="filter-btn" onclick="filterReservations('FINALIZADA')">Finalizadas</button>
                 </div>
@@ -861,20 +861,20 @@
 
             const reservations = document.querySelectorAll(".reservation-item");
 
-            let activas = 0;
+            let aprobadas = 0;
             let revision = 0;
             let finalizadas = 0;
 
             reservations.forEach(res => {
                 const estado = res.dataset.estado?.trim();
 
-                if (estado === "ACTIVA") activas++;
+                if (estado === "APROBADA") aprobadas++;
                 if (estado === "EN REVISION") revision++;
                 if (estado === "FINALIZADA") finalizadas++;
             });
 
             // Totales
-            document.getElementById("statActivas").innerText = activas;
+            document.getElementById("statAprobadas").innerText = aprobadas;
             document.getElementById("statRevision").innerText = revision;
             document.getElementById("statFinalizadas").innerText = finalizadas;
             document.getElementById("statTotal").innerText = reservations.length;

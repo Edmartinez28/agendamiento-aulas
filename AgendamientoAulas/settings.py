@@ -30,7 +30,7 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 DEBUG = os.getenv("DEBUG") == "True"
 
 #ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS").split(",")
-ALLOWED_HOSTS = ["190.15.143.84", "localhost", "127.0.0.1"]
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").strip("[]").replace("'", "").split(", ")
 
 
 # Application definition
@@ -140,6 +140,9 @@ STATICFILES_DIRS = [
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+DATA_UPLOAD_MAX_MEMORY_SIZE = 25 * 1024 * 1024  # 25MB
+FILE_UPLOAD_MAX_MEMORY_SIZE = 25 * 1024 * 1024  # 25MB
+
 # Configuracion para el apartado de autenticacion
 
 if not DEBUG:
@@ -165,3 +168,28 @@ OIDC_OP_JWKS_ENDPOINT = "https://erp.edu/certs"
 
 LOGIN_REDIRECT_URL = "/redirect/"
 LOGOUT_REDIRECT_URL = "/"
+
+#Habilitar cuando den errores para ver en sudo journalctl -u gunicorn_b -n 120 --no-pager
+"""LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {"class": "logging.StreamHandler"},
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": "INFO",
+    },
+    "loggers": {
+        "django.request": {  # aquí Django reporta 500 con traceback
+            "handlers": ["console"],
+            "level": "ERROR",
+            "propagate": False,
+        },
+        "django.security": {
+            "handlers": ["console"],
+            "level": "WARNING",
+            "propagate": False,
+        },
+    },
+}"""

@@ -9,7 +9,11 @@ from django.contrib.auth.decorators import login_required
 def get_fondo_valor(default="#4C758A"):
     p = Parametro.objects.filter(etiqueta="fondo").first()
     return p.valor if p else default
-    
+
+def get_letra_titulos(default="#FFFFFF"):
+    p = Parametro.objects.filter(etiqueta="colortitulos").first()
+    return p.valor if p else default
+
 def home(request):
     return render(request, "home.html")
     
@@ -22,6 +26,7 @@ def mostrarperfil(request):
         "usuario": usuario,
         "reservas": reservas,
         "fondo":get_fondo_valor,
+        "titulos":get_letra_titulos,
     }
 
     return render(request, "perfil.html", contexto)

@@ -29,6 +29,10 @@ def get_fondo_valor(default="#4C758A"):
     p = Parametro.objects.filter(etiqueta="fondo").first()
     return p.valor if p else default
 
+def get_letra_titulos(default="#FFFFFF"):
+    p = Parametro.objects.filter(etiqueta="colortitulos").first()
+    return p.valor if p else default
+
 # Create your views here.
 def obtenerlaboratorios(request):
     laboratorios = Laboratorio.objects.all().prefetch_related(
@@ -41,7 +45,7 @@ def obtenerlaboratorios(request):
         ).distinct()
         lab.programas_unicos = programas
 
-    return render(request, "listadolaboratorios.html", {"laboratorios": laboratorios, "fondo":get_fondo_valor})
+    return render(request, "listadolaboratorios.html", {"laboratorios": laboratorios, "fondo":get_fondo_valor, "titulos":get_letra_titulos})
 
 def listadoreservas(request, id_lab):
     laboratorio = Laboratorio.objects.get(id=id_lab)
@@ -63,6 +67,7 @@ def listadoreservas(request, id_lab):
         "aprobadas": aprobadas,
         "rechazadas": rechazadas,
         "fondo":get_fondo_valor,
+        "titulos":get_letra_titulos,
     }
 
     return render(request, "listadoreservas.html", contexto)
@@ -144,6 +149,7 @@ def obtenerhorario(request, id_lab):
         "start_week": start_week.strftime("%Y-%m-%d"),
         "end_week": end_week.strftime("%Y-%m-%d"),
         "fondo":get_fondo_valor,
+        "titulos":get_letra_titulos,
     }
 
     return render(request, "horariolaboratorio.html", contexto)
@@ -262,6 +268,7 @@ def correos_pendientes_agrupados(request):
                 "hoy": timezone.localdate().strftime("%d/%m/%Y"),
                 "anio": timezone.localdate().year,
                 "fondo":get_fondo_valor,
+                "titulos":get_letra_titulos,
             }
 
             html_content = render_to_string("emails/reservas_detalle.html", context)
@@ -315,6 +322,7 @@ def correos_pendientes_agrupados(request):
     context = {
         "grupos": dict(grupos),  # {User: [Correo, Correo, ...]}
         "fondo":get_fondo_valor,
+        "titulos":get_letra_titulos,
     }
     return render(request, "correos_pendientes_agrupados.html", context)
 

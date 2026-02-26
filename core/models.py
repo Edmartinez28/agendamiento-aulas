@@ -1,9 +1,9 @@
+import os
 from django.db import models
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.utils import timezone
-
 
 class Laboratorio(models.Model):
     ESTADO_CHOICES = [
@@ -24,6 +24,18 @@ class Laboratorio(models.Model):
 
     def __str__(self):
         return self.nombre
+
+
+def laboratorio_upload_path(instance, filename):
+    nombre = (instance.laboratorio.nombre or "sin-nombre").strip()
+    return os.path.join("laboratorios", nombre, filename)
+
+class ImagenLaboratorio(models.Model):
+    laboratorio = models.ForeignKey("Laboratorio", on_delete=models.CASCADE, related_name="imagenes")
+    imagen = models.ImageField(upload_to=laboratorio_upload_path, null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.laboratorio.nombre} - {self.id}"
 
 
 class Estacion(models.Model):

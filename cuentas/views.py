@@ -5,6 +5,11 @@ from core.models import *
 from django.contrib.auth.decorators import login_required
 
 
+# Inicio de parametrizaciones de color base
+def get_fondo_valor(default="#4C758A"):
+    p = Parametro.objects.filter(etiqueta="fondo").first()
+    return p.valor if p else default
+    
 def home(request):
     return render(request, "home.html")
     
@@ -16,6 +21,7 @@ def mostrarperfil(request):
     contexto = {
         "usuario": usuario,
         "reservas": reservas,
+        "fondo":get_fondo_valor,
     }
 
     return render(request, "perfil.html", contexto)

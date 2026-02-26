@@ -15,3 +15,4 @@ admin.site.register(Paralelo)
 
 admin.site.register(Correo)
 admin.site.register(Parametro)
+admin.site.register(ImagenLaboratorio)

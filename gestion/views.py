@@ -22,6 +22,13 @@ from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 
+from itertools import chain
+
+# Inicio de parametrizaciones de color base
+def get_fondo_valor(default="#4C758A"):
+    p = Parametro.objects.filter(etiqueta="fondo").first()
+    return p.valor if p else default
+
 # Create your views here.
 def obtenerlaboratorios(request):
     laboratorios = Laboratorio.objects.all().prefetch_related(
@@ -34,7 +41,7 @@ def obtenerlaboratorios(request):
         ).distinct()
         lab.programas_unicos = programas
 
-    return render(request, "listadolaboratorios.html", {"laboratorios": laboratorios})
+    return render(request, "listadolaboratorios.html", {"laboratorios": laboratorios, "fondo":get_fondo_valor})
 
 def listadoreservas(request, id_lab):
     laboratorio = Laboratorio.objects.get(id=id_lab)
@@ -55,6 +62,7 @@ def listadoreservas(request, id_lab):
         "pendientes": pendientes,
         "aprobadas": aprobadas,
         "rechazadas": rechazadas,
+        "fondo":get_fondo_valor,
     }
 
     return render(request, "listadoreservas.html", contexto)
@@ -80,19 +88,6 @@ def cambiar_estado_reserva(request, reserva_id):
             )
 
     return redirect("gestion:listadoreservas", id_lab=reserva.laboratorio.id)
-
-"""def obtenerhorario(request, id_lab):
-    laboratorio = Laboratorio.objects.get(id=id_lab)
-    reservas = Reserva.objects.filter(laboratorio=laboratorio, estacion__isnull=True)
-    slots = TimeSlot.objects.all().order_by("hora_inicio")
-
-    contexto = {
-        "laboratorio": laboratorio,
-        "reservas":reservas,
-        "slots":slots
-    }
-    return render(request, "horariolaboratorio.html", contexto)"""
-
 
 def obtenerhorario(request, id_lab):
     laboratorio = get_object_or_404(Laboratorio, id=id_lab)
@@ -148,6 +143,7 @@ def obtenerhorario(request, id_lab):
         "slots": json.dumps(slots),
         "start_week": start_week.strftime("%Y-%m-%d"),
         "end_week": end_week.strftime("%Y-%m-%d"),
+        "fondo":get_fondo_valor,
     }
 
     return render(request, "horariolaboratorio.html", contexto)
@@ -210,7 +206,6 @@ def correos_pendientes_agrupados(request):
             return redirect("gestion:correos_pendientes_agrupados")
 
         solicitante = correos_solicitante.first().solicitante
-        tecnico = request.user  # el que ejecuta la acción (opcional)
 
         if action == "cancelar":
             with transaction.atomic():
@@ -241,12 +236,32 @@ def correos_pendientes_agrupados(request):
 
             nombre = (solicitante.get_full_name() or getattr(solicitante, "username", "Usuario")).strip()
 
+            correos_solicitante = (
+                Correo.objects
+                .filter(estado="PENDIENTE", solicitante_id=solicitante_id)
+                .select_related(
+                    "tecnico",
+                    "reserva",
+                    "reserva__laboratorio",
+                )
+                .order_by("reserva__fecha", "reserva__slot__hora_inicio")
+            )
+
+            emails_tecnicos = correos_solicitante.values_list("tecnico__email", flat=True)# 1) Emails de técnicos          
+            emails_responsables = correos_solicitante.values_list("reserva__laboratorio__correo_responsable", flat=True) # 2) Correos responsables del laboratorio (desde la reserva)
+            cc_list = sorted({ # 3) Unir + quitar duplicados + limpiar nulos/vacíos
+                e.strip().lower()
+                for e in chain(emails_tecnicos, emails_responsables)
+                if e and str(e).strip()
+            })
+
             context = {
                 "nombre": nombre,
                 "total": len(reservas_data),
                 "reservas": reservas_data,
                 "hoy": timezone.localdate().strftime("%d/%m/%Y"),
                 "anio": timezone.localdate().year,
+                "fondo":get_fondo_valor,
             }
 
             html_content = render_to_string("emails/reservas_detalle.html", context)
@@ -259,6 +274,7 @@ def correos_pendientes_agrupados(request):
                 body=text_content,
                 from_email=from_email,
                 to=[to_email],
+                cc=cc_list,
             )
             email.attach_alternative(html_content, "text/html")
 
@@ -298,6 +314,7 @@ def correos_pendientes_agrupados(request):
     # GET: render pantalla
     context = {
         "grupos": dict(grupos),  # {User: [Correo, Correo, ...]}
+        "fondo":get_fondo_valor,
     }
     return render(request, "correos_pendientes_agrupados.html", context)
 

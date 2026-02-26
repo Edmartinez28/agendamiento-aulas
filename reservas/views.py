@@ -13,6 +13,10 @@ from django.contrib.auth.decorators import login_required
 from django.utils.dateparse import parse_date
 from django.db import transaction
 
+# Inicio de parametrizaciones de color base
+def get_fondo_valor(default="#4C758A"):
+    p = Parametro.objects.filter(etiqueta="fondo").first()
+    return p.valor if p else default
 
 def reservaslaboratorios(request, id_lab):
     carreras = Carrera.objects.all()
@@ -59,6 +63,8 @@ def reservaslaboratorios(request, id_lab):
             "reservas": reservas_data,
         })
 
+    imagenes = ImagenLaboratorio.objects.filter(laboratorio=laboratorio)
+
     contexto = {
         "laboratorio":laboratorio,
         "carreras":carreras,
@@ -68,6 +74,8 @@ def reservaslaboratorios(request, id_lab):
         "start_of_week": start_of_week,
         "end_of_week": end_of_week,
         "reservas_json": reservas_data,
+        "fondo":get_fondo_valor,
+        "imagenes":imagenes,
     }
     return render(request, "reservaslaboratorios.html", contexto)
 
@@ -168,6 +176,8 @@ def reservasestaciones(request, id_lab):
             "habilitadas": habilitadas_data,
         })
 
+    imagenes = ImagenLaboratorio.objects.filter(laboratorio=laboratorio)
+
     contexto = {
         "laboratorio":laboratorio,
         "carreras":carreras,
@@ -177,6 +187,8 @@ def reservasestaciones(request, id_lab):
         "start_of_week": start_of_week,
         "end_of_week": end_of_week,
         "habilitadas_json": habilitadas_data,
+        "fondo":get_fondo_valor,
+        "imagenes":imagenes,
     }
 
     return render(request, "reservasestaciones.html", contexto)
@@ -227,8 +239,6 @@ def guardar_reserva_estacion(request, id_lab):
         estacion_id = data.get("estacion_id")
         slot_id = data.get("slot_id")
         fecha = data.get("fecha")
-
-        print(data)  # 👈 DEBUG
 
         # ejemplo guardado
         Reserva.objects.create(

@@ -24,6 +24,9 @@ from django.utils.html import strip_tags
 
 from itertools import chain
 
+from django.contrib import messages
+from .tasks import enviar_correo_reservas_solicitante
+
 # Inicio de parametrizaciones de color base
 def get_fondo_valor(default="#4C758A"):
     p = Parametro.objects.filter(etiqueta="fondo").first()

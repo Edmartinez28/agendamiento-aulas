@@ -9,7 +9,7 @@ from django.utils import timezone
 from django.utils.html import strip_tags
 
 from itertools import chain
-from .models import Correo  # ajusta import
+from core.models import Correo  # ajusta import
 
 @shared_task(bind=True, max_retries=3, default_retry_delay=60)
 def enviar_correo_reservas_solicitante(self, solicitante_id: int):

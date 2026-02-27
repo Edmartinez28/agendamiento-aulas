@@ -1,3 +1,5 @@
+{{ inventario_json|json_script:"inventario-data" }}
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -13,7 +15,7 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, {{ fondo|default:"#4C758A" }} 0%, #F2F2F2 100%);
             min-height: 100vh;
             padding: 20px;
         }
@@ -25,7 +27,7 @@
 
         .header {
             text-align: center;
-            color: white;
+            color: {{ titulos|default:"#FFFFFF" }};
             margin-bottom: 40px;
         }
 
@@ -133,7 +135,7 @@
 
         .search-input:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: {{ fondo|default:"#4C758A" }};
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
@@ -229,7 +231,7 @@
         }
 
         .items-count {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: {{ fondo|default:"#4C758A" }};
             color: white;
             padding: 6px 16px;
             border-radius: 20px;
@@ -254,7 +256,7 @@
         }
 
         .view-btn.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: {{ fondo|default:"#4C758A" }};
             color: white;
             border-color: transparent;
         }
@@ -276,7 +278,7 @@
         }
 
         .inventory-card:hover {
-            border-color: #667eea;
+            border-color: {{ fondo|default:"#4C758A" }};
             background: white;
             box-shadow: 0 5px 15px rgba(102, 126, 234, 0.1);
             transform: translateY(-3px);
@@ -701,12 +703,8 @@
                     <span class="items-count" id="itemsCount">0 equipos</span>
                 </div>
                 <div class="view-toggle">
-                    <button class="view-btn active" onclick="toggleView('grid')">
-                        ▦ Grid
-                    </button>
-                    <button class="view-btn" onclick="toggleView('list')">
-                        ☰ Lista
-                    </button>
+                    <button class="view-btn active" onclick="toggleView(event,'grid')">▦ Grid</button>
+                    <button class="view-btn" onclick="toggleView(event,'list')">☰ Lista</button>
                 </div>
             </div>
 
@@ -723,113 +721,8 @@
     </div>
 
     <script>
-        // Datos de ejemplo
-        const inventario = [
-            {
-                id: 1,
-                laboratorio: { nombre: "Lab. de Química Orgánica" },
-                codigo: "QUI-001",
-                serie: "SN-2024-001",
-                marca: "Bosch",
-                modelo: "BX-2000",
-                tipo: "Balanza Analítica",
-                detalles: "Capacidad 200g, precisión 0.001g",
-                estado: "CORRECTO",
-                observacion: "Calibrada el 15/01/2026",
-                fecha_ingreso: "2024-01-10T10:30:00"
-            },
-            {
-                id: 2,
-                laboratorio: { nombre: "Lab. de Computación" },
-                codigo: "COM-015",
-                serie: "SN-2024-015",
-                marca: "Dell",
-                modelo: "Optiplex 7090",
-                tipo: "Computadora",
-                detalles: "Intel Core i7, 16GB RAM, 512GB SSD",
-                estado: "NUEVO",
-                observacion: null,
-                fecha_ingreso: "2026-02-01T09:00:00"
-            },
-            {
-                id: 3,
-                laboratorio: { nombre: "Lab. de Física" },
-                codigo: "FIS-008",
-                serie: "SN-2023-045",
-                marca: "Vernier",
-                modelo: "Logger Pro",
-                tipo: "Sensor de Movimiento",
-                detalles: "Rango: 0.15 - 6m",
-                estado: "MANTENIMIENTO",
-                observacion: "Requiere calibración del sensor",
-                fecha_ingreso: "2023-05-20T14:15:00"
-            },
-            {
-                id: 4,
-                laboratorio: { nombre: "Lab. de Biología" },
-                codigo: "BIO-022",
-                serie: "SN-2023-089",
-                marca: "Olympus",
-                modelo: "CX23",
-                tipo: "Microscopio",
-                detalles: "Binocular, 40x-1000x",
-                estado: "FALLANDO",
-                observacion: "Problema con el mecanismo de enfoque fino",
-                fecha_ingreso: "2023-08-12T11:20:00"
-            },
-            {
-                id: 5,
-                laboratorio: { nombre: "Lab. de Electrónica" },
-                codigo: "ELE-012",
-                serie: "SN-2022-067",
-                marca: "Tektronix",
-                modelo: "TBS1052B",
-                tipo: "Osciloscopio",
-                detalles: "2 canales, 50MHz",
-                estado: "PENDIENTE",
-                observacion: "Pendiente de verificación técnica",
-                fecha_ingreso: "2022-11-30T16:45:00"
-            },
-            {
-                id: 6,
-                laboratorio: { nombre: "Lab. de Química" },
-                codigo: "QUI-045",
-                serie: "SN-2020-112",
-                marca: "Mettler Toledo",
-                modelo: "ML204",
-                tipo: "Balanza Analítica",
-                detalles: "Capacidad 220g, legibilidad 0.1mg",
-                estado: "BAJA",
-                observacion: "Descalibrada, fuera de servicio permanentemente",
-                fecha_ingreso: "2020-03-15T08:30:00"
-            },
-            {
-                id: 7,
-                laboratorio: { nombre: "Lab. de Computación" },
-                codigo: "COM-023",
-                serie: "SN-2025-008",
-                marca: "HP",
-                modelo: "ProDesk 600",
-                tipo: "Computadora",
-                detalles: "Intel Core i5, 8GB RAM, 256GB SSD",
-                estado: "CORRECTO",
-                observacion: null,
-                fecha_ingreso: "2025-09-10T10:00:00"
-            },
-            {
-                id: 8,
-                laboratorio: { nombre: "Lab. de Física" },
-                codigo: "FIS-031",
-                serie: "SN-2024-092",
-                marca: "Pasco",
-                modelo: "PS-3500",
-                tipo: "Generador de Funciones",
-                detalles: "Frecuencia 0.1Hz - 3MHz",
-                estado: "NUEVO",
-                observacion: "Equipo recién adquirido",
-                fecha_ingreso: "2024-12-05T13:30:00"
-            }
-        ];
+        // Datos desde el backend
+        const inventario = JSON.parse(document.getElementById("inventario-data").textContent);
 
         let currentView = 'grid';
         let filteredInventory = [...inventario];
@@ -1079,13 +972,11 @@
         }
 
         // Toggle view
-        function toggleView(view) {
+        function toggleView(e, view) {
             currentView = view;
-            
-            document.querySelectorAll('.view-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            event.target.classList.add('active');
+
+            document.querySelectorAll('.view-btn').forEach(btn => btn.classList.remove('active'));
+            e.target.classList.add('active');
 
             const grid = document.getElementById('inventoryGrid');
             const list = document.getElementById('inventoryList');

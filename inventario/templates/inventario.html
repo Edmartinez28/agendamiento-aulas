@@ -651,10 +651,10 @@
                     >
                     <span class="search-icon">🔍</span>
                 </div>
-                <button class="btn-add" onclick="addNewItem()">
+                <a class="btn-add" href="{% url 'inventario:nuevoinventario' %}" style="text-decoration: none;">
                     <span>➕</span>
                     Agregar Equipo
-                </button>
+                </a>
             </div>
 
             <div class="filters-row">
@@ -753,13 +753,15 @@
             return '📦';
         }
 
+        const UPDATE_BASE_URL = "{% url 'inventario:actualizarinventario' 0 %}".replace("/0/", "/");
+
         // Renderizar tarjeta de inventario
         function renderInventoryCard(item) {
             const estadoClass = item.estado.toLowerCase();
             const typeIcon = getTypeIcon(item.tipo);
 
             return `
-                <div class="inventory-card" onclick="viewDetails(${item.id})">
+                <div class="inventory-card">
                     <div class="card-header">
                         <div class="card-title">
                             <div class="item-type">${typeIcon} ${item.tipo}</div>
@@ -806,9 +808,9 @@
                             📅 ${formatDate(item.fecha_ingreso)}
                         </div>
                         <div class="action-buttons">
-                            <button class="btn-action btn-edit" onclick="event.stopPropagation(); editItem(${item.id})">
-                                <span>✏️</span> Editar
-                            </button>
+                            <a class="btn-action btn-edit" href="${UPDATE_BASE_URL}${item.id}/" style="text-decoration: none">
+                                <span>✏️</span> Ver/Editar
+                            </a>
                             <button class="btn-action btn-delete" onclick="event.stopPropagation(); deleteItem(${item.id})">
                                 <span>🗑️</span> Eliminar
                             </button>
@@ -824,7 +826,7 @@
             const typeIcon = getTypeIcon(item.tipo);
 
             return `
-                <div class="list-item" onclick="viewDetails(${item.id})">
+                <div class="list-item">
                     <div class="list-content">
                         <div class="detail-item">
                             <span class="detail-label">Tipo</span>
@@ -991,16 +993,6 @@
         }
 
         // Funciones de acción
-        function addNewItem() {
-            alert('Redirigir a formulario de nuevo equipo');
-            // window.location.href = '/inventario/nuevo';
-        }
-
-        function viewDetails(id) {
-            alert(`Ver detalles del equipo ID: ${id}`);
-            // window.location.href = `/inventario/${id}`;
-        }
-
         function editItem(id) {
             alert(`Editar equipo ID: ${id}`);
             // window.location.href = `/inventario/${id}/editar`;

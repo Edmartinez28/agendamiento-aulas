@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestión de Inventario</title>
+    <title>Insumo - Inventario</title>
     <style>
         * {
             margin: 0;
@@ -13,7 +13,7 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, {{ fondo|default:"#4C758A" }} 0%, #F2F2F2 100%);
             min-height: 100vh;
             padding: 20px;
         }
@@ -26,7 +26,7 @@
         /* Header */
         .page-header {
             text-align: center;
-            color: white;
+            color: {{ titulos|default:"#FFFFFF" }};
             margin-bottom: 30px;
         }
 
@@ -103,160 +103,7 @@
             font-size: 1rem;
         }
 
-        /* Mode tabs */
-        .mode-tabs {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
-        }
-
-        .mode-tab {
-            padding: 12px 25px;
-            border: 2px solid #e0e0e0;
-            background: white;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .mode-tab:hover {
-            border-color: #667eea;
-            background: #f8f9ff;
-        }
-
-        .mode-tab.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border-color: transparent;
-        }
-
-        /* View mode */
-        .view-mode {
-            display: none;
-        }
-
-        .view-mode.active {
-            display: block;
-        }
-
-        .info-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 25px;
-            margin-bottom: 30px;
-        }
-
-        .info-item {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 12px;
-            border-left: 4px solid #667eea;
-        }
-
-        .info-label {
-            font-size: 0.85rem;
-            color: #888;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .info-value {
-            font-size: 1.2rem;
-            color: #333;
-            font-weight: 600;
-            word-break: break-word;
-        }
-
-        .info-value.empty {
-            color: #999;
-            font-style: italic;
-            font-weight: 400;
-        }
-
-        .status-badge {
-            display: inline-block;
-            padding: 8px 18px;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .status-badge.nuevo {
-            background: linear-gradient(135deg, #00bcd4 0%, #26c6da 100%);
-            color: white;
-        }
-
-        .status-badge.correcto {
-            background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);
-            color: white;
-        }
-
-        .status-badge.pendiente {
-            background: linear-gradient(135deg, #ff9800 0%, #ffa726 100%);
-            color: white;
-        }
-
-        .status-badge.mantenimiento {
-            background: linear-gradient(135deg, #2196f3 0%, #42a5f5 100%);
-            color: white;
-        }
-
-        .status-badge.fallando {
-            background: linear-gradient(135deg, #f44336 0%, #ef5350 100%);
-            color: white;
-        }
-
-        .status-badge.baja {
-            background: linear-gradient(135deg, #9e9e9e 0%, #bdbdbd 100%);
-            color: white;
-        }
-
-        .observation-box {
-            background: #fff9e6;
-            border-left: 4px solid #ff9800;
-            padding: 20px;
-            border-radius: 8px;
-            margin-top: 25px;
-        }
-
-        .observation-title {
-            font-size: 0.9rem;
-            font-weight: 700;
-            color: #e65100;
-            margin-bottom: 10px;
-            text-transform: uppercase;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .observation-text {
-            font-size: 1rem;
-            color: #555;
-            line-height: 1.6;
-        }
-
-        /* Form mode */
-        .form-mode {
-            display: none;
-        }
-
-        .form-mode.active {
-            display: block;
-        }
-
+        /* Form */
         .form-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -362,28 +209,6 @@
             box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
         }
 
-        .btn-secondary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-        }
-
-        .btn-secondary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-        }
-
-        .btn-danger {
-            background: linear-gradient(135deg, #f44336 0%, #ef5350 100%);
-            color: white;
-            box-shadow: 0 4px 15px rgba(244, 67, 54, 0.3);
-        }
-
-        .btn-danger:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(244, 67, 54, 0.4);
-        }
-
         .btn-cancel {
             background: #f5f5f5;
             color: #666;
@@ -409,34 +234,16 @@
             padding: 15px 20px;
             border-radius: 10px;
             margin-bottom: 25px;
-            display: none;
+            display: flex;    
             align-items: center;
             gap: 12px;
             font-weight: 500;
-        }
-
-        .alert.show {
-            display: flex;
             animation: slideIn 0.3s ease;
         }
 
-        .alert.success {
-            background: #e8f5e9;
-            color: #2e7d32;
-            border-left: 4px solid #4caf50;
-        }
-
-        .alert.error {
-            background: #ffebee;
-            color: #c62828;
-            border-left: 4px solid #f44336;
-        }
-
-        .alert.warning {
-            background: #fff3e0;
-            color: #e65100;
-            border-left: 4px solid #ff9800;
-        }
+        .alert.success { background: #e8f5e9; color: #1b5e20; }
+        .alert.error { background: #ffebee; color: #b71c1c; }
+        .alert.info { background: #e3f2fd; color: #0d47a1; }
 
         @keyframes slideIn {
             from {
@@ -449,43 +256,37 @@
             }
         }
 
-        /* Metadata section */
-        .metadata-section {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 10px;
-            margin-top: 30px;
-        }
-
-        .metadata-title {
-            font-size: 0.9rem;
-            font-weight: 700;
-            color: #666;
-            margin-bottom: 15px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .metadata-item {
+        /* Info box */
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
             display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid #e0e0e0;
+            align-items: flex-start;
+            gap: 12px;
         }
 
-        .metadata-item:last-child {
-            border-bottom: none;
+        .info-box-icon {
+            font-size: 1.5rem;
+            flex-shrink: 0;
         }
 
-        .metadata-label {
-            color: #888;
+        .info-box-content {
+            flex: 1;
+        }
+
+        .info-box-title {
+            font-weight: 700;
+            color: #1565c0;
+            margin-bottom: 5px;
+        }
+
+        .info-box-text {
             font-size: 0.9rem;
-        }
-
-        .metadata-value {
-            color: #333;
-            font-weight: 600;
-            font-size: 0.9rem;
+            color: #1976d2;
+            line-height: 1.5;
         }
 
         /* Responsive */
@@ -508,7 +309,6 @@
                 font-size: 1.6rem;
             }
 
-            .info-grid,
             .form-grid {
                 grid-template-columns: 1fr;
             }
@@ -519,15 +319,6 @@
 
             .btn {
                 width: 100%;
-            }
-
-            .mode-tabs {
-                flex-direction: column;
-            }
-
-            .mode-tab {
-                width: 100%;
-                justify-content: center;
             }
         }
 
@@ -549,625 +340,290 @@
                 flex-wrap: wrap;
             }
         }
-
-        /* Loading state */
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #999;
-        }
-
-        .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #667eea;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
     </style>
 </head>
 <body>
     <div class="container">
         <!-- Header -->
         <div class="page-header">
-            <h1 id="pageTitle">
+            <h1>
                 <span>📦</span>
-                <span id="pageTitleText">Nuevo Equipo</span>
+                <h1>{% if item %}✏️ Editar Equipo{% else %}➕ Agregar Nuevo Insumo{% endif %}</h1>
             </h1>
-            <p id="pageSubtitle">Completa la información del equipo</p>
+            <p>Registra un nuevo insumo en el inventario</p>
         </div>
 
         <!-- Breadcrumb -->
         <div class="breadcrumb">
             <a href="/inventario/">📋 Inventario</a>
             <span>›</span>
-            <span id="breadcrumbCurrent">Nuevo</span>
+            <span>Nuevo</span>
         </div>
 
         <!-- Alert -->
-        <div class="alert" id="alert">
-            <span id="alertIcon">✓</span>
-            <span id="alertMessage"></span>
-        </div>
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert {% if message.tags %}{{ message.tags }}{% endif %}" id="alert">
+                    <span id="alertIcon">
+                        {% if "success" in message.tags %}✓{% elif "error" in message.tags %}⚠{% else %}ℹ{% endif %}
+                    </span>
+                    <span id="alertMessage">{{ message }}</span>
+                </div>
+            {% endfor %}
+        {% endif %}
 
         <!-- Main Card -->
         <div class="main-card">
             <div class="card-header">
                 <h2 class="card-title">
-                    <span id="cardIcon">➕</span>
-                    <span id="cardTitle">Agregar Nuevo Equipo</span>
+                    <span>➕</span>
+                    Información del Equipo
                 </h2>
-                <p class="card-subtitle" id="cardSubtitle">Ingresa los datos del equipo en el inventario</p>
+                <p class="card-subtitle">Completa todos los campos requeridos para registrar el equipo</p>
             </div>
 
-            <!-- Mode Tabs (solo visible en modo edición/vista) -->
-            <div class="mode-tabs" id="modeTabs" style="display: none;">
-                <button class="mode-tab active" onclick="switchMode('view')">
-                    <span>👁</span> Ver Información
-                </button>
-                <button class="mode-tab" onclick="switchMode('edit')">
-                    <span>✏️</span> Editar
-                </button>
+            <!-- Info Box -->
+            <div class="info-box">
+                <div class="info-box-icon">💡</div>
+                <div class="info-box-content">
+                    <div class="info-box-title">Información importante</div>
+                    <div class="info-box-text">
+                        Los campos marcados con <span style="color: #f44336; font-weight: 700;">*</span> son obligatorios. 
+                        Asegúrate de ingresar el código y número de serie correctamente.
+                    </div>
+                </div>
             </div>
 
-            <!-- VIEW MODE -->
-            <div class="view-mode" id="viewMode">
-                <div class="info-grid">
-                    <div class="info-item">
-                        <div class="info-label">🔬 Laboratorio</div>
-                        <div class="info-value" id="viewLaboratorio">-</div>
+            <!-- Form -->
+            <form id="inventoryForm" method="post"
+                action="{% if item %}{% url 'inventario:actualizarinventario' item.id %}{% else %}{% url 'inventario:nuevoinventario' %}{% endif %}">
+                {% csrf_token %}
+                <div class="form-grid">
+                    <!-- Laboratorio -->
+                    <div class="form-group">
+                        <label class="form-label">
+                            🔬 Laboratorio <span class="required">*</span>
+                        </label>
+                        <select class="form-select" id="laboratorio" name="laboratorio" required>
+                            <option value="">Seleccionar laboratorio</option>
+                            {% for laboratorio in laboratorios%}
+                            <option value="{{ laboratorio.id }}"
+                                {% if item and item.laboratorio_id == laboratorio.id %}selected{% endif %}>
+                                {{ laboratorio.nombre }}
+                            </option>
+                            {% endfor %}
+                        </select>
                     </div>
-                    <div class="info-item">
-                        <div class="info-label">🏷️ Código</div>
-                        <div class="info-value" id="viewCodigo">-</div>
+
+                    <!-- Código -->
+                    <div class="form-group">
+                        <label class="form-label">
+                            🏷️ Código
+                        </label>
+                        <input 
+                            type="text" 
+                            class="form-input" 
+                            id="codigo" 
+                            name="codigo"
+                            placeholder="Ej: QUI-001"
+                            maxlength="20"
+                            value="{% if item %}{{ item.codigo }}{% endif %}"
+                        >
+                        <div class="form-help">Código único del equipo (máx. 20 caracteres)</div>
                     </div>
-                    <div class="info-item">
-                        <div class="info-label">🔢 Serie</div>
-                        <div class="info-value" id="viewSerie">-</div>
+
+                    <!-- Serie -->
+                    <div class="form-group">
+                        <label class="form-label">
+                            🔢 Número de Serie
+                        </label>
+                        <input 
+                            type="text" 
+                            class="form-input" 
+                            id="serie" 
+                            name="serie"
+                            placeholder="Ej: SN-2024-001"
+                            maxlength="50"
+                            value="{% if item %}{{ item.serie }}{% endif %}"
+                        >
+                        <div class="form-help">Serial del fabricante (máx. 50 caracteres)</div>
                     </div>
-                    <div class="info-item">
-                        <div class="info-label">📦 Tipo</div>
-                        <div class="info-value" id="viewTipo">-</div>
+
+                    <!-- Tipo -->
+                    <div class="form-group">
+                        <label class="form-label">
+                            📦 Tipo de Equipo <span class="required">*</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            class="form-input" 
+                            id="tipo" 
+                            name="tipo"
+                            placeholder="Ej: Computador Laptop"
+                            maxlength="100"
+                            value="{% if item %}{{ item.tipo }}{% endif %}"
+                            required
+                        >
                     </div>
-                    <div class="info-item">
-                        <div class="info-label">🏭 Marca</div>
-                        <div class="info-value" id="viewMarca">-</div>
+
+                    <!-- Marca -->
+                    <div class="form-group">
+                        <label class="form-label">
+                            🏭 Marca
+                        </label>
+                        <input 
+                            type="text" 
+                            class="form-input" 
+                            id="marca" 
+                            name="marca"
+                            placeholder="Ej: Asus"
+                            maxlength="100"
+                            value="{% if item %}{{ item.marca }}{% endif %}"
+                        >
                     </div>
-                    <div class="info-item">
-                        <div class="info-label">📱 Modelo</div>
-                        <div class="info-value" id="viewModelo">-</div>
+
+                    <!-- Modelo -->
+                    <div class="form-group">
+                        <label class="form-label">
+                            📱 Modelo
+                        </label>
+                        <input 
+                            type="text" 
+                            class="form-input" 
+                            id="modelo" 
+                            name="modelo"
+                            placeholder="Ej: ROG Strix"
+                            maxlength="100"
+                            value="{% if item %}{{ item.modelo }}{% endif %}"
+                        >
                     </div>
-                    <div class="info-item">
-                        <div class="info-label">📊 Estado</div>
-                        <div class="info-value">
-                            <span class="status-badge" id="viewEstadoBadge">PENDIENTE</span>
+
+                    <!-- Estado -->
+                    <div class="form-group">
+                        <label class="form-label">
+                            📊 Estado <span class="required">*</span>
+                        </label>
+                        <select class="form-select" id="estado" name="estado" required>
+                            <option value="NUEVO" {% if item and item.estado == "NUEVO" %}selected{% endif %}>🆕 Nuevo</option>
+                            <option value="CORRECTO" {% if item and item.estado == "CORRECTO" %}selected{% endif %}>✅ Correcto</option>
+                            <option value="PENDIENTE" {% if not item or item.estado == "PENDIENTE" %}selected{% endif %}>⏳ Pendiente</option>
+                            <option value="MANTENIMIENTO" {% if item and item.estado == "MANTENIMIENTO" %}selected{% endif %}>🔧 Mantenimiento</option>
+                            <option value="FALLANDO" {% if item and item.estado == "FALLANDO" %}selected{% endif %}>⚠️ Fallando</option>
+                            <option value="BAJA" {% if item and item.estado == "BAJA" %}selected{% endif %}>🚫 Baja</option>
+                        </select>
+                    </div>
+
+                    <!-- Detalles -->
+                    <div class="form-group full-width">
+                        <label class="form-label">
+                            📋 Detalles Técnicos
+                        </label>
+                        <input 
+                            type="text" 
+                            class="form-input" 
+                            id="detalles" 
+                            name="detalles"
+                            placeholder="Ej: Capacidad 200g, precisión 0.001g"
+                            maxlength="200"
+                            value="{% if item %}{{ item.detalles }}{% endif %}"
+                            oninput="updateCharCounter('detalles', 200)"
+                        >
+                        <div class="char-counter">
+                            <span id="detallesCounter">0</span> / 200 caracteres
                         </div>
                     </div>
-                    <div class="info-item">
-                        <div class="info-label">📋 Detalles</div>
-                        <div class="info-value" id="viewDetalles">-</div>
-                    </div>
-                </div>
 
-                <div id="observationContainer" style="display: none;">
-                    <div class="observation-box">
-                        <div class="observation-title">
-                            <span>⚠️</span>
-                            Observaciones
+                    <!-- Observación -->
+                    <div class="form-group full-width">
+                        <label class="form-label">
+                            ⚠️ Observaciones
+                        </label>
+                        <textarea 
+                            class="form-textarea" 
+                            id="observacion" 
+                            name="observacion"
+                            placeholder="Ingresa observaciones importantes sobre el estado o uso del equipo..."
+                            oninput="updateCharCounter('observacion', null)"
+                        >{% if item %}{{ item.observacion }}{% endif %}</textarea>
+                        <div class="char-counter">
+                            <span id="observacionCounter">0</span> caracteres
                         </div>
-                        <div class="observation-text" id="viewObservacion"></div>
-                    </div>
-                </div>
-
-                <div class="metadata-section">
-                    <div class="metadata-title">📅 Información del Registro</div>
-                    <div class="metadata-item">
-                        <span class="metadata-label">Fecha de Ingreso:</span>
-                        <span class="metadata-value" id="viewFechaIngreso">-</span>
-                    </div>
-                    <div class="metadata-item">
-                        <span class="metadata-label">ID del Registro:</span>
-                        <span class="metadata-value" id="viewId">-</span>
                     </div>
                 </div>
 
                 <div class="action-buttons">
-                    <button class="btn btn-secondary" onclick="switchMode('edit')">
-                        <span>✏️</span>
-                        Editar Equipo
+                    <button type="submit" class="btn btn-primary" id="submitBtn">
+                        <span>💾</span>
+                        {% if item %}💾 Guardar Cambios{% else %}💾 Guardar Equipo{% endif %}
                     </button>
-                    <button class="btn btn-danger" onclick="deleteItem()">
-                        <span>🗑️</span>
-                        Eliminar
-                    </button>
-                    <button class="btn btn-cancel" onclick="goBack()">
-                        <span>←</span>
-                        Volver
-                    </button>
+                    <a type="button" class="btn btn-cancel" href="{% url 'inventario:inventariototal' %}">
+                        <span>✕</span>
+                        Cancelar
+                    </a>
                 </div>
-            </div>
-
-            <!-- FORM MODE (Create/Edit) -->
-            <div class="form-mode active" id="formMode">
-                <form id="inventoryForm" onsubmit="return handleSubmit(event)">
-                    <div class="form-grid">
-                        <!-- Laboratorio -->
-                        <div class="form-group">
-                            <label class="form-label">
-                                🔬 Laboratorio <span class="required">*</span>
-                            </label>
-                            <select class="form-select" id="laboratorio" name="laboratorio" required>
-                                <option value="">Seleccionar laboratorio</option>
-                                <option value="1">Lab. de Química Orgánica</option>
-                                <option value="2">Lab. de Computación</option>
-                                <option value="3">Lab. de Física</option>
-                                <option value="4">Lab. de Biología</option>
-                                <option value="5">Lab. de Electrónica</option>
-                            </select>
-                        </div>
-
-                        <!-- Código -->
-                        <div class="form-group">
-                            <label class="form-label">
-                                🏷️ Código <span class="required">*</span>
-                            </label>
-                            <input 
-                                type="text" 
-                                class="form-input" 
-                                id="codigo" 
-                                name="codigo"
-                                placeholder="Ej: QUI-001"
-                                maxlength="20"
-                                required
-                            >
-                            <div class="form-help">Código único del equipo (máx. 20 caracteres)</div>
-                        </div>
-
-                        <!-- Serie -->
-                        <div class="form-group">
-                            <label class="form-label">
-                                🔢 Número de Serie <span class="required">*</span>
-                            </label>
-                            <input 
-                                type="text" 
-                                class="form-input" 
-                                id="serie" 
-                                name="serie"
-                                placeholder="Ej: SN-2024-001"
-                                maxlength="50"
-                                required
-                            >
-                            <div class="form-help">Serial del fabricante (máx. 50 caracteres)</div>
-                        </div>
-
-                        <!-- Tipo -->
-                        <div class="form-group">
-                            <label class="form-label">
-                                📦 Tipo de Equipo
-                            </label>
-                            <input 
-                                type="text" 
-                                class="form-input" 
-                                id="tipo" 
-                                name="tipo"
-                                placeholder="Ej: Balanza Analítica"
-                                maxlength="100"
-                            >
-                        </div>
-
-                        <!-- Marca -->
-                        <div class="form-group">
-                            <label class="form-label">
-                                🏭 Marca
-                            </label>
-                            <input 
-                                type="text" 
-                                class="form-input" 
-                                id="marca" 
-                                name="marca"
-                                placeholder="Ej: Bosch"
-                                maxlength="100"
-                            >
-                        </div>
-
-                        <!-- Modelo -->
-                        <div class="form-group">
-                            <label class="form-label">
-                                📱 Modelo
-                            </label>
-                            <input 
-                                type="text" 
-                                class="form-input" 
-                                id="modelo" 
-                                name="modelo"
-                                placeholder="Ej: BX-2000"
-                                maxlength="100"
-                            >
-                        </div>
-
-                        <!-- Estado -->
-                        <div class="form-group">
-                            <label class="form-label">
-                                📊 Estado <span class="required">*</span>
-                            </label>
-                            <select class="form-select" id="estado" name="estado" required>
-                                <option value="NUEVO">🆕 Nuevo</option>
-                                <option value="CORRECTO">✅ Correcto</option>
-                                <option value="PENDIENTE" selected>⏳ Pendiente</option>
-                                <option value="MANTENIMIENTO">🔧 Mantenimiento</option>
-                                <option value="FALLANDO">⚠️ Fallando</option>
-                                <option value="BAJA">🚫 Baja</option>
-                            </select>
-                        </div>
-
-                        <!-- Detalles -->
-                        <div class="form-group full-width">
-                            <label class="form-label">
-                                📋 Detalles Técnicos
-                            </label>
-                            <input 
-                                type="text" 
-                                class="form-input" 
-                                id="detalles" 
-                                name="detalles"
-                                placeholder="Ej: Capacidad 200g, precisión 0.001g"
-                                maxlength="200"
-                                oninput="updateCharCounter('detalles', 200)"
-                            >
-                            <div class="char-counter">
-                                <span id="detallesCounter">0</span> / 200 caracteres
-                            </div>
-                        </div>
-
-                        <!-- Observación -->
-                        <div class="form-group full-width">
-                            <label class="form-label">
-                                ⚠️ Observaciones
-                            </label>
-                            <textarea 
-                                class="form-textarea" 
-                                id="observacion" 
-                                name="observacion"
-                                placeholder="Ingresa observaciones importantes sobre el estado o uso del equipo..."
-                                oninput="updateCharCounter('observacion', null)"
-                            ></textarea>
-                            <div class="char-counter">
-                                <span id="observacionCounter">0</span> caracteres
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="action-buttons">
-                        <button type="submit" class="btn btn-primary" id="submitBtn">
-                            <span>💾</span>
-                            <span id="submitBtnText">Guardar Equipo</span>
-                        </button>
-                        <button type="button" class="btn btn-cancel" onclick="handleCancel()">
-                            <span>✕</span>
-                            Cancelar
-                        </button>
-                    </div>
-                </form>
-            </div>
+            </form>
         </div>
     </div>
 
     <script>
-        // Variables globales
-        let currentMode = 'create'; // 'create', 'view', 'edit'
-        let currentItemId = null;
-
-        // Simulación de datos existentes (para modo edición/vista)
-        const sampleItem = {
-            id: 1,
-            laboratorio: { id: 1, nombre: "Lab. de Química Orgánica" },
-            codigo: "QUI-001",
-            serie: "SN-2024-001",
-            marca: "Bosch",
-            modelo: "BX-2000",
-            tipo: "Balanza Analítica",
-            detalles: "Capacidad 200g, precisión 0.001g",
-            estado: "CORRECTO",
-            observacion: "Calibrada el 15/01/2026. Funciona correctamente.",
-            fecha_ingreso: "2024-01-10T10:30:00"
-        };
-
-        // Inicializar basado en URL o parámetro
-        function initialize() {
-            // Aquí detectarías si estás en modo create, edit o view
-            // Por ejemplo, leyendo parámetros de la URL
-            const urlParams = new URLSearchParams(window.location.search);
-            const mode = urlParams.get('mode') || 'create';
-            const itemId = urlParams.get('id');
-
-            if (itemId) {
-                currentItemId = itemId;
-                if (mode === 'view') {
-                    loadItemForView(itemId);
-                } else if (mode === 'edit') {
-                    loadItemForEdit(itemId);
-                }
-            } else {
-                setupCreateMode();
-            }
-        }
-
-        // Configurar modo creación
-        function setupCreateMode() {
-            currentMode = 'create';
-            document.getElementById('pageTitleText').textContent = 'Nuevo Equipo';
-            document.getElementById('pageSubtitle').textContent = 'Completa la información del equipo';
-            document.getElementById('breadcrumbCurrent').textContent = 'Nuevo';
-            document.getElementById('cardIcon').textContent = '➕';
-            document.getElementById('cardTitle').textContent = 'Agregar Nuevo Equipo';
-            document.getElementById('cardSubtitle').textContent = 'Ingresa los datos del equipo en el inventario';
-            document.getElementById('submitBtnText').textContent = 'Guardar Equipo';
-            document.getElementById('modeTabs').style.display = 'none';
-            document.getElementById('viewMode').classList.remove('active');
-            document.getElementById('formMode').classList.add('active');
-        }
-
-        // Cargar item para visualización
-        function loadItemForView(itemId) {
-            currentMode = 'view';
-            // Aquí harías fetch a tu API
-            // const item = await fetch(`/api/inventario/${itemId}/`).then(r => r.json());
-            const item = sampleItem; // Simulación
-
-            // Actualizar UI
-            document.getElementById('pageTitleText').textContent = 'Detalle del Equipo';
-            document.getElementById('pageSubtitle').textContent = 'Información completa del equipo';
-            document.getElementById('breadcrumbCurrent').textContent = item.codigo;
-            document.getElementById('cardIcon').textContent = '👁';
-            document.getElementById('cardTitle').textContent = `${item.tipo} - ${item.codigo}`;
-            document.getElementById('cardSubtitle').textContent = item.laboratorio.nombre;
-
-            // Mostrar tabs y vista
-            document.getElementById('modeTabs').style.display = 'flex';
-            document.getElementById('viewMode').classList.add('active');
-            document.getElementById('formMode').classList.remove('active');
-
-            // Llenar datos de vista
-            populateViewMode(item);
-        }
-
-        // Poblar modo vista
-        function populateViewMode(item) {
-            document.getElementById('viewLaboratorio').textContent = item.laboratorio.nombre;
-            document.getElementById('viewCodigo').textContent = item.codigo;
-            document.getElementById('viewSerie').textContent = item.serie;
-            document.getElementById('viewTipo').textContent = item.tipo || '-';
-            document.getElementById('viewMarca').textContent = item.marca || '-';
-            document.getElementById('viewModelo').textContent = item.modelo || '-';
-            document.getElementById('viewDetalles').textContent = item.detalles || '-';
-            
-            const estadoBadge = document.getElementById('viewEstadoBadge');
-            estadoBadge.textContent = item.estado;
-            estadoBadge.className = `status-badge ${item.estado.toLowerCase()}`;
-
-            if (item.observacion) {
-                document.getElementById('observationContainer').style.display = 'block';
-                document.getElementById('viewObservacion').textContent = item.observacion;
-            } else {
-                document.getElementById('observationContainer').style.display = 'none';
-            }
-
-            document.getElementById('viewFechaIngreso').textContent = formatDateTime(item.fecha_ingreso);
-            document.getElementById('viewId').textContent = `#${item.id}`;
-
-            // Marcar campos vacíos
-            document.querySelectorAll('.info-value').forEach(el => {
-                if (el.textContent === '-') {
-                    el.classList.add('empty');
-                } else {
-                    el.classList.remove('empty');
-                }
-            });
-        }
-
-        // Cargar item para edición
-        function loadItemForEdit(itemId) {
-            currentMode = 'edit';
-            // Aquí harías fetch a tu API
-            const item = sampleItem; // Simulación
-
-            // Actualizar UI
-            document.getElementById('pageTitleText').textContent = 'Editar Equipo';
-            document.getElementById('pageSubtitle').textContent = 'Modifica la información del equipo';
-            document.getElementById('breadcrumbCurrent').textContent = `Editar ${item.codigo}`;
-            document.getElementById('cardIcon').textContent = '✏️';
-            document.getElementById('cardTitle').textContent = 'Editar Información';
-            document.getElementById('cardSubtitle').textContent = 'Actualiza los datos del equipo';
-            document.getElementById('submitBtnText').textContent = 'Actualizar Equipo';
-
-            // Mostrar tabs y formulario
-            document.getElementById('modeTabs').style.display = 'flex';
-            document.getElementById('viewMode').classList.remove('active');
-            document.getElementById('formMode').classList.add('active');
-
-            // Actualizar estado de tabs
-            document.querySelectorAll('.mode-tab').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.mode-tab')[1].classList.add('active');
-
-            // Llenar formulario
-            populateForm(item);
-        }
-
-        // Poblar formulario con datos
-        function populateForm(item) {
-            document.getElementById('laboratorio').value = item.laboratorio.id;
-            document.getElementById('codigo').value = item.codigo;
-            document.getElementById('serie').value = item.serie;
-            document.getElementById('tipo').value = item.tipo || '';
-            document.getElementById('marca').value = item.marca || '';
-            document.getElementById('modelo').value = item.modelo || '';
-            document.getElementById('estado').value = item.estado;
-            document.getElementById('detalles').value = item.detalles || '';
-            document.getElementById('observacion').value = item.observacion || '';
-
-            // Actualizar contadores
-            updateCharCounter('detalles', 200);
-            updateCharCounter('observacion', null);
-        }
-
-        // Cambiar entre modos vista/edición
-        function switchMode(mode) {
-            const viewMode = document.getElementById('viewMode');
-            const formMode = document.getElementById('formMode');
-            const tabs = document.querySelectorAll('.mode-tab');
-
-            if (mode === 'view') {
-                viewMode.classList.add('active');
-                formMode.classList.remove('active');
-                tabs[0].classList.add('active');
-                tabs[1].classList.remove('active');
-                
-                document.getElementById('cardIcon').textContent = '👁';
-                document.getElementById('cardTitle').textContent = `${sampleItem.tipo} - ${sampleItem.codigo}`;
-                document.getElementById('cardSubtitle').textContent = sampleItem.laboratorio.nombre;
-            } else {
-                viewMode.classList.remove('active');
-                formMode.classList.add('active');
-                tabs[0].classList.remove('active');
-                tabs[1].classList.add('active');
-                
-                document.getElementById('cardIcon').textContent = '✏️';
-                document.getElementById('cardTitle').textContent = 'Editar Información';
-                document.getElementById('cardSubtitle').textContent = 'Actualiza los datos del equipo';
-            }
-        }
-
         // Actualizar contador de caracteres
         function updateCharCounter(fieldId, max) {
             const field = document.getElementById(fieldId);
             const counter = document.getElementById(`${fieldId}Counter`);
             const length = field.value.length;
             
-            if (max) {
-                counter.textContent = length;
-            } else {
-                counter.textContent = length;
-            }
-        }
-
-        // Formatear fecha y hora
-        function formatDateTime(dateString) {
-            const options = {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            };
-            return new Date(dateString).toLocaleDateString('es-ES', options);
-        }
-
-        // Manejar envío del formulario
-        function handleSubmit(event) {
-            event.preventDefault();
-
-            const form = document.getElementById('inventoryForm');
-            const formData = new FormData(form);
-            const data = Object.fromEntries(formData.entries());
-
-            console.log('Datos del formulario:', data);
-
-            // Deshabilitar botón
-            const submitBtn = document.getElementById('submitBtn');
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<span>⏳</span> Guardando...';
-
-            // Simulación de guardado
-            setTimeout(() => {
-                showAlert(
-                    'success',
-                    currentMode === 'create' 
-                        ? '✓ Equipo agregado exitosamente' 
-                        : '✓ Equipo actualizado exitosamente'
-                );
-
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = `<span>💾</span> <span>${currentMode === 'create' ? 'Guardar Equipo' : 'Actualizar Equipo'}</span>`;
-
-                // Redirigir después de 2 segundos
-                setTimeout(() => {
-                    // window.location.href = '/inventario/';
-                    console.log('Redirección simulada a /inventario/');
-                }, 2000);
-            }, 1500);
-
-            return false;
+            counter.textContent = length;
         }
 
         // Manejar cancelación
         function handleCancel() {
-            if (currentMode === 'create') {
-                if (confirm('¿Estás seguro de que deseas cancelar? Se perderán los cambios.')) {
-                    goBack();
-                }
-            } else {
-                // En modo edición, volver a vista
-                switchMode('view');
-            }
-        }
-
-        // Volver atrás
-        function goBack() {
-            // window.history.back();
-            // o
-            // window.location.href = '/inventario/';
-            alert('Volver a la lista de inventario');
-        }
-
-        // Eliminar item
-        function deleteItem() {
-            if (confirm('¿Estás seguro de que deseas eliminar este equipo? Esta acción no se puede deshacer.')) {
-                console.log('Eliminar item', currentItemId);
-                showAlert('success', '✓ Equipo eliminado exitosamente');
-                setTimeout(() => {
-                    goBack();
-                }, 2000);
+            if (confirm('¿Estás seguro de que deseas cancelar? Se perderán todos los datos ingresados.')) {
+                // window.history.back();
+                // o
+                // window.location.href = '/inventario/';
+                console.log('Cancelar y volver a /inventario/');
             }
         }
 
         // Mostrar alerta
-        function showAlert(type, message) {
-            const alert = document.getElementById('alert');
-            const icon = document.getElementById('alertIcon');
-            const msg = document.getElementById('alertMessage');
-
-            alert.className = `alert ${type} show`;
-            
-            if (type === 'success') {
-                icon.textContent = '✓';
-            } else if (type === 'error') {
-                icon.textContent = '✕';
-            } else if (type === 'warning') {
-                icon.textContent = '⚠';
-            }
-
-            msg.textContent = message;
-
-            setTimeout(() => {
-                alert.classList.remove('show');
-            }, 5000);
+        const alertBox = document.getElementById("alert");
+        if (alertBox) {
+            setTimeout(() => alertBox.style.display = "none", 4000);
         }
 
-        // Inicializar
+        // Obtener CSRF token (para Django)
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        // Validación adicional en tiempo real
         document.addEventListener('DOMContentLoaded', () => {
-            initialize();
-            
-            // Para demo: cargar modo vista después de 3 segundos
-            // setTimeout(() => {
-            //     loadItemForView(1);
-            // }, 3000);
+            // Validar código único (ejemplo)
+            const codigoInput = document.getElementById('codigo');
+            codigoInput.addEventListener('blur', () => {
+                const codigo = codigoInput.value.trim();
+                if (codigo) {
+                    // Aquí podrías validar si el código ya existe
+                    // fetch(`/api/inventario/validar-codigo/?codigo=${codigo}`)
+                    console.log('Validando código:', codigo);
+                }
+            });
+
+            // Auto-mayúsculas en código
+            codigoInput.addEventListener('input', (e) => {
+                e.target.value = e.target.value.toUpperCase();
+            });
         });
     </script>
 </body>

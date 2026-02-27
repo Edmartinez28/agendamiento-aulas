@@ -101,9 +101,6 @@ def guardar_reserva(request, id_lab):
         estudiantes = data.get("numEstudiantes")
         horarios = data.get("horarios")
 
-
-        print(data)
-
         if not horarios:
             return JsonResponse({"error": "No hay horarios seleccionados"}, status=400)
 

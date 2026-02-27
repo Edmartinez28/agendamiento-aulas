@@ -480,6 +480,11 @@
 
                             <div class="lab-actions d-flex flex-column flex-md-row gap-2">
                                 {% if lab.estado == "ACTIVO" %}
+                                    <a href="{% url 'inventario:inventario_por_laboratorio' lab.id %}" 
+                                    class="btn-reserve text-center">
+                                        Ver Inventario
+                                    </a>
+                                    
                                     <a href="{% url 'gestion:listadoreservas' lab.id %}" 
                                     class="btn-reserve text-center">
                                         📅 Ver Reservas

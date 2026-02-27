@@ -28,6 +28,7 @@ urlpatterns = [
     path("", include("cuentas.urls"), name="cuentas"),
     path("gestion/", include("gestion.urls"), name="gestion"),
     path("reservas/", include("reservas.urls"), name="reservas"),
+    path("inventario/", include("inventario.urls"), name="inventario"),
     path("oidc/", include("mozilla_django_oidc.urls")),  # 👈 ESTA LÍNEA ES CLAVE
     path("redirect/", redirect_by_role),
 ]

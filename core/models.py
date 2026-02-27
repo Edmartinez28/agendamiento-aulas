@@ -204,3 +204,31 @@ class Parametro(models.Model):
 
     def __str__(self):
         return f"{self.etiqueta}"
+
+# ==================================================================================================
+#                             MODELO PARA MODULO DE INVENTARIO
+# ==================================================================================================
+
+class Inventario(models.Model):
+    ESTADO_CHOICES = [
+        ("NUEVO", "NUEVO"),
+        ("CORRECTO", "CORRECTO"),
+        ("PENDIENTE", "PENDIENTE"),
+        ("MANTENIMIENTO", "MANTENIMIENTO"),
+        ("FALLANDO", "FALLANDO"),
+        ("BAJA", "BAJA"),
+    ]
+
+    laboratorio = models.ForeignKey(Laboratorio, on_delete=models.CASCADE, null=True)
+    codigo = models.CharField(max_length=20, null=False, default="Sin Codigo")
+    serie = models.CharField(max_length=50, null=False, default="Sin S/N")
+    marca = models.CharField(max_length=100, null=True, blank=True)
+    modelo = models.CharField(max_length=100, null=True, blank=True)
+    tipo = models.CharField(max_length=100, null=True, blank=True)
+    detalles = models.CharField(max_length=200, null=True, blank=True)
+    estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default="PENDIENTE")
+    observacion = models.TextField(null=True, blank=True)
+    fecha_ingreso = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.laboratorio.nombre} - {self.tipo} {self.marca} {self.modelo}"

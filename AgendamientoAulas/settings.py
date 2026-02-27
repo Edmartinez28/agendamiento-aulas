@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'cuentas',
     'gestion',
     'reservas',
+    'inventario',
 ]
 
 MIDDLEWARE = [
@@ -179,6 +180,23 @@ EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER)
+EMAIL_TIMEOUT = int(os.getenv("EMAIL_TIMEOUT", "15"))
+
+# Configuración de Celery para envio de correos en segundo plano 
+
+CELERY_BROKER_URL = "redis://127.0.0.1:6379/2"
+CELERY_RESULT_BACKEND = "redis://127.0.0.1:6379/3"
+
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+
+CELERY_TIMEZONE = "America/Guayaquil"
+CELERY_ENABLE_UTC = True
+
+# Opcional pero recomendable para no saturar el broker
+CELERY_TASK_ACKS_LATE = True
+CELERY_WORKER_PREFETCH_MULTIPLIER = 1
 
 #Habilitar cuando den errores para ver en sudo journalctl -u gunicorn_b -n 120 --no-pager
 """LOGGING = {
@@ -204,3 +222,4 @@ DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER)
         },
     },
 }"""
+

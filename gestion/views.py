@@ -18,7 +18,7 @@ from django.db import transaction
 from django.db.models import Prefetch
 from django.shortcuts import render, redirect
 from django.conf import settings
-from django.core.mail import EmailMultiAlternatives
+from django.core.mail import EmailMultiAlternatives, get_connection
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 
@@ -220,99 +220,16 @@ def correos_pendientes_agrupados(request):
             return redirect("gestion:correos_pendientes_agrupados")
 
         if action == "enviar":
-            subject = "Detalle de reservas de laboratorio"
-            to_email = getattr(solicitante, "email", None)
-            if not to_email:
+            # Validaciones mínimas:
+            solicitante = correos_solicitante.first().solicitante
+            if not getattr(solicitante, "email", None):
                 messages.error(request, "El solicitante no tiene correo registrado.")
                 return redirect("gestion:correos_pendientes_agrupados")
 
-            # Armar datos para el template
-            reservas_data = []
-            for c in correos_solicitante:
-                r = c.reserva
-                reservas_data.append({
-                    "fecha": r.fecha,
-                    "hora_inicio": r.slot.hora_inicio,
-                    "hora_fin": r.slot.hora_fin,
-                    "laboratorio": r.laboratorio.nombre,
-                    "estacion": r.estacion.codigo if r.estacion else "LABORATORIO COMPLETO",
-                    "estado": r.estado,
-                    "tipo": r.tipo,
-                })
+            # Encolar tarea
+            enviar_correo_reservas_solicitante.delay(int(solicitante_id))
 
-            nombre = (solicitante.get_full_name() or getattr(solicitante, "username", "Usuario")).strip()
-
-            correos_solicitante = (
-                Correo.objects
-                .filter(estado="PENDIENTE", solicitante_id=solicitante_id)
-                .select_related(
-                    "tecnico",
-                    "reserva",
-                    "reserva__laboratorio",
-                )
-                .order_by("reserva__fecha", "reserva__slot__hora_inicio")
-            )
-
-            emails_tecnicos = correos_solicitante.values_list("tecnico__email", flat=True)# 1) Emails de técnicos          
-            emails_responsables = correos_solicitante.values_list("reserva__laboratorio__correo_responsable", flat=True) # 2) Correos responsables del laboratorio (desde la reserva)
-            cc_list = sorted({ # 3) Unir + quitar duplicados + limpiar nulos/vacíos
-                e.strip().lower()
-                for e in chain(emails_tecnicos, emails_responsables)
-                if e and str(e).strip()
-            })
-
-            context = {
-                "nombre": nombre,
-                "total": len(reservas_data),
-                "reservas": reservas_data,
-                "hoy": timezone.localdate().strftime("%d/%m/%Y"),
-                "anio": timezone.localdate().year,
-                "fondo":get_fondo_valor,
-                "titulos":get_letra_titulos,
-            }
-
-            html_content = render_to_string("emails/reservas_detalle.html", context)
-            text_content = strip_tags(html_content)  # fallback texto
-
-            from_email = getattr(settings, "DEFAULT_FROM_EMAIL", None) or "no-reply@ucacue.edu.ec"
-
-            email = EmailMultiAlternatives(
-                subject=subject,
-                body=text_content,
-                from_email=from_email,
-                to=[to_email],
-                cc=cc_list,
-            )
-            email.attach_alternative(html_content, "text/html")
-
-            try:
-                email.send(fail_silently=False)
-
-            except (socket.timeout, TimeoutError) as e:
-                messages.error(request, f"Timeout conectando al servidor de correo: {e}")
-                return redirect("gestion:correos_pendientes_agrupados")
-
-            except (ConnectionError, OSError) as e:
-                # OSError cubre: Network is unreachable, Connection refused, etc.
-                messages.error(request, f"No hay conectividad con el servidor de correo (red/puerto bloqueado): {e}")
-                return redirect("gestion:correos_pendientes_agrupados")
-
-            except smtplib.SMTPAuthenticationError as e:
-                messages.error(request, f"Autenticación SMTP falló (usuario/clave): {e}")
-                return redirect("gestion:correos_pendientes_agrupados")
-
-            except smtplib.SMTPException as e:
-                messages.error(request, f"Error SMTP: {e}")
-                return redirect("gestion:correos_pendientes_agrupados")
-
-            except Exception as e:
-                messages.error(request, f"No se pudo enviar el correo: {e}")
-                return redirect("gestion:correos_pendientes_agrupados")
-
-            with transaction.atomic():
-                correos_solicitante.update(estado="ENVIADO")
-
-            messages.success(request, f"Correo enviado a {to_email} y registros marcados como ENVIADO.")
+            messages.success(request, f"Correo en cola para {solicitante}. Se enviará en segundo plano.")
             return redirect("gestion:correos_pendientes_agrupados")
 
         messages.error(request, "Acción no reconocida.")

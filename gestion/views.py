@@ -22,6 +22,9 @@ from django.core.mail import EmailMultiAlternatives, get_connection
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 
+from cuentas.decorators import rol_required
+from django.contrib.auth.decorators import login_required
+
 from itertools import chain
 
 from django.contrib import messages
@@ -249,3 +252,10 @@ def correos_pendientes_agrupados(request):
 
 def testcorreo(request):
     return render(request, "emails/reservas_detalle.html")
+
+
+
+@login_required
+@rol_required(["ADMIN", "DOCENTE", "TECNICO"])
+def panel_gestion(request):
+    ...

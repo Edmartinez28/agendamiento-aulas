@@ -33,22 +33,21 @@ def mostrarperfil(request):
 @login_required
 def redirect_by_role(request):
 
-    group = request.user.groups.first()
+    user = request.user
 
-    if not group:
-        return redirect("/cuentas/perfil/")
-
-    if group.name == User.ADMIN:
+    if user.rol == "ADMIN":
         return redirect("/gestion/")
 
-    elif group.name == User.DOCENTE:
-        return redirect("/reservas/")
-
-    elif group.name == User.ESTUDIANTE:
-        return redirect("/reservas/")
-
-    elif group.name == User.TECNICO:
+    elif user.rol == "DOCENTE":
         return redirect("/gestion/")
+
+    elif user.rol == "ESTUDIANTE":
+        return redirect("/reservas/")
+
+    elif user.rol == "TECNICO":
+        return redirect("/gestion/")
+
+    return redirect("/cuentas/perfil/")
 
     return redirect("/cuentas/perfil/")
 
@@ -69,3 +68,4 @@ def editar_avatar(request):
         form = AvatarForm(instance=request.user)
 
     return render(request, "editar_avatar.html", {"form": form})
+

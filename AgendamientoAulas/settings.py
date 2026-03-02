@@ -30,7 +30,8 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 DEBUG = os.getenv("DEBUG") == "True"
 
 #ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS").split(",")
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").strip("[]").replace("'", "").split(", ")
+
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",")
 
 # Application definition
 
@@ -146,8 +147,8 @@ FILE_UPLOAD_MAX_MEMORY_SIZE = 25 * 1024 * 1024  # 25MB
 # Configuracion para el apartado de autenticacion
 
 if not DEBUG:
-    LOGOUT_REDIRECT_URL = "/cuentas/login/"
-    LOGIN_URL = "/cuentas/perfil/"
+    LOGIN_REDIRECT_URL = "/redirect/"
+    LOGIN_URL = "/oidc/authenticate/"
 
 INSTALLED_APPS += [
     "mozilla_django_oidc",
@@ -159,12 +160,14 @@ AUTHENTICATION_BACKENDS = (
 
 OIDC_RP_CLIENT_ID = os.getenv("OIDC_CLIENT_ID")
 OIDC_RP_CLIENT_SECRET = os.getenv("OIDC_CLIENT_SECRET")
+OIDC_TENANT_ID = os.getenv("OIDC_TENANT_ID")
+
 AUTH_USER_MODEL = "cuentas.User"
 
-OIDC_OP_AUTHORIZATION_ENDPOINT = "https://erp.edu/authorize"
-OIDC_OP_TOKEN_ENDPOINT = "https://erp.edu/token"
-OIDC_OP_USER_ENDPOINT = "https://erp.edu/userinfo"
-OIDC_OP_JWKS_ENDPOINT = "https://erp.edu/certs"
+OIDC_OP_AUTHORIZATION_ENDPOINT = f"https://login.microsoftonline.com/{OIDC_TENANT_ID}/oauth2/v2.0/authorize"
+OIDC_OP_TOKEN_ENDPOINT = f"https://login.microsoftonline.com/{OIDC_TENANT_ID}/oauth2/v2.0/token"
+OIDC_OP_USER_ENDPOINT = "https://graph.microsoft.com/oidc/userinfo"
+OIDC_OP_JWKS_ENDPOINT = f"https://login.microsoftonline.com/{OIDC_TENANT_ID}/discovery/v2.0/keys"
 
 LOGIN_REDIRECT_URL = "/redirect/"
 LOGOUT_REDIRECT_URL = "/"

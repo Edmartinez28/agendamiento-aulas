@@ -12,6 +12,13 @@ from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 from django.utils.dateparse import parse_date
 from django.db import transaction
+from cuentas.decorators import rol_required
+from django.contrib.auth.decorators import login_required
+
+@login_required
+@rol_required(["ESTUDIANTE"])
+def panel_reservas(request):
+    ...
 
 # Inicio de parametrizaciones de color base
 def get_fondo_valor(default="#4C758A"):

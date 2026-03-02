@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <title>Listado de Laboratorios</title>
+    <title>Listado de Aulas ITE-VR</title>
     <style>
         * {
             margin: 0;
@@ -15,7 +15,7 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #4C758A 0%, #F2F2F2 100%);
+            background: linear-gradient(135deg,{{ fondo|default:"#4C758A" }} 0%, #F2F2F2 100%);
             min-height: 100vh;
             padding: 20px;
         }
@@ -29,7 +29,7 @@
             position: relative;
             text-align: center;
             padding: 10px 40px;
-            color: #3C3C3C;
+            color: {{ titulos|default:"#FFFFFF" }};
             margin-bottom: 30px;
         }
 
@@ -42,7 +42,7 @@
             right: 10px;
             top: 50%;
             padding: 8px 14px;
-            background: #4C758A;
+            background: {{ fondo|default:"#4C758A" }};
             color: white;
             border: none;
             border-radius: 6px;
@@ -52,7 +52,7 @@
 
         .btn-back:hover {
             background: white;
-            color: #4C758A;
+            color: {{ fondo|default:"#4C758A" }};
         }
 
         .header h1 {
@@ -116,7 +116,7 @@
             min-width: 280px;
             height: 100%;
             object-fit: cover;
-            background: linear-gradient(135deg, #4C758A 0%, #F2F2F2 100%);
+            background: linear-gradient(135deg, {{ fondo|default:"#4C758A" }} 0%, #F2F2F2 100%);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -137,7 +137,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(135deg, #4C758A 0%, #F2F2F2 100%);
+            background: linear-gradient(135deg, {{ fondo|default:"#4C758A" }} 0%, #F2F2F2 100%);
         }
 
         .status-badge {
@@ -238,7 +238,7 @@
         }
 
         .btn-reserve {
-            background:#4C758A;
+            background:{{ fondo|default:"#4C758A" }};
             color: white;
             padding: 14px 35px;
             border: none;
@@ -397,7 +397,7 @@
 
         <div class="header">
             <div class="header-content">
-                <h1>🔬 Laboratorios Disponibles</h1>
+                <h1>Aulas ITE-VR Disponibles</h1>
                 <p>Explora nuestras instalaciones y reserva el espacio perfecto para tus actividades</p>
             </div>
 
@@ -478,18 +478,31 @@
                                 </div>
                             </div>
 
-                            <div class="lab-actions">
+                            <div class="lab-actions d-flex flex-column flex-md-row gap-2">
                                 {% if lab.estado == "ACTIVO" %}
-                                    <a href="{% url 'gestion:listadoreservas' lab.id %}" class="btn-reserve" style="text-decoration: none;">
+                                    <a href="{% url 'inventario:inventario_por_laboratorio' lab.id %}" 
+                                    class="btn-reserve text-center">
+                                        Ver Inventario
+                                    </a>
+                                    
+                                    <a href="{% url 'gestion:listadoreservas' lab.id %}" 
+                                    class="btn-reserve text-center">
                                         📅 Ver Reservas
                                     </a>
-                                    <a href="{% url 'reservas:reservaslaboratorios' lab.id %}" class="btn-reserve" style="text-decoration: none;">
+
+                                    <a href="{% url 'reservas:reservaslaboratorios' lab.id %}" 
+                                    class="btn-reserve text-center">
                                         📅 Reservar Laboratorio
                                     </a>
-                                    <a href="{% url 'reservas:reservasestaciones' lab.id %}" class="btn-reserve" style="text-decoration: none;">
+
+                                    <a href="{% url 'reservas:reservasestaciones' lab.id %}" 
+                                    class="btn-reserve text-center">
                                         📅 Reservar Estación
                                     </a>
-                                    <button class="btn-reserve" data-bs-toggle="modal" data-bs-target="#modalProgramas{{ lab.id }}">
+
+                                    <button class="btn-reserve"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#modalProgramas{{ lab.id }}">
                                         🧪 Ver Programas
                                     </button>
                                 {% else %}

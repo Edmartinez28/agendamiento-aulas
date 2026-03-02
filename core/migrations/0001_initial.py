@@ -90,7 +90,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('fecha', models.DateField()),
-                ('estado', models.CharField(choices=[('ACTIVA', 'ACTIVA'), ('EN REVISION', 'EN REVISION'), ('CANCELADA', 'CANCELADA'), ('FINALIZADA', 'FINALIZADA'), ('BLOQUEADA', 'BLOQUEADA'), ('ESTUDIANTIL', 'ESTUDIANTIL')], default='EN REVISION', max_length=20)),
+                ('estado', models.CharField(choices=[('APROBADA', 'APROBADA'), ('EN REVISION', 'EN REVISION'), ('CANCELADA', 'CANCELADA'), ('FINALIZADA', 'FINALIZADA'), ('BLOQUEADA', 'BLOQUEADA'), ('ESTUDIANTIL', 'ESTUDIANTIL')], default='EN REVISION', max_length=20)),
                 ('fecha_creacion', models.DateTimeField(auto_now_add=True)),
                 ('asignatura', models.CharField(blank=True, max_length=200, null=True)),
                 ('grupo', models.IntegerField(default=1)),

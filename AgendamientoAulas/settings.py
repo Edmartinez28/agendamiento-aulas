@@ -30,8 +30,7 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 DEBUG = os.getenv("DEBUG") == "True"
 
 #ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS").split(",")
-ALLOWED_HOSTS = ["190.15.143.84", "localhost", "127.0.0.1"]
-
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").strip("[]").replace("'", "").split(", ")
 
 # Application definition
 
@@ -46,6 +45,7 @@ INSTALLED_APPS = [
     'cuentas',
     'gestion',
     'reservas',
+    'inventario',
 ]
 
 MIDDLEWARE = [
@@ -64,7 +64,7 @@ ROOT_URLCONF = 'AgendamientoAulas.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / "templates"],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -140,6 +140,9 @@ STATICFILES_DIRS = [
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+DATA_UPLOAD_MAX_MEMORY_SIZE = 25 * 1024 * 1024  # 25MB
+FILE_UPLOAD_MAX_MEMORY_SIZE = 25 * 1024 * 1024  # 25MB
+
 # Configuracion para el apartado de autenticacion
 
 if not DEBUG:
@@ -165,3 +168,58 @@ OIDC_OP_JWKS_ENDPOINT = "https://erp.edu/certs"
 
 LOGIN_REDIRECT_URL = "/redirect/"
 LOGOUT_REDIRECT_URL = "/"
+
+# Configuracion de de parametros para envio de correo
+
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.office365.com")
+EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587"))
+EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True") == "True"
+
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
+
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER)
+EMAIL_TIMEOUT = int(os.getenv("EMAIL_TIMEOUT", "15"))
+
+# Configuración de Celery para envio de correos en segundo plano 
+
+CELERY_BROKER_URL = "redis://127.0.0.1:6379/2"
+CELERY_RESULT_BACKEND = "redis://127.0.0.1:6379/3"
+
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+
+CELERY_TIMEZONE = "America/Guayaquil"
+CELERY_ENABLE_UTC = True
+
+# Opcional pero recomendable para no saturar el broker
+CELERY_TASK_ACKS_LATE = True
+CELERY_WORKER_PREFETCH_MULTIPLIER = 1
+
+#Habilitar cuando den errores para ver en sudo journalctl -u gunicorn_b -n 120 --no-pager
+"""LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {"class": "logging.StreamHandler"},
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": "INFO",
+    },
+    "loggers": {
+        "django.request": {  # aquí Django reporta 500 con traceback
+            "handlers": ["console"],
+            "level": "ERROR",
+            "propagate": False,
+        },
+        "django.security": {
+            "handlers": ["console"],
+            "level": "WARNING",
+            "propagate": False,
+        },
+    },
+}"""
+

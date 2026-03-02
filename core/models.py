@@ -1,9 +1,9 @@
+import os
 from django.db import models
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.utils import timezone
-
 
 class Laboratorio(models.Model):
     ESTADO_CHOICES = [
@@ -24,6 +24,18 @@ class Laboratorio(models.Model):
 
     def __str__(self):
         return self.nombre
+
+
+def laboratorio_upload_path(instance, filename):
+    nombre = (instance.laboratorio.nombre or "sin-nombre").strip()
+    return os.path.join("laboratorios", nombre, filename)
+
+class ImagenLaboratorio(models.Model):
+    laboratorio = models.ForeignKey("Laboratorio", on_delete=models.CASCADE, related_name="imagenes")
+    imagen = models.ImageField(upload_to=laboratorio_upload_path, null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.laboratorio.nombre} - {self.id}"
 
 
 class Estacion(models.Model):
@@ -79,7 +91,7 @@ class Paralelo(models.Model):
 class Reserva(models.Model):
 
     ESTADOS_CHOICES = [
-        ("ACTIVA", "ACTIVA"),
+        ("APROBADA", "APROBADA"),
         ("EN REVISION", "EN REVISION"),
         ("CANCELADA", "CANCELADA"),
         ("FINALIZADA", "FINALIZADA"),
@@ -119,7 +131,7 @@ class Reserva(models.Model):
         reservas_conflicto = Reserva.objects.filter(
             fecha=self.fecha,
             slot=self.slot,
-            estado__in=["ACTIVA", "EN REVISION"]
+            estado__in=["APROBADA", "EN REVISION"]
         ).exclude(pk=self.pk)
 
         # CASO 1 — reserva del laboratorio completo
@@ -169,3 +181,54 @@ class EstacionPrograma(models.Model):
 
     def __str__(self):
         return f"{self.estacion.laboratorio.nombre} - {self.estacion.codigo} - {self.programa.nombre}"
+
+class Correo(models.Model):
+    ESTADO_CHOICES = [
+        ("ENVIADO", "ENVIADO"),
+        ("PENDIENTE", "PENDIENTE"),
+        ("CANCELADO", "CANCELADO"),
+    ]
+
+    reserva = models.ForeignKey(Reserva, on_delete=models.CASCADE, related_name="correos")
+    tecnico = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="correos_como_tecnico")
+    solicitante = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="correos_como_solicitante")
+    estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default="PENDIENTE")
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Correo #{self.pk} - Reserva {self.reserva_id} - {self.estado}"
+
+class Parametro(models.Model):
+    etiqueta = models.CharField(max_length=100, unique=True)
+    valor = models.TextField()
+
+    def __str__(self):
+        return f"{self.etiqueta}"
+
+# ==================================================================================================
+#                             MODELO PARA MODULO DE INVENTARIO
+# ==================================================================================================
+
+class Inventario(models.Model):
+    ESTADO_CHOICES = [
+        ("NUEVO", "NUEVO"),
+        ("CORRECTO", "CORRECTO"),
+        ("PENDIENTE", "PENDIENTE"),
+        ("MANTENIMIENTO", "MANTENIMIENTO"),
+        ("FALLANDO", "FALLANDO"),
+        ("BAJA", "BAJA"),
+    ]
+
+    laboratorio = models.ForeignKey(Laboratorio, on_delete=models.CASCADE, null=True)
+    codigo = models.CharField(max_length=20, null=False, default="Sin Codigo")
+    serie = models.CharField(max_length=50, null=False, default="Sin S/N")
+    marca = models.CharField(max_length=100, null=True, blank=True)
+    modelo = models.CharField(max_length=100, null=True, blank=True)
+    tipo = models.CharField(max_length=100, null=True, blank=True)
+    detalles = models.CharField(max_length=200, null=True, blank=True)
+    estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default="PENDIENTE")
+    observacion = models.TextField(null=True, blank=True)
+    fecha_ingreso = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.laboratorio.nombre} - {self.tipo} {self.marca} {self.modelo}"

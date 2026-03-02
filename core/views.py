@@ -1,3 +1,5 @@
 from django.shortcuts import render
+from django.shortcuts import redirect
 
-# Create your views here.
+def error_404(request, exception):
+    return redirect('home')   # 👈 nombre de tu url principal

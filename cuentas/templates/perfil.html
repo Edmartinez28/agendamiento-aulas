@@ -13,7 +13,7 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #4C758A 0%, #F2F2F2 100%);
+            background: linear-gradient(135deg, {{ fondo|default:"#4C758A" }} 0%, #F2F2F2 100%);
             min-height: 100vh;
             padding: 20px;
         }
@@ -25,7 +25,7 @@
 
         .header {
             text-align: center;
-            color: #3C3C3C;
+            color: {{ titulos|default:"#FFFFFF" }};
             margin-bottom: 40px;
         }
 
@@ -58,7 +58,7 @@
         }
 
         .profile-header {
-            background: linear-gradient(135deg, #4C758A 0%, #7397cb 100%);
+            background: linear-gradient(135deg, {{ fondo|default:"#4C758A" }} 0%, #7397cb 100%);
             padding: 40px 30px;
             text-align: center;
             color: white;
@@ -190,7 +190,7 @@
         }
 
         .reservations-count {
-            background: #4C758A;
+            background: {{ fondo|default:"#4C758A" }};
             color: white;
             padding: 6px 16px;
             border-radius: 20px;
@@ -245,7 +245,7 @@
         }
 
         .filter-btn.active {
-            background: #4C758A;
+            background: {{ fondo|default:"#4C758A" }};
             color: white;
             border-color: transparent;
         }
@@ -326,7 +326,7 @@
             letter-spacing: 0.5px;
         }
 
-        .status-badge.activa {
+        .status-badge.aprobada {
             background: #e8f5e9;
             color: #2e7d32;
         }
@@ -647,7 +647,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>👤 Mi Perfil</h1>
+            <h1>Mi Perfil</h1>
             <p>Administra tu información y tus reservas</p>
         </div>
 
@@ -751,17 +751,20 @@
                         <h2>📅 Mis Reservas</h2>
                         <span class="reservations-count" id="reservationsCount">0 reservas</span>
                     </div>
+                    <a class="btn-new-reservation" href="{% url 'inventario:inventariototal' %}" style="text-decoration: none;">
+                        Inventario
+                    </a>
                     <a class="btn-new-reservation" href="{% url 'gestion:obtenerlaboratorios' %}" style="text-decoration: none;">
                         <span>➕</span>
-                        Visitar Laboratorios
+                        Visitar Aulas ITE-VR
                     </a>
                 </div>
 
                 <!-- Estadísticas rápidas -->
                 <div class="stats-cards">
                     <div class="stat-card-small">
-                        <div class="stat-number" id="statActivas">0</div>
-                        <div class="stat-label">Activas</div>
+                        <div class="stat-number" id="statAprobadas">0</div>
+                        <div class="stat-label">Aprobadas</div>
                     </div>
                     <div class="stat-card-small">
                         <div class="stat-number" id="statRevision">0</div>
@@ -780,7 +783,7 @@
                 <!-- Filtros -->
                 <div class="reservations-filters">
                     <button class="filter-btn active" onclick="filterReservations('TODAS')">Todas</button>
-                    <button class="filter-btn" onclick="filterReservations('ACTIVA')">Activas</button>
+                    <button class="filter-btn" onclick="filterReservations('APROBADA')">Aprobadas</button>
                     <button class="filter-btn" onclick="filterReservations('EN REVISION')">En Revisión</button>
                     <button class="filter-btn" onclick="filterReservations('FINALIZADA')">Finalizadas</button>
                 </div>
@@ -812,6 +815,11 @@
                         </div>
 
                         <div class="reservation-details">
+
+                            <div class="detail-item">
+                                <span class="detail-label">N° de Reserva</span>
+                                <span class="detail-value">{{ reserva.id }}</span>
+                            </div>
 
                             <div class="detail-item">
                                 <span class="detail-label">Asignatura</span>
@@ -856,20 +864,20 @@
 
             const reservations = document.querySelectorAll(".reservation-item");
 
-            let activas = 0;
+            let aprobadas = 0;
             let revision = 0;
             let finalizadas = 0;
 
             reservations.forEach(res => {
                 const estado = res.dataset.estado?.trim();
 
-                if (estado === "ACTIVA") activas++;
+                if (estado === "APROBADA") aprobadas++;
                 if (estado === "EN REVISION") revision++;
                 if (estado === "FINALIZADA") finalizadas++;
             });
 
             // Totales
-            document.getElementById("statActivas").innerText = activas;
+            document.getElementById("statAprobadas").innerText = aprobadas;
             document.getElementById("statRevision").innerText = revision;
             document.getElementById("statFinalizadas").innerText = finalizadas;
             document.getElementById("statTotal").innerText = reservations.length;

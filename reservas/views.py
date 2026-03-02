@@ -13,6 +13,14 @@ from django.contrib.auth.decorators import login_required
 from django.utils.dateparse import parse_date
 from django.db import transaction
 
+# Inicio de parametrizaciones de color base
+def get_fondo_valor(default="#4C758A"):
+    p = Parametro.objects.filter(etiqueta="fondo").first()
+    return p.valor if p else default
+
+def get_letra_titulos(default="#FFFFFF"):
+    p = Parametro.objects.filter(etiqueta="colortitulos").first()
+    return p.valor if p else default
 
 def reservaslaboratorios(request, id_lab):
     carreras = Carrera.objects.all()
@@ -39,7 +47,7 @@ def reservaslaboratorios(request, id_lab):
     reservas = Reserva.objects.filter(
         laboratorio=laboratorio,
         fecha__range=[start_of_week, end_of_week],
-        estado__in=["ACTIVA", "EN REVISION", "ESTUDIANTIL"]
+        estado__in=["APROBADA", "EN REVISION", "ESTUDIANTIL"]
     ).select_related("slot")
 
     reservas_data = [
@@ -59,6 +67,8 @@ def reservaslaboratorios(request, id_lab):
             "reservas": reservas_data,
         })
 
+    imagenes = ImagenLaboratorio.objects.filter(laboratorio=laboratorio)
+
     contexto = {
         "laboratorio":laboratorio,
         "carreras":carreras,
@@ -68,6 +78,9 @@ def reservaslaboratorios(request, id_lab):
         "start_of_week": start_of_week,
         "end_of_week": end_of_week,
         "reservas_json": reservas_data,
+        "fondo":get_fondo_valor,
+        "imagenes":imagenes,
+        "titulos":get_letra_titulos,
     }
     return render(request, "reservaslaboratorios.html", contexto)
 
@@ -87,9 +100,6 @@ def guardar_reserva(request, id_lab):
         grupo = data.get("grupo")
         estudiantes = data.get("numEstudiantes")
         horarios = data.get("horarios")
-
-
-        print(data)
 
         if not horarios:
             return JsonResponse({"error": "No hay horarios seleccionados"}, status=400)
@@ -168,6 +178,8 @@ def reservasestaciones(request, id_lab):
             "habilitadas": habilitadas_data,
         })
 
+    imagenes = ImagenLaboratorio.objects.filter(laboratorio=laboratorio)
+
     contexto = {
         "laboratorio":laboratorio,
         "carreras":carreras,
@@ -177,6 +189,9 @@ def reservasestaciones(request, id_lab):
         "start_of_week": start_of_week,
         "end_of_week": end_of_week,
         "habilitadas_json": habilitadas_data,
+        "fondo":get_fondo_valor,
+        "imagenes":imagenes,
+        "titulos":get_letra_titulos,
     }
 
     return render(request, "reservasestaciones.html", contexto)
@@ -195,7 +210,7 @@ def estaciones_disponibles(request, id_lab):
         laboratorio=laboratorio,
         fecha=fecha,
         slot_id=slot_id,
-        estado__in=["ACTIVA", "EN REVISION"]
+        estado__in=["APROBADA", "EN REVISION"]
     )
 
     estaciones_ocupadas = reservas.values_list("estacion_id", flat=True)
@@ -227,8 +242,6 @@ def guardar_reserva_estacion(request, id_lab):
         estacion_id = data.get("estacion_id")
         slot_id = data.get("slot_id")
         fecha = data.get("fecha")
-
-        print(data)  # 👈 DEBUG
 
         # ejemplo guardado
         Reserva.objects.create(

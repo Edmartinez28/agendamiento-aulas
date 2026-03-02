@@ -15,7 +15,7 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #4C758A 0%, #F2F2F2 100%);
+            background: linear-gradient(135deg, {{ fondo|default:"#4C758A" }} 0%, #F2F2F2 100%);
             min-height: 100vh;
             padding: 20px;
         }
@@ -29,7 +29,7 @@
             position: relative;
             text-align: center;
             padding: 10px 40px;
-            color: #3C3C3C;
+            color: {{ titulos|default:"#FFFFFF" }};
             margin-bottom: 30px;
         }
 
@@ -42,7 +42,7 @@
             right: 10px;
             top: 50%;
             padding: 8px 14px;
-            background: #4C758A;
+            background: {{ fondo|default:"#4C758A" }};
             color: white;
             border: none;
             border-radius: 6px;
@@ -52,7 +52,7 @@
 
         .btn-back:hover {
             background: white;
-            color: #4C758A;
+            color: {{ fondo|default:"#4C758A" }};
         }
 
         .header h1 {
@@ -148,7 +148,7 @@
         }
 
         .section-count {
-            background: #4C758A;
+            background: {{ fondo|default:"#4C758A" }};
             color: white;
             padding: 6px 16px;
             border-radius: 20px;
@@ -297,7 +297,7 @@
             border-color: #ff9800;
         }
 
-        .status-select.activa {
+        .status-select.aprobada {
             border-color: #4caf50;
         }
 
@@ -319,7 +319,7 @@
 
         .btn-save {
             padding: 10px 25px;
-            background:#4C758A;
+            background:{{ fondo|default:"#4C758A" }};
             color: white;
             border: none;
             border-radius: 8px;
@@ -363,7 +363,7 @@
             color: #ff9800;
         }
 
-        .status-badge.activa {
+        .status-badge.aprobada {
             background: #e8f5e9;
             color: #4caf50;
         }
@@ -586,6 +586,7 @@
 
         <div style="align-items: center; text-align: center;">
             <a href="{% url 'gestion:obtenerhorario' laboratorio.id %}" class="btn-horario">📅 Ver en Horario</a>
+            <a href="{% url 'gestion:correos_pendientes_agrupados' %}" class="btn-horario">📧 Envio de Correos</a>
         </div>
 
         <!-- Sección: Reservas de Laboratorios -->
@@ -593,7 +594,7 @@
             <div class="section-header">
                 <div class="section-title">
                     <span class="section-icon">🔬</span>
-                    <h2>Reservas del Laboratorio {{ laboratorio.nombre}}</h2>
+                    <h2>Reservas del Aula {{ laboratorio.nombre}}</h2>
                 </div>
                 <span class="section-count" id="labCount">0 reservas</span>
             </div>
@@ -601,7 +602,7 @@
             <div class="filter-bar">
                 <select class="filter-select" id="labFilter" onchange="filterReservations('laboratorio')">
                     <option value="TODAS">Todas las reservas</option>
-                    <option value="ACTIVA">Activa</option>
+                    <option value="APROBADA">Aprobada</option>
                     <option value="EN REVISION">En revision</option>
                     <option value="CANCELADA">Cancelada</option>
                     <option value="FINALIZADA">Finalizada</option>
@@ -618,7 +619,7 @@
                     <div class="reservation-header">
                         <div class="reservation-info">
                             <div class="reservation-name">
-                                🔬 {{ reserva.carrera.nombre }} - {{ reserva.ciclo.nombre }} {{ reserva.paralelo.nombre }}
+                                🔬 Reserva({{ reserva.id }}) {{ reserva.carrera.nombre }} - {{ reserva.ciclo.nombre }} {{ reserva.paralelo.nombre }}
                             </div>
 
                             <div class="reservation-meta">
@@ -714,7 +715,7 @@
             <div class="filter-bar">
                 <select class="filter-select" id="estacionFilter" onchange="filterReservations('estacion')">
                     <option value="TODAS">Todas las reservas</option>
-                    <option value="ACTIVA">Activa</option>
+                    <option value="APROBADA">Aprobada</option>
                     <option value="EN REVISION">En revision</option>
                     <option value="CANCELADA">Cancelada</option>
                     <option value="FINALIZADA">Finalizada</option>
@@ -730,7 +731,7 @@
                         <div class="reservation-header">
                             <div class="reservation-info">
                                 <div class="reservation-name">
-                                    🔬 {{ reserva.carrera.nombre }} - {{ reserva.ciclo.nombre }} {{ reserva.paralelo.nombre }} <br>
+                                    🔬 Reserva({{ reserva.id }}) {{ reserva.carrera.nombre }} - {{ reserva.ciclo.nombre }} {{ reserva.paralelo.nombre }} <br>
                                     🖥️ {{ reserva.estacion.codigo}}
                                 </div>
 

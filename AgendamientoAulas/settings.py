@@ -30,8 +30,7 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 DEBUG = os.getenv("DEBUG") == "True"
 
 #ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS").split(",")
-
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",")
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").strip("[]").replace("'", "").split(", ")
 
 # Application definition
 
@@ -146,6 +145,10 @@ FILE_UPLOAD_MAX_MEMORY_SIZE = 25 * 1024 * 1024  # 25MB
 
 # Configuracion para el apartado de autenticacion
 
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+USE_X_FORWARDED_HOST = True
+CSRF_TRUSTED_ORIGINS = ["https://itevr.ucacue.edu.ec"]
+
 if not DEBUG:
     LOGIN_REDIRECT_URL = "/redirect/"
     LOGIN_URL = "/oidc/authenticate/"
@@ -202,7 +205,7 @@ CELERY_TASK_ACKS_LATE = True
 CELERY_WORKER_PREFETCH_MULTIPLIER = 1
 
 #Habilitar cuando den errores para ver en sudo journalctl -u gunicorn_b -n 120 --no-pager
-"""LOGGING = {
+LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
     "handlers": {
@@ -224,5 +227,5 @@ CELERY_WORKER_PREFETCH_MULTIPLIER = 1
             "propagate": False,
         },
     },
-}"""
+}
 

@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from .forms import AvatarForm
-from core.models import Reserva
+from core.models import *
 from django.contrib.auth.decorators import login_required
 from .models import User
 

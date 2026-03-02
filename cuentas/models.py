@@ -4,11 +4,16 @@ from django.contrib.auth.models import AbstractUser
 
 class User(AbstractUser):
 
+    ADMIN = "ADMIN"
+    DOCENTE = "DOCENTE"
+    ESTUDIANTE = "ESTUDIANTE"
+    TECNICO = "TECNICO"
+
     ROLES = [
-        ("ADMIN", "Administrador"),
-        ("DOCENTE", "Docente"),
-        ("ESTUDIANTE", "Estudiante"),
-        ("TECNICO", "Técnico"),
+    (ADMIN, "Administrador"),
+    (DOCENTE, "Docente"),
+    (ESTUDIANTE, "Estudiante"),
+    (TECNICO, "Técnico"),
     ]
 
     rol = models.CharField(

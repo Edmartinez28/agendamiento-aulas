@@ -1,9 +1,8 @@
 from django.shortcuts import render, redirect
 from .forms import AvatarForm
-from core.models import *
-
+from core.models import Reserva
 from django.contrib.auth.decorators import login_required
-
+from .models import User
 
 def home(request):
     return render(request, "home.html")
@@ -20,11 +19,27 @@ def mostrarperfil(request):
 
     return render(request, "perfil.html", contexto)
 
-
 @login_required
 def redirect_by_role(request):
-    return redirect("/cuentas/perfil/")
 
+    group = request.user.groups.first()
+
+    if not group:
+        return redirect("/cuentas/perfil/")
+
+    if group.name == User.ADMIN:
+        return redirect("/gestion/")
+
+    elif group.name == User.DOCENTE:
+        return redirect("/reservas/")
+
+    elif group.name == User.ESTUDIANTE:
+        return redirect("/reservas/")
+
+    elif group.name == User.TECNICO:
+        return redirect("/gestion/")
+
+    return redirect("/cuentas/perfil/")
 
 @login_required
 def perfil(request):

@@ -154,8 +154,8 @@ AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
 )
 
-OIDC_RP_CLIENT_ID = "tu-client-id"
-OIDC_RP_CLIENT_SECRET = "tu-secret"
+OIDC_RP_CLIENT_ID = os.getenv("OIDC_CLIENT_ID")
+OIDC_RP_CLIENT_SECRET = os.getenv("OIDC_CLIENT_SECRET")
 AUTH_USER_MODEL = "cuentas.User"
 
 OIDC_OP_AUTHORIZATION_ENDPOINT = "https://erp.edu/authorize"

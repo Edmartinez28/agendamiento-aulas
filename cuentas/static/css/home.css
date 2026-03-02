@@ -39,28 +39,63 @@ body {
 
 /* HERO */
 .hero {
-    height: 90vh;
+    position: relative;
+    height: 95vh;
     background: url('../img/fondo-vr.jpg') center/cover no-repeat;
     display: flex;
     align-items: center;
-    padding: 0 80px;
-    position: relative;
+    justify-content: flex-end;
+    padding: 0 100px;
+    overflow: hidden;
 }
 
-.hero::before {
-    content: "";
+/* Overlay oscuro con degradado elegante */
+.hero-overlay {
     position: absolute;
     inset: 0;
-    background: rgba(0,0,0,0.7);
+    z-index: 1;
+
+    background:
+        /* Luz muy sutil detrás de la mujer */
+        radial-gradient(
+            circle at 20% 50%,
+            rgba(255,255,255,0.04) 0%,
+            rgba(255,255,255,0.02) 20%,
+            rgba(0,0,0,0) 40%
+        ),
+
+        /* Oscurecimiento progresivo hacia la derecha */
+        linear-gradient(
+            to right,
+            rgba(0,0,0,0.55) 10%,
+            rgba(0,0,0,0.75) 50%,
+            rgba(0,0,0,0.92) 100%
+        );
 }
 
+/* Imagen artística izquierda */
+.hero-art {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    z-index: 2;
+}
+
+.hero-art img {
+    height: 70%;
+    max-height: 500px;
+}
+
+/* Contenido derecho */
 .hero-content {
     position: relative;
-    max-width: 600px;
+    z-index: 3;
+    max-width: 550px;
+    text-align: left;
 }
 
 .hero h1 {
-    font-size: 48px;
+    font-size: 60px;
     margin-bottom: 10px;
 }
 
@@ -72,11 +107,13 @@ body {
 .hero h2 {
     font-weight: 300;
     margin-bottom: 20px;
+    color: #ddd;
 }
 
 .hero p {
+    line-height: 1.7;
     margin-bottom: 30px;
-    line-height: 1.6;
+    color: #ccc;
 }
 
 .btn-primary {
@@ -134,7 +171,7 @@ footer {
 }
 
 .logo img {
-    height: 50px;   /* tamaño recomendado navbar */
+    height: 40px;   /* tamaño recomendado navbar */
     width: auto;
     object-fit: contain;
 }

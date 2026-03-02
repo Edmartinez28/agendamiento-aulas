@@ -10,7 +10,7 @@
 
 <header class="navbar">
     <div class="logo">
-        <img src="{% static 'img/logo-aula.png' %}" alt="Aula ITE VR">
+        <img src="{% static 'img/UC.png' %}" alt="Aula ITE VR">
     </div>
     <nav>
         <a href="#">Inicio</a>
@@ -21,25 +21,36 @@
 </header>
 
 <section class="hero">
+    <!-- Overlay oscuro -->
+    <div class="hero-overlay"></div>
+
+    <!-- Imagen artística izquierda -->
+    <div class="hero-art">
+        <img src="{% static 'img/vr-woman.png' %}" alt="VR Woman">
+    </div>
+
+    <!-- Contenido derecho -->
     <div class="hero-content">
-        <h1><span class="red-line">—</span> Aula ITE VR</h1>
-        <h2>Laboratorio de Realidad Virtual Avanzada</h2>
+        <h1>Aula ITE VR</h1>
+        <h2>Aula de Realidad Virtual</h2>
         <p>
-            Espacio especializado para clases de  realidad virtual, con estudiantes de las diferentes carreras 
-            innovación educativa y tecnología inmersiva.
+            Espacio especializado para clases de realidad virtual con estudiantes de las 
+            diferentes carreras. Las aulas ITE VR representan innovación educativa 
+            y tecnología inmersiva.
         </p>
-        <a href="{% url 'cuentas:mostrarperfil' %}" class="btn-primary">Reservar Ahora</a>
+        <a href="{% url 'cuentas:mostrarperfil' %}" class="btn-primary">
+            Reservar Ahora
+        </a>
     </div>
 </section>
 
 <section class="info">
     <div class="info-content">
-        <h2>Aula ITE VR </h2>
+        <h2>Aula de Innovación en Tecnología Educativa (ITE) </h2>
         <p>
             El Aula ITE VR ofrece un entorno moderno equipado con tecnología
             de última generación para estudiantes y docentes.
         </p>
-        <a href="#" class="btn-secondary">Más Información</a>
     </div>
 </section>
 

@@ -1,15 +1,36 @@
+{% load static %}
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-    <title>Login Institucional</title>
+    <meta charset="UTF-8">
+    <title>Acceso Institucional - Aula ITE VR</title>
+    <link rel="stylesheet" href="{% static 'css/login.css' %}">
 </head>
 <body>
 
-<h2>Acceso institucional</h2>
+<div class="background-overlay"></div>
 
-<a href="/oidc/authenticate/" class="btn-login">
-    Iniciar sesión institucional
-</a>
+<div class="login-wrapper">
+
+    <div class="login-card">
+
+        <img src="{% static 'img/UC.png' %}" alt="Logo UC" class="logo">
+
+        <h1>Aula ITE VR</h1>
+        <h2>Acceso Institucional</h2>
+
+        <p>
+            Inicia sesión con tu cuenta institucional UCACUE
+            para acceder al sistema de reservas del laboratorio.
+        </p>
+
+        <a href="{% url 'oidc_authentication_init' %}" class="btn-login">
+            Iniciar sesión con cuenta UCACUE
+        </a>
+
+    </div>
+
+</div>
 
 </body>
 </html>

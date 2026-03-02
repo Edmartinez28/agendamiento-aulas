@@ -192,6 +192,7 @@ def reservasestaciones(request, id_lab):
             "start_of_week": start_of_week.strftime("%Y-%m-%d"),
             "end_of_week": end_of_week.strftime("%Y-%m-%d"),
             "habilitadas": habilitadas_data,
+            "yareservadas":ya_reservadas_data,
         })
 
     imagenes = ImagenLaboratorio.objects.filter(laboratorio=laboratorio)

@@ -204,6 +204,14 @@ CELERY_ENABLE_UTC = True
 CELERY_TASK_ACKS_LATE = True
 CELERY_WORKER_PREFETCH_MULTIPLIER = 1
 
+# Configuración de OIDC 
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+
+SESSION_COOKIE_SAMESITE = "None"
+CSRF_COOKIE_SAMESITE = "None"
+CSRF_TRUSTED_ORIGINS = ["https://itevr.ucacue.edu.ec"]
+
 #Habilitar cuando den errores para ver en sudo journalctl -u gunicorn_b -n 120 --no-pager
 LOGGING = {
     "version": 1,

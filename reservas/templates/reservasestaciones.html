@@ -1,6 +1,7 @@
 {% load static %}
 {{ slots|json_script:"slots-data" }}
 {{ habilitadas_json|json_script:"habilitadas-data" }}
+{{ ya_reservadas_json|json_script:"ya-reservadas-data" }}
 
 <!DOCTYPE html>
 <html lang="es">
@@ -1001,6 +1002,9 @@
         const initialReservas = JSON.parse(
             document.getElementById('habilitadas-data').textContent
         );
+        const docentesReservas = JSON.parse(
+            document.getElementById('ya-reservadas-data').textContent
+        );
         const weekStart = "{{ start_of_week|date:'Y-m-d' }}";
     </script>
 
@@ -1013,13 +1017,14 @@
         let weekDays = [];
 
         // Inicializar la tabla de horarios
-        function initSchedule(reservas = initialReservas, startDate = weekStart) {
+        function initSchedule(reservas = initialReservas, docentes = docentesReservas, startDate = weekStart) {
             const tbody = document.getElementById('scheduleBody');
             tbody.innerHTML = '';
 
             weekDays = getWeekDates(startDate);
 
             enabledSlots = reservas.map(r => `${r.fecha}-${r.slot_id}`);
+            yaReservadoSlots = docentes.map(r => `${r.fecha}-${r.slot_id}`);
 
             hours.forEach(hourObj => {
                 const row = document.createElement('tr');
@@ -1037,7 +1042,7 @@
                         cell.innerHTML = '○';
                         cell.addEventListener('click', () => toggleSlot(slotKey, cell));
 
-                    } else if (hourObj.tipo == "BLOQUEADA") {
+                    } else if (hourObj.tipo == "BLOQUEADA" || yaReservadoSlots.includes(slotKey)) {
                         // 🔴 Todo lo que NO esté habilitado se bloquea
                         cell.className = 'bloqued';
                         cell.innerHTML = '-';

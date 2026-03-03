@@ -9,5 +9,4 @@ urlpatterns = [
    # path("logout/", LogoutView.as_view(), name="logout"),
     path("editar-avatar/", editar_avatar, name="editar_avatar"),
     path('', home, name='home'),
-    path("redirect/", redirect_by_role, name="redirect_by_role"),
 ]

@@ -18,7 +18,6 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from cuentas.views import redirect_by_role
 from django.conf.urls import handler404
 from core.views import error_404, error_500
 
@@ -30,7 +29,6 @@ urlpatterns = [
     path("reservas/", include("reservas.urls"), name="reservas"),
     path("inventario/", include("inventario.urls"), name="inventario"),
     path("oidc/", include("mozilla_django_oidc.urls")),  # 👈 ESTA LÍNEA ES CLAVE
-    path("redirect/", redirect_by_role),
 ]
 
 if settings.DEBUG:

@@ -156,6 +156,7 @@ if not DEBUG:
 INSTALLED_APPS += [
     "mozilla_django_oidc",
 ]
+
 AUTHENTICATION_BACKENDS = (
     'cuentas.auth.MyOIDCBackend',
     'django.contrib.auth.backends.ModelBackend',

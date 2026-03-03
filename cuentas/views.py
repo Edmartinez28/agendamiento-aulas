@@ -30,33 +30,7 @@ def mostrarperfil(request):
 
     return render(request, "perfil.html", contexto)
 
-@login_required
-def redirect_by_role(request):
-
-    user = request.user
-
-    if user.rol == "ADMIN":
-        return redirect("/gestion/")
-
-    elif user.rol == "DOCENTE":
-        return redirect("/gestion/")
-
-    elif user.rol == "ESTUDIANTE":
-        return redirect("/reservas/")
-
-    elif user.rol == "TECNICO":
-        return redirect("/gestion/")
-
-    return redirect("/cuentas/perfil/")
-
-    return redirect("/cuentas/perfil/")
-
-@login_required
-def perfil(request):
-    return render(request, "cuentas/perfil.html")
-
 # views.py
-
 @login_required
 def editar_avatar(request):
     if request.method == "POST":

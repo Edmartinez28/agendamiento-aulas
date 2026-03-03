@@ -167,6 +167,7 @@ OIDC_RP_CLIENT_SECRET = os.getenv("OIDC_CLIENT_SECRET")
 OIDC_TENANT_ID = os.getenv("OIDC_TENANT_ID")
 
 AUTH_USER_MODEL = "cuentas.User"
+OIDC_RP_SIGN_ALGO = "RS256"
 
 OIDC_OP_AUTHORIZATION_ENDPOINT = f"https://login.microsoftonline.com/{OIDC_TENANT_ID}/oauth2/v2.0/authorize"
 OIDC_OP_TOKEN_ENDPOINT = f"https://login.microsoftonline.com/{OIDC_TENANT_ID}/oauth2/v2.0/token"

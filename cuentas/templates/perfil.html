@@ -709,7 +709,11 @@
                     <button class="btn-edit-profile" onclick="openAvatarModal()">
                         <span>✏️</span>
                         Editar Perfil
-                    </button>
+                    </button><br>
+                    <form method="post" action="{% url 'cuentas:logout' %}">
+                    {% csrf_token %}
+                        <button type="submit" class="btn-edit-profile">Cerrar sesión</button>
+                    </form>
                 </div>
 
                 <!-- MODAL AVATAR -->
@@ -751,9 +755,11 @@
                         <h2>📅 Mis Reservas</h2>
                         <span class="reservations-count" id="reservationsCount">0 reservas</span>
                     </div>
+                    {% if user.rol in "TECNICO,ADMIN" %}
                     <a class="btn-new-reservation" href="{% url 'inventario:inventariototal' %}" style="text-decoration: none;">
                         Inventario
                     </a>
+                    {% endif %}
                     <a class="btn-new-reservation" href="{% url 'gestion:obtenerlaboratorios' %}" style="text-decoration: none;">
                         <span>➕</span>
                         Visitar Aulas ITE-VR

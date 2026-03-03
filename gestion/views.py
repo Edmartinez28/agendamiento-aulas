@@ -40,6 +40,7 @@ def get_letra_titulos(default="#FFFFFF"):
     return p.valor if p else default
 
 # Create your views here.
+@login_required
 def obtenerlaboratorios(request):
     laboratorios = Laboratorio.objects.all().prefetch_related(
         "estaciones__estacion_programas__programa"
@@ -53,6 +54,8 @@ def obtenerlaboratorios(request):
 
     return render(request, "listadolaboratorios.html", {"laboratorios": laboratorios, "fondo":get_fondo_valor, "titulos":get_letra_titulos})
 
+@login_required
+@rol_required(["TECNICO", "ADMIN"])
 def listadoreservas(request, id_lab):
     laboratorio = Laboratorio.objects.get(id=id_lab)
 
@@ -78,6 +81,8 @@ def listadoreservas(request, id_lab):
 
     return render(request, "listadoreservas.html", contexto)
 
+@login_required
+@rol_required(["TECNICO", "ADMIN"])
 def cambiar_estado_reserva(request, reserva_id):
     reserva = get_object_or_404(Reserva, id=reserva_id)
 
@@ -100,6 +105,8 @@ def cambiar_estado_reserva(request, reserva_id):
 
     return redirect("gestion:listadoreservas", id_lab=reserva.laboratorio.id)
 
+@login_required
+@rol_required(["TECNICO", "ADMIN"])
 def obtenerhorario(request, id_lab):
     laboratorio = get_object_or_404(Laboratorio, id=id_lab)
     week_str = request.GET.get("week") # Obtener fecha base desde GET o usar hoy
@@ -160,8 +167,8 @@ def obtenerhorario(request, id_lab):
 
     return render(request, "horariolaboratorio.html", contexto)
 
-
 @login_required
+@rol_required(["TECNICO", "ADMIN"])
 def correos_pendientes_agrupados(request):
     # Traemos correos pendientes con sus reservas (optimizado)
     correos_qs = (
@@ -248,14 +255,3 @@ def correos_pendientes_agrupados(request):
         "titulos":get_letra_titulos,
     }
     return render(request, "correos_pendientes_agrupados.html", context)
-
-
-def testcorreo(request):
-    return render(request, "emails/reservas_detalle.html")
-
-
-
-@login_required
-@rol_required(["ADMIN", "DOCENTE", "TECNICO"])
-def panel_gestion(request):
-    ...

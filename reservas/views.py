@@ -15,11 +15,6 @@ from django.db import transaction
 from cuentas.decorators import rol_required
 from django.contrib.auth.decorators import login_required
 
-@login_required
-@rol_required(["ESTUDIANTE"])
-def panel_reservas(request):
-    ...
-
 # Inicio de parametrizaciones de color base
 def get_fondo_valor(default="#4C758A"):
     p = Parametro.objects.filter(etiqueta="fondo").first()
@@ -29,6 +24,8 @@ def get_letra_titulos(default="#FFFFFF"):
     p = Parametro.objects.filter(etiqueta="colortitulos").first()
     return p.valor if p else default
 
+@login_required
+@rol_required(["DOCENTE","TECNICO", "ADMIN"])
 def reservaslaboratorios(request, id_lab):
     carreras = Carrera.objects.all()
     ciclos = Ciclo.objects.all()
@@ -92,8 +89,8 @@ def reservaslaboratorios(request, id_lab):
     return render(request, "reservaslaboratorios.html", contexto)
 
 
-#@require_POST
-#@login_required
+@login_required
+@rol_required(["DOCENTE","TECNICO", "ADMIN"])
 def guardar_reserva(request, id_lab):
     try:
         data = json.loads(request.body)
@@ -139,6 +136,8 @@ def guardar_reserva(request, id_lab):
         return JsonResponse({"error": str(e)}, status=400)
 
 
+@login_required
+@rol_required(["ESTUDIANTE","TECNICO", "ADMIN"])
 def reservasestaciones(request, id_lab):
 
     carreras = Carrera.objects.all()
@@ -221,7 +220,8 @@ def reservasestaciones(request, id_lab):
 
     return render(request, "reservasestaciones.html", contexto)
 
-
+@login_required
+@rol_required(["ESTUDIANTE","TECNICO", "ADMIN"])
 def estaciones_disponibles(request, id_lab):
     fecha = request.GET.get("fecha")
     slot_id = request.GET.get("slot_id")
@@ -252,7 +252,8 @@ def estaciones_disponibles(request, id_lab):
 
     return JsonResponse({"estaciones": data})
 
-
+@login_required
+@rol_required(["ESTUDIANTE","TECNICO", "ADMIN"])
 def guardar_reserva_estacion(request, id_lab):
 
     laboratorio = Laboratorio.objects.get(id=id_lab)

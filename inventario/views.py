@@ -4,6 +4,9 @@ from core.models import *
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 
+from cuentas.decorators import rol_required
+from django.contrib.auth.decorators import login_required
+
 # Inicio de parametrizaciones de color base
 def get_fondo_valor(default="#4C758A"):
     p = Parametro.objects.filter(etiqueta="fondo").first()
@@ -13,7 +16,8 @@ def get_letra_titulos(default="#FFFFFF"):
     p = Parametro.objects.filter(etiqueta="colortitulos").first()
     return p.valor if p else default
 
-
+@login_required
+@rol_required(["TECNICO", "ADMIN"])
 def inventariototal(request):
     qs = Inventario.objects.select_related("laboratorio").all().order_by("-fecha_ingreso")
 
@@ -36,6 +40,8 @@ def inventariototal(request):
     contexto = {"inventario_json": inventario_data, "fondo":get_fondo_valor, "titulos":get_letra_titulos,}
     return render(request, "inventario.html", contexto)
 
+@login_required
+@rol_required(["TECNICO", "ADMIN"])
 def inventario_por_laboratorio(request, lab_id):
     laboratorio = get_object_or_404(Laboratorio, pk=lab_id)
 
@@ -69,6 +75,8 @@ def inventario_por_laboratorio(request, lab_id):
     }
     return render(request, "inventario.html", contexto)
 
+@login_required
+@rol_required(["TECNICO", "ADMIN"])
 def nuevoinventario(request):
     laboratorios = Laboratorio.objects.all()
 
@@ -105,6 +113,8 @@ def nuevoinventario(request):
 
     return render(request, "iteminventario.html", {"laboratorios": laboratorios, "fondo":get_fondo_valor, "titulos":get_letra_titulos})
 
+@login_required
+@rol_required(["TECNICO", "ADMIN"])
 def actualizarinventario(request, item_id):
     laboratorios = Laboratorio.objects.all()
     item = get_object_or_404(Inventario, pk=item_id)

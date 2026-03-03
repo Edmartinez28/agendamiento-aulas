@@ -480,6 +480,7 @@
 
                             <div class="lab-actions d-flex flex-column flex-md-row gap-2">
                                 {% if lab.estado == "ACTIVO" %}
+                                    {% if user.rol in "TECNICO,ADMIN" %}
                                     <a href="{% url 'inventario:inventario_por_laboratorio' lab.id %}" 
                                     class="btn-reserve text-center">
                                         Ver Inventario
@@ -489,16 +490,21 @@
                                     class="btn-reserve text-center">
                                         📅 Ver Reservas
                                     </a>
+                                    {% endif %}
 
+                                    {% if user.rol in "DOCENTE,TECNICO,ADMIN" %}
                                     <a href="{% url 'reservas:reservaslaboratorios' lab.id %}" 
                                     class="btn-reserve text-center">
                                         📅 Reservar Laboratorio
                                     </a>
+                                    {% endif %}
 
+                                    {% if user.rol in "ESTUDIANTE,TECNICO,ADMIN" %}
                                     <a href="{% url 'reservas:reservasestaciones' lab.id %}" 
                                     class="btn-reserve text-center">
                                         📅 Reservar Estación
                                     </a>
+                                    {% endif %}
 
                                     <button class="btn-reserve"
                                             data-bs-toggle="modal"

@@ -177,12 +177,29 @@ def reservasestaciones(request, id_lab):
         for r in habilitadas
     ]
 
+    ya_reservadas = Reserva.objects.filter(
+        laboratorio=laboratorio,
+        fecha__range=[start_of_week, end_of_week],
+        estado__in=["APROBADA", "EN REVISION", "BLOQUEADA"]
+    ).select_related("slot")
+
+    ya_reservadas_data = [
+        {
+            "fecha": r.fecha.strftime("%Y-%m-%d"),
+            "slot_id": r.slot.id,
+            "estado":r.estado,
+        }
+        for r in ya_reservadas
+    ]
+
+
     # Si es petición AJAX → solo devolver JSON
     if request.headers.get("x-requested-with") == "XMLHttpRequest":
         return JsonResponse({
             "start_of_week": start_of_week.strftime("%Y-%m-%d"),
             "end_of_week": end_of_week.strftime("%Y-%m-%d"),
             "habilitadas": habilitadas_data,
+            "yareservadas":ya_reservadas_data,
         })
 
     imagenes = ImagenLaboratorio.objects.filter(laboratorio=laboratorio)
@@ -196,6 +213,7 @@ def reservasestaciones(request, id_lab):
         "start_of_week": start_of_week,
         "end_of_week": end_of_week,
         "habilitadas_json": habilitadas_data,
+        "ya_reservadas_json":ya_reservadas_data,
         "fondo":get_fondo_valor,
         "imagenes":imagenes,
         "titulos":get_letra_titulos,

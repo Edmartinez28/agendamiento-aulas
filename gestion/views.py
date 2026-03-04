@@ -93,15 +93,15 @@ def cambiar_estado_reserva(request, reserva_id):
         ESTADOS_VALIDOS = {"APROBADA", "EN REVISION", "CANCELADA"}
 
         if nuevo_estado and nuevo_estado != estado_anterior and nuevo_estado in ESTADOS_VALIDOS: # Solo si cambia el estado, actualiza y crea correo
-            reserva.estado = nuevo_estado
-            reserva.save()
-
             Correo.objects.create(
                 reserva=reserva,
                 tecnico=request.user,
                 solicitante=reserva.usuario,
                 estado="PENDIENTE"
             )
+        
+        reserva.estado = nuevo_estado
+        reserva.save()
 
     return redirect("gestion:listadoreservas", id_lab=reserva.laboratorio.id)
 

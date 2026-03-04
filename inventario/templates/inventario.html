@@ -736,21 +736,21 @@
         // Obtener icono por tipo
         function getTypeIcon(tipo) {
             const icons = {
-                'computadora': '💻',
-                'microscopio': '🔬',
-                'balanza': '⚖️',
-                'osciloscopio': '📊',
-                'sensor': '📡',
-                'generador': '⚡'
+                computadora: '💻',
+                microscopio: '🔬',
+                balanza: '⚖️',
+                osciloscopio: '📊',
+                sensor: '📡',
+                generador: '⚡'
             };
-            
-            const tipoLower = tipo.toLowerCase();
-            for (let key in icons) {
-                if (tipoLower.includes(key)) {
-                    return icons[key];
-                }
+
+            const tipoLower = (tipo ?? '').toString().trim().toLowerCase();
+
+            for (const key in icons) {
+                if (tipoLower.includes(key)) return icons[key];
             }
-            return '📦';
+
+            return tipoLower ? '📦' : '❓'; // opcional: diferente ícono cuando viene vacío
         }
 
         const UPDATE_BASE_URL = "{% url 'inventario:actualizarinventario' 0 %}".replace("/0/", "/");

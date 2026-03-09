@@ -169,11 +169,11 @@ def obtenerhorario(request, id_lab):
 
 @login_required
 @rol_required(["TECNICO", "ADMIN"])
-def correos_pendientes_agrupados(request):
+def correos_pendientes_agrupados(request, id_lab):
     # Traemos correos pendientes con sus reservas (optimizado)
     correos_qs = (
         Correo.objects
-        .filter(estado="PENDIENTE")
+        .filter(estado="PENDIENTE", reserva__laboratorio=id_lab)
         .select_related(
             "solicitante",
             "tecnico",
@@ -200,12 +200,12 @@ def correos_pendientes_agrupados(request):
 
         if not action or not solicitante_id:
             messages.error(request, "Solicitud inválida.")
-            return redirect("gestion:correos_pendientes_agrupados")
+            return redirect("gestion:correos_pendientes_agrupados", id_lab=id_lab)
 
         # Re-consulta segura en BD para ese solicitante (evitar manipulación)
         correos_solicitante = (
             Correo.objects
-            .filter(estado="PENDIENTE", solicitante_id=solicitante_id)
+            .filter(estado="PENDIENTE", solicitante_id=solicitante_id, reserva__laboratorio=id_lab)
             .select_related(
                 "solicitante",
                 "tecnico",
@@ -222,7 +222,7 @@ def correos_pendientes_agrupados(request):
 
         if not correos_solicitante.exists():
             messages.warning(request, "No hay correos pendientes para ese solicitante.")
-            return redirect("gestion:correos_pendientes_agrupados")
+            return redirect("gestion:correos_pendientes_agrupados" , id_lab=id_lab)
 
         solicitante = correos_solicitante.first().solicitante
 
@@ -230,23 +230,24 @@ def correos_pendientes_agrupados(request):
             with transaction.atomic():
                 correos_solicitante.update(estado="CANCELADO")
             messages.success(request, f"Registros de correo cancelados para {solicitante}.")
-            return redirect("gestion:correos_pendientes_agrupados")
+            return redirect("gestion:correos_pendientes_agrupados" , id_lab=id_lab)
 
         if action == "enviar":
+            print("Llego hasta este punto \n\n huu")
             # Validaciones mínimas:
             solicitante = correos_solicitante.first().solicitante
             if not getattr(solicitante, "email", None):
                 messages.error(request, "El solicitante no tiene correo registrado.")
-                return redirect("gestion:correos_pendientes_agrupados")
+                return redirect("gestion:correos_pendientes_agrupados" , id_lab=id_lab)
 
             # Encolar tarea
             enviar_correo_reservas_solicitante.delay(int(solicitante_id))
 
             messages.success(request, f"Correo en cola para {solicitante}. Se enviará en segundo plano.")
-            return redirect("gestion:correos_pendientes_agrupados")
+            return redirect("gestion:correos_pendientes_agrupados" , id_lab=id_lab)
 
         messages.error(request, "Acción no reconocida.")
-        return redirect("gestion:correos_pendientes_agrupados")
+        return redirect("gestion:correos_pendientes_agrupados" , id_lab=id_lab)
 
     # GET: render pantalla
     context = {

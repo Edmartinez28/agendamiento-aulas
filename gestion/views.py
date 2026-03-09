@@ -233,7 +233,6 @@ def correos_pendientes_agrupados(request, id_lab):
             return redirect("gestion:correos_pendientes_agrupados" , id_lab=id_lab)
 
         if action == "enviar":
-            print("Llego hasta este punto \n\n huu")
             # Validaciones mínimas:
             solicitante = correos_solicitante.first().solicitante
             if not getattr(solicitante, "email", None):

@@ -104,6 +104,7 @@ def guardar_reserva(request, id_lab):
         grupo = data.get("grupo")
         estudiantes = data.get("numEstudiantes")
         horarios = data.get("horarios")
+        observacion = data.get("observacion")
 
         if not horarios:
             return JsonResponse({"error": "No hay horarios seleccionados"}, status=400)
@@ -125,6 +126,7 @@ def guardar_reserva(request, id_lab):
                     paralelo_id=paralelo_id,
                     grupo=grupo,
                     estudiantes=estudiantes,
+                    observacion=observacion,
                 )
 
                 reserva.full_clean()  # 🔥 valida conflictos
@@ -268,6 +270,7 @@ def guardar_reserva_estacion(request, id_lab):
         estacion_id = data.get("estacion_id")
         slot_id = data.get("slot_id")
         fecha = data.get("fecha")
+        observacion = data.get("observacion")
 
         # ejemplo guardado
         Reserva.objects.create(
@@ -279,6 +282,7 @@ def guardar_reserva_estacion(request, id_lab):
             estacion_id=estacion_id,
             slot_id=slot_id,
             fecha=fecha,
+            observacion=observacion,
             usuario=request.user
         )
 

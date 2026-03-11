@@ -243,6 +243,19 @@
             border-radius: 8px;
         }
 
+        .observation-details { 
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+            padding: 15px;
+            background: linear-gradient(
+                rgba(255, 255, 255, 0.7),
+                rgba(255, 255, 255, 0.7)
+            ), {{ fondo|default:"#4C758A" }};
+            border-radius: 8px;
+        }
+
         .detail-item {
             display: flex;
             flex-direction: column;
@@ -483,6 +496,10 @@
                 grid-template-columns: 1fr;
             }
 
+            .observation-details {
+                grid-template-columns: 1fr;
+            }
+
             .stats-grid {
                 grid-template-columns: 1fr;
             }
@@ -674,6 +691,17 @@
                         </div>
                     </div>
 
+                    {% if reserva.observacion %}
+                        <div class="observation-details">
+                            <div class="detail-item">
+                                <span class="detail-label">Observación</span>
+                                <span class="detail-value">
+                                    📝 {{ reserva.observacion }}
+                                </span>
+                            </div>
+                        </div>
+                    {% endif %}
+
                     <div class="reservation-actions">
                         <form method="post" action="{% url 'gestion:cambiar_estado_reserva' reserva.id %}">
                             {% csrf_token %}
@@ -786,6 +814,17 @@
                                 </span>
                             </div>
                         </div>
+
+                        {% if reserva.observacion %}
+                            <div class="observation-details">
+                                <div class="detail-item">
+                                    <span class="detail-label">Observación</span>
+                                    <span class="detail-value">
+                                        📝 {{ reserva.observacion }}
+                                    </span>
+                                </div>
+                            </div>
+                        {% endif %}
 
                         <div class="reservation-actions">
                             <form method="post" action="{% url 'gestion:cambiar_estado_reserva' reserva.id %}">

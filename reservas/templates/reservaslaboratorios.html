@@ -683,6 +683,14 @@
                 </div>
             </div>
 
+            <div class="form-section">
+                <hr>
+                <div class="form-group">
+                    <label for="observacion">Observación</label>
+                    <textarea class="form-control" id="observacion" name="observacion" rows="3" placeholder="Detalles a tomar en cuenta"></textarea>
+                </div>
+            </div>
+
             <div class="button-group">
                 <button class="btn btn-primary" onclick="submitReservation()">
                     ✓ Confirmar Reserva
@@ -911,6 +919,7 @@
                 numEstudiantes: document.getElementById('numEstudiantes').value,
                 tipo: document.getElementById('tipo').value,
                 confirmacion: document.getElementById('confirmacionCheck').checked,
+                observacion: document.getElementById('observacion').value,
 
                 horarios: selectedSlots
             };
@@ -938,6 +947,17 @@
             });
         }
 
+        function formatFechaES(fechaStr) {
+            const [year, month, day] = fechaStr.split('-').map(Number);
+            const fecha = new Date(year, month - 1, day);
+
+            return fecha.toLocaleDateString('es-ES', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric'
+            });
+        }
+
         function changeWeek(offset) {
             currentWeekOffset += offset;
 
@@ -950,7 +970,7 @@
             .then(data => {
 
                 document.getElementById('weekLabel').textContent =
-                    `${data.start_of_week} - ${data.end_of_week}`;
+                    `${formatFechaES(data.start_of_week)} - ${formatFechaES(data.end_of_week)}`;
 
                 initSchedule(data.reservas, data.start_of_week);
             });
@@ -966,6 +986,7 @@
             document.getElementById('numEstudiantes').value = '';
             document.getElementById('tipo').value = '';
             document.getElementById('confirmacionCheck').checked = false;
+            document.getElementById('observacion').value = '';
             selectedSlots = [];
             initSchedule();
             hideAlert();

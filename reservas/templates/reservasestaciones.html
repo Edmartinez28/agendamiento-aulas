@@ -941,6 +941,14 @@
                 </div>
             </div>
 
+            <div class="form-section">
+                <hr>
+                <div class="form-group">
+                    <label for="observacion">Observación</label>
+                    <textarea class="form-control" id="observacion" name="observacion" rows="3" placeholder="Detalles a tomar en cuenta"></textarea>
+                </div>
+            </div>
+
             <div id="estacionesContainer" class="card" style="margin-top:20px; display:none;">
                 <h3>Selecciona una estación</h3><hr><br>
                 <div id="estacionesGrid" class="ficha-grid"></div>
@@ -1252,6 +1260,7 @@
                 carrera: document.getElementById('carrera').value,
                 ciclo: document.getElementById('ciclo').value,
                 paralelo: document.getElementById('paralelo').value,
+                observacion: document.getElementById('observacion').value,
                 estacion_id: selectedEstacion,
                 slot_id: slot,
                 fecha: fecha
@@ -1282,6 +1291,17 @@
             });
         }
 
+        function formatFechaES(fechaStr) {
+            const [year, month, day] = fechaStr.split('-').map(Number);
+            const fecha = new Date(year, month - 1, day);
+
+            return fecha.toLocaleDateString('es-ES', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric'
+            });
+        }
+
         function changeWeek(offset) {
             currentWeekOffset += offset;
 
@@ -1293,7 +1313,7 @@
             .then(response => response.json())
             .then(data => {
                 document.getElementById('weekLabel').textContent =
-                    `${data.start_of_week} - ${data.end_of_week}`;
+                    `${formatFechaES(data.start_of_week)} - ${formatFechaES(data.end_of_week)}`;
 
                 initSchedule(data.habilitadas, data.yareservadas, data.start_of_week);
             });
@@ -1305,6 +1325,7 @@
             document.getElementById('carrera').value = '';
             document.getElementById('ciclo').value = '';
             document.getElementById('paralelo').value = '';
+            document.getElementById('observacion').value = '';
             selectedSlots = [];
             initSchedule();
             hideAlert();

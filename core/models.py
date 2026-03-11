@@ -121,6 +121,8 @@ class Reserva(models.Model):
     estudiantes = models.IntegerField(null=False, default=1)
     tipo = models.CharField(max_length=30, choices=TIPO_CHOICES, default="CLASES NORMALES")
 
+    observacion = models.TextField(blank=True, null=True)
+
     class Meta:
         indexes = [
             models.Index(fields=["laboratorio", "fecha", "slot"]),

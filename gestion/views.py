@@ -145,7 +145,8 @@ def obtenerhorario(request, id_lab):
             "grupo": r.grupo,
             "estudiantes": r.estudiantes,
             "tipo": r.tipo,
-            "usuario": r.usuario.get_full_name() or r.usuario.username
+            "usuario": r.usuario.get_full_name() or r.usuario.username,
+            "observacion": r.observacion if r.observacion else "",
         })
 
     slots = []

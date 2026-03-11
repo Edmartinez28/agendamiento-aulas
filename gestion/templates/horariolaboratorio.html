@@ -923,6 +923,12 @@
                     <span class="modal-value">${reserva.estacion.nombre}</span>
                 </div>
                 ` : ''}
+                ${reserva.observacion ? `
+                <div class="modal-field">
+                    <span class="modal-label">Observación</span>
+                    <span class="modal-value">${reserva.observacion}</span>
+                </div>
+                ` : ''}
             `;
 
             modal.classList.add('show');

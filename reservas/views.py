@@ -7,6 +7,7 @@ from datetime import date, timedelta
 from django.http import JsonResponse
 from django.db.models import Q
 from django.utils import timezone
+from django.http import Http404
 
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
@@ -32,6 +33,10 @@ def reservaslaboratorios(request, id_lab):
     paralelos = Paralelo.objects.all()
 
     laboratorio = Laboratorio.objects.get(id=id_lab)
+
+    if laboratorio.estado == "RESTRINGIDO":
+        raise Http404("Laboratorio no disponible")
+        
     slots = list(TimeSlot.objects.all().order_by("hora_inicio").values("id", "hora_inicio", "hora_fin", "tipo"))
     for s in slots:
         s["hora_inicio"] = s["hora_inicio"].strftime("%H:%M")
@@ -147,6 +152,10 @@ def reservasestaciones(request, id_lab):
     paralelos = Paralelo.objects.all()
 
     laboratorio = Laboratorio.objects.get(id=id_lab)
+
+    if laboratorio.estado == "RESTRINGIDO":
+        raise Http404("Laboratorio no disponible")
+        
     slots = list(TimeSlot.objects.all().order_by("hora_inicio").values("id", "hora_inicio", "hora_fin", "tipo"))
     for s in slots:
         s["hora_inicio"] = s["hora_inicio"].strftime("%H:%M")

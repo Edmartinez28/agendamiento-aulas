@@ -42,7 +42,7 @@ def get_letra_titulos(default="#FFFFFF"):
 # Create your views here.
 @login_required
 def obtenerlaboratorios(request):
-    laboratorios = Laboratorio.objects.all().prefetch_related(
+    laboratorios = Laboratorio.objects.exclude(estado="RESTRINGIDO").prefetch_related(
         "estaciones__estacion_programas__programa"
     )
 

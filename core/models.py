@@ -10,6 +10,7 @@ class Laboratorio(models.Model):
         ("ACTIVO", "ACTIVO"),
         ("INACTIVO", "INACTIVO"),
         ("EN MANTENIMIENTO", "EN MANTENIMIENTO"),
+        ("RESTRINGIDO", "RESTRINGIDO"),
     ]
 
     nombre = models.CharField(max_length=100)

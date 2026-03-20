@@ -215,7 +215,7 @@ CSRF_COOKIE_SAMESITE = "None"
 CSRF_TRUSTED_ORIGINS = ["https://itevr.ucacue.edu.ec"]
 
 #Habilitar cuando den errores para ver en sudo journalctl -u gunicorn_b -n 120 --no-pager
-LOGGING = {
+"""LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
     "handlers": {
@@ -237,5 +237,5 @@ LOGGING = {
             "propagate": False,
         },
     },
-}
+}"""
 

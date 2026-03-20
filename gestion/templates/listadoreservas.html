@@ -566,7 +566,9 @@
                 <p>Administra y actualiza el estado de todas las reservas</p>
             </div>
 
-            <a class="btn-back" href="{% url 'gestion:obtenerlaboratorios' %}"><i class="fa-solid fa-circle-arrow-left"></i> Volver</a>
+            <a class="btn-back" href="{% url 'gestion:obtenerlaboratorios' %}">
+                <i class="fa-solid fa-circle-arrow-left"></i> Volver
+            </a>
         </div>
 
         <!-- Estadísticas -->
@@ -617,21 +619,45 @@
             </div>
 
             <div class="filter-bar">
-                <select class="filter-select" id="labFilter" onchange="filterReservations('laboratorio')">
+                <select class="filter-select" id="labFilterEstado" onchange="filterReservations('laboratorio')">
                     <option value="TODAS">Todas las reservas</option>
                     <option value="APROBADA">Aprobada</option>
-                    <option value="EN REVISION">En revision</option>
+                    <option value="EN REVISION">En revisión</option>
                     <option value="CANCELADA">Cancelada</option>
                     <option value="FINALIZADA">Finalizada</option>
                     <option value="BLOQUEADA">Bloqueada</option>
                     <option value="ESTUDIANTIL">Estudiantil</option>
                 </select>
+
+                <input type="text" class="filter-select" id="labFilterCarrera"
+                       placeholder="Filtrar por carrera"
+                       oninput="filterReservations('laboratorio')">
+
+                <input type="date" class="filter-select" id="labFilterFecha"
+                       onchange="filterReservations('laboratorio')">
+
+                <input type="text" class="filter-select" id="labFilterAsignatura"
+                       placeholder="Filtrar por asignatura"
+                       oninput="filterReservations('laboratorio')">
+
+                <input type="text" class="filter-select" id="labFilterTipo"
+                       placeholder="Filtrar por tipo"
+                       oninput="filterReservations('laboratorio')">
+
+                <button type="button" class="btn-save" onclick="clearFilters('laboratorio')">
+                    Limpiar
+                </button>
             </div>
 
             <div class="reservations-list" id="laboratoriosList">
             {% if reservaslaboratorio %}
                 {% for reserva in reservaslaboratorio %}
-                <div class="reservation-card" data-estado="{{ reserva.estado }}">
+                <div class="reservation-card"
+                     data-estado="{{ reserva.estado }}"
+                     data-carrera="{{ reserva.carrera.nombre|lower }}"
+                     data-fecha="{{ reserva.fecha|date:'Y-m-d' }}"
+                     data-asignatura="{{ reserva.asignatura|lower }}"
+                     data-tipo="{{ reserva.tipo|lower }}">
 
                     <div class="reservation-header">
                         <div class="reservation-info">
@@ -641,10 +667,13 @@
 
                             <div class="reservation-meta">
                                 <span class="meta-item">
-                                    👤 <strong>Solicita:</strong> {{ reserva.usuario.get_full_name }}        
+                                    👤 <strong>Solicita:</strong> {{ reserva.usuario.get_full_name }}
                                 </span>
                                 <span class="meta-item">
                                     📅 <strong>Fecha Solicitud:</strong>{{ reserva.fecha_creacion|date:"d/m/Y H:i" }}
+                                </span>
+                                <span class="meta-item">
+                                    📚 <strong>Tipo:</strong>{{ reserva.tipo }}
                                 </span>
                             </div>
                         </div>
@@ -707,8 +736,7 @@
                             {% csrf_token %}
                             <select name="estado" class="status-select {{ reserva.estado|slugify }}">
                                 {% for key, value in reserva.ESTADOS_CHOICES %}
-                                    <option value="{{ key }}"
-                                        {% if reserva.estado == key %}selected{% endif %}>
+                                    <option value="{{ key }}" {% if reserva.estado == key %}selected{% endif %}>
                                         {{ value }}
                                     </option>
                                 {% endfor %}
@@ -727,7 +755,6 @@
                 </div>
             {% endif %}
             </div>
-
         </div>
 
         <!-- Sección: Reservas de Estaciones -->
@@ -741,20 +768,44 @@
             </div>
 
             <div class="filter-bar">
-                <select class="filter-select" id="estacionFilter" onchange="filterReservations('estacion')">
+                <select class="filter-select" id="estacionFilterEstado" onchange="filterReservations('estacion')">
                     <option value="TODAS">Todas las reservas</option>
                     <option value="APROBADA">Aprobada</option>
-                    <option value="EN REVISION">En revision</option>
+                    <option value="EN REVISION">En revisión</option>
                     <option value="CANCELADA">Cancelada</option>
                     <option value="FINALIZADA">Finalizada</option>
                     <option value="BLOQUEADA">Bloqueada</option>
                 </select>
+
+                <input type="text" class="filter-select" id="estacionFilterCarrera"
+                       placeholder="Filtrar por carrera"
+                       oninput="filterReservations('estacion')">
+
+                <input type="date" class="filter-select" id="estacionFilterFecha"
+                       onchange="filterReservations('estacion')">
+
+                <input type="text" class="filter-select" id="estacionFilterAsignatura"
+                       placeholder="Filtrar por asignatura"
+                       oninput="filterReservations('estacion')">
+
+                <input type="text" class="filter-select" id="estacionFilterTipo"
+                       placeholder="Filtrar por tipo"
+                       oninput="filterReservations('estacion')">
+
+                <button type="button" class="btn-save" onclick="clearFilters('estacion')">
+                    Limpiar
+                </button>
             </div>
 
             <div class="reservations-list" id="estacionesList">
-                {% if reservasestaciones%}
+                {% if reservasestaciones %}
                     {% for reserva in reservasestaciones %}
-                    <div class="reservation-card" data-estado="{{ reserva.estado }}">
+                    <div class="reservation-card"
+                         data-estado="{{ reserva.estado }}"
+                         data-carrera="{{ reserva.carrera.nombre|lower }}"
+                         data-fecha="{{ reserva.fecha|date:'Y-m-d' }}"
+                         data-asignatura="{{ reserva.asignatura|lower }}"
+                         data-tipo="{{ reserva.tipo|lower }}">
 
                         <div class="reservation-header">
                             <div class="reservation-info">
@@ -765,10 +816,13 @@
 
                                 <div class="reservation-meta">
                                     <span class="meta-item">
-                                        👤 <strong>Solicita:</strong> {{ reserva.usuario.get_full_name }}        
+                                        👤 <strong>Solicita:</strong> {{ reserva.usuario.get_full_name }}
                                     </span>
                                     <span class="meta-item">
                                         📅 <strong>Fecha Solicitud:</strong>{{ reserva.fecha_creacion|date:"d/m/Y H:i" }}
+                                    </span>
+                                    <span class="meta-item">
+                                        📚 <strong>Tipo:</strong> {{ reserva.tipo }}
                                     </span>
                                 </div>
                             </div>
@@ -831,8 +885,7 @@
                                 {% csrf_token %}
                                 <select name="estado" class="status-select {{ reserva.estado|slugify }}">
                                     {% for key, value in reserva.ESTADOS_CHOICES %}
-                                        <option value="{{ key }}"
-                                            {% if reserva.estado == key %}selected{% endif %}>
+                                        <option value="{{ key }}" {% if reserva.estado == key %}selected{% endif %}>
                                             {{ value }}
                                         </option>
                                     {% endfor %}
@@ -862,24 +915,62 @@
 
     <script>
         function filterReservations(tipo) {
+            const isLab = tipo === 'laboratorio';
 
-            const selectId = tipo === 'laboratorio' ? 'labFilter' : 'estacionFilter';
-            const listId   = tipo === 'laboratorio' ? 'laboratoriosList' : 'estacionesList';
+            const listId = isLab ? 'laboratoriosList' : 'estacionesList';
 
-            const filtro = document.getElementById(selectId).value;
-            const cards  = document.querySelectorAll(`#${listId} .reservation-card`);
+            const estado = document.getElementById(isLab ? 'labFilterEstado' : 'estacionFilterEstado').value;
+            const carrera = document.getElementById(isLab ? 'labFilterCarrera' : 'estacionFilterCarrera').value.toLowerCase().trim();
+            const fecha = document.getElementById(isLab ? 'labFilterFecha' : 'estacionFilterFecha').value;
+            const asignatura = document.getElementById(isLab ? 'labFilterAsignatura' : 'estacionFilterAsignatura').value.toLowerCase().trim();
+            const tipoReserva = document.getElementById(isLab ? 'labFilterTipo' : 'estacionFilterTipo').value.toLowerCase().trim();
+
+            const cards = document.querySelectorAll(`#${listId} .reservation-card`);
+            let visibles = 0;
 
             cards.forEach(card => {
-                const estado = card.getAttribute("data-estado");
+                const cardEstado = card.getAttribute("data-estado") || "";
+                const cardCarrera = card.getAttribute("data-carrera") || "";
+                const cardFecha = card.getAttribute("data-fecha") || "";
+                const cardAsignatura = card.getAttribute("data-asignatura") || "";
+                const cardTipo = card.getAttribute("data-tipo") || "";
 
-                if (filtro === "TODAS" || estado === filtro) {
+                const matchEstado = (estado === "TODAS" || cardEstado === estado);
+                const matchCarrera = (!carrera || cardCarrera.includes(carrera));
+                const matchFecha = (!fecha || cardFecha === fecha);
+                const matchAsignatura = (!asignatura || cardAsignatura.includes(asignatura));
+                const matchTipo = (!tipoReserva || cardTipo.includes(tipoReserva));
+
+                if (matchEstado && matchCarrera && matchFecha && matchAsignatura && matchTipo) {
                     card.style.display = "block";
+                    visibles++;
                 } else {
                     card.style.display = "none";
                 }
             });
-        }
-    </script>
 
+            const countId = isLab ? 'labCount' : 'estacionCount';
+            document.getElementById(countId).textContent = `${visibles} reserva${visibles !== 1 ? 's' : ''}`;
+        }
+
+        function clearFilters(tipo) {
+            const isLab = tipo === 'laboratorio';
+
+            document.getElementById(isLab ? 'labFilterEstado' : 'estacionFilterEstado').value = 'TODAS';
+            document.getElementById(isLab ? 'labFilterCarrera' : 'estacionFilterCarrera').value = '';
+            document.getElementById(isLab ? 'labFilterFecha' : 'estacionFilterFecha').value = '';
+            document.getElementById(isLab ? 'labFilterAsignatura' : 'estacionFilterAsignatura').value = '';
+            document.getElementById(isLab ? 'labFilterTipo' : 'estacionFilterTipo').value = '';
+
+            filterReservations(tipo);
+        }
+
+        function initializeCounts() {
+            filterReservations('laboratorio');
+            filterReservations('estacion');
+        }
+
+        document.addEventListener('DOMContentLoaded', initializeCounts);
+    </script>
 </body>
 </html>

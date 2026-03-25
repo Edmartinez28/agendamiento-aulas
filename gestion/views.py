@@ -42,8 +42,10 @@ def get_letra_titulos(default="#FFFFFF"):
 # Create your views here.
 @login_required
 def obtenerlaboratorios(request):
-    laboratorios = Laboratorio.objects.exclude(estado="RESTRINGIDO").prefetch_related(
-        "estaciones__estacion_programas__programa"
+    laboratorios = (
+        Laboratorio.objects.exclude(estado="RESTRINGIDO")
+        .prefetch_related("estaciones__estacion_programas__programa")
+        .annotate(total_reservas=Count("reserva"))
     )
 
     for lab in laboratorios:

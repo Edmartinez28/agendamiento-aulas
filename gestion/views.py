@@ -30,6 +30,13 @@ from itertools import chain
 from django.contrib import messages
 from .tasks import enviar_correo_reservas_solicitante
 
+
+from django.http import HttpResponse
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import letter, landscape
+from reportlab.lib.styles import getSampleStyleSheet
+
 # Inicio de parametrizaciones de color base
 def get_fondo_valor(default="#4C758A"):
     p = Parametro.objects.filter(etiqueta="fondo").first()
@@ -200,6 +207,7 @@ def correos_pendientes_agrupados(request, id_lab):
     if request.method == "POST":
         action = request.POST.get("action")  # "enviar" | "cancelar"
         solicitante_id = request.POST.get("solicitante_id")
+        detalles = request.POST.get("detalles", "").strip()
 
         if not action or not solicitante_id:
             messages.error(request, "Solicitud inválida.")
@@ -243,7 +251,8 @@ def correos_pendientes_agrupados(request, id_lab):
                 return redirect("gestion:correos_pendientes_agrupados" , id_lab=id_lab)
 
             # Encolar tarea
-            enviar_correo_reservas_solicitante.delay(int(solicitante_id))
+            print(detalles)
+            enviar_correo_reservas_solicitante.delay(int(solicitante_id), detalles)
 
             messages.success(request, f"Correo en cola para {solicitante}. Se enviará en segundo plano.")
             return redirect("gestion:correos_pendientes_agrupados" , id_lab=id_lab)
@@ -258,3 +267,90 @@ def correos_pendientes_agrupados(request, id_lab):
         "titulos":get_letra_titulos,
     }
     return render(request, "correos_pendientes_agrupados.html", context)
+
+
+@login_required
+@rol_required(["TECNICO", "ADMIN"])
+def exportar_reservas_pdf(request, laboratorio_id):
+    reservas = Reserva.objects.filter(laboratorio_id=laboratorio_id)\
+        .select_related('carrera', 'ciclo', 'paralelo', 'usuario')\
+        .order_by('carrera__nombre', 'ciclo__nombre', 'paralelo__nombre', 'fecha')
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="reservas_agenda.pdf"'
+
+    doc = SimpleDocTemplate(response, pagesize=landscape(letter))
+    elements = []
+
+    styles = getSampleStyleSheet()
+
+    # Título
+    elements.append(Paragraph("Agenda de Reservas", styles['Title']))
+    elements.append(Spacer(1, 10))
+
+    # Encabezados tabla
+    data = [[
+        "ID", "Usuario", "Carrera", "Curso", "Paralelo",
+        "Asignatura", "Fecha", "Horario", "Estado"
+    ]]
+
+    # 🎨 Colores tipo agenda (suaves)
+    colores = [
+        colors.HexColor("#FFCDD2"),
+        colors.HexColor("#C8E6C9"),
+        colors.HexColor("#BBDEFB"),
+        colors.HexColor("#FFF9C4"),
+        colors.HexColor("#D1C4E9"),
+        colors.HexColor("#B2DFDB"),
+        colors.HexColor("#FFE0B2"),
+        colors.HexColor("#F8BBD0"),
+    ]
+
+    grupo_actual = None
+    color_index = 0
+    row_colors = []
+
+    for reserva in reservas:
+        grupo = f"{reserva.carrera.nombre}-{reserva.ciclo.nombre}-{reserva.paralelo.nombre}"
+
+        # Cambiar color por grupo
+        if grupo != grupo_actual:
+            grupo_actual = grupo
+            color_index += 1
+
+        color = colores[color_index % len(colores)]
+
+        fila = [
+            str(reserva.id),
+            reserva.usuario.get_full_name(),
+            reserva.carrera.nombre,
+            reserva.ciclo.nombre,
+            reserva.paralelo.nombre,
+            reserva.asignatura,
+            reserva.fecha.strftime("%Y-%m-%d"),
+            f"{reserva.slot.hora_inicio} - {reserva.slot.hora_fin}",
+            reserva.estado
+        ]
+
+        data.append(fila)
+        row_colors.append(color)
+
+    # Crear tabla
+    table = Table(data, repeatRows=1)
+
+    style = TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+    ])
+
+    # Aplicar colores por fila
+    for i, color in enumerate(row_colors, start=1):
+        style.add('BACKGROUND', (0, i), (-1, i), color)
+
+    table.setStyle(style)
+    elements.append(table)
+    doc.build(elements)
+
+    return response

@@ -140,7 +140,7 @@
 
         /* Table wrapper */
         .table-wrapper {
-            padding: 25px;
+            padding: 25px 25px 0px 25px;
         }
 
         .table-container {
@@ -326,10 +326,6 @@
                 width: 100%;
             }
 
-            .table-wrapper {
-                padding: 20px;
-            }
-
             .reservations-table th,
             .reservations-table td {
                 font-size: 0.8rem;
@@ -361,10 +357,6 @@
 
             .solicitante-header {
                 padding: 20px;
-            }
-
-            .table-wrapper {
-                padding: 15px;
             }
         }
 
@@ -418,6 +410,48 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
+
+        .detalle-container {
+            margin: 15px 20px 10px 20px;
+        }
+
+        .detalle-label {
+            display: block;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .detalle-textarea {
+            width: 100%;
+            min-height: 80px;
+            resize: vertical;
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1px solid #ced4da;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            outline: none;
+        }
+
+        /* Hover */
+        .detalle-textarea:hover {
+            border-color: #80bdff;
+        }
+
+        /* Focus (cuando haces click) */
+        .detalle-textarea:focus {
+            border-color: #4CAF50;
+            box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+        }
+
+        /* Placeholder */
+        .detalle-textarea::placeholder {
+            color: #adb5bd;
+            font-style: italic;
+        }
+
     </style>
 </head>
 <body>
@@ -543,6 +577,21 @@
                         </div>
                     </div>
 
+                    <div class="detalle-container">
+                        <label class="detalle-label">
+                            📝 Ingrese detalles adicionales a informar
+                        </label>
+
+                        <textarea 
+                            id="detalles_global" 
+                            name="detalles" 
+                            class="detalle-textarea"
+                            placeholder="Escribe un mensaje adicional para el correo..."
+                            rows="3"
+                        ></textarea>
+                    </div>
+                    
+
                     <!-- Actions -->
                     <div class="actions-container">
                         <!-- ENVIAR -->
@@ -550,6 +599,7 @@
                             {% csrf_token %}
                             <input type="hidden" name="action" value="enviar">
                             <input type="hidden" name="solicitante_id" value="{{ solicitante.id }}">
+
                             <button type="submit" class="btn btn-send">
                                 <span>📤</span>
                                 Enviar Correos
@@ -561,6 +611,7 @@
                             {% csrf_token %}
                             <input type="hidden" name="action" value="cancelar">
                             <input type="hidden" name="solicitante_id" value="{{ solicitante.id }}">
+
                             <button type="submit" class="btn btn-cancel">
                                 <span>❌</span>
                                 Cancelar Todo
@@ -604,6 +655,17 @@
                 }
             });
         });
+
+        document.querySelectorAll('form').forEach(form => {
+            form.addEventListener('submit', () => {
+                let input = document.createElement("input");
+                input.type = "hidden";
+                input.name = "detalles";
+                input.value = document.getElementById("detalles_global").value;
+                form.appendChild(input);
+            });
+        });
+
     </script>
 </body>
 </html>

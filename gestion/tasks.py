@@ -12,7 +12,7 @@ from itertools import chain
 from core.models import Correo  # ajusta import
 
 @shared_task(bind=True, max_retries=3, default_retry_delay=60)
-def enviar_correo_reservas_solicitante(self, solicitante_id: int):
+def enviar_correo_reservas_solicitante(self, solicitante_id: int, detalles):
     """
     Envía el correo agrupado por solicitante y marca registros ENVIADO.
     Reintenta si hay fallos de red/timeout/SMTP temporales.
@@ -74,9 +74,12 @@ def enviar_correo_reservas_solicitante(self, solicitante_id: int):
         "reservas": reservas_data,
         "hoy": timezone.localdate().strftime("%d/%m/%Y"),
         "anio": timezone.localdate().year,
-        "fondo":"#0049A3",
-        "titulos":"#FFFFFF",
+        "fondo": "#0049A3",
+        "titulos": "#FFFFFF",
+        "detalles": detalles,
     }
+
+    print(detalles)
 
     html_content = render_to_string("emails/reservas_detalle.html", context)
     text_content = strip_tags(html_content)

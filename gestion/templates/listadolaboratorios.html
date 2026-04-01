@@ -512,26 +512,26 @@
                                 {% if lab.estado == "ACTIVO" %}
                                     {% if user.rol in "TECNICO,ADMIN" %}
                                     <a href="{% url 'inventario:inventario_por_laboratorio' lab.id %}" 
-                                    class="btn-reserve text-center">
-                                        Ver Inventario
+                                    class="btn-reserve text-center" style="text-decoration: none;">
+                                        📝 Ver Inventario
                                     </a>
                                     
                                     <a href="{% url 'gestion:listadoreservas' lab.id %}" 
-                                    class="btn-reserve text-center">
+                                    class="btn-reserve text-center" style="text-decoration: none;">
                                         📅 Ver Reservas
                                     </a>
                                     {% endif %}
 
                                     {% if user.rol in "DOCENTE,TECNICO,ADMIN" %}
                                     <a href="{% url 'reservas:reservaslaboratorios' lab.id %}" 
-                                    class="btn-reserve text-center">
+                                    class="btn-reserve text-center" style="text-decoration: none;">
                                         📅 Reservar Laboratorio
                                     </a>
                                     {% endif %}
 
                                     {% if user.rol in "ESTUDIANTE,TECNICO,ADMIN" %}
                                     <a href="{% url 'reservas:reservasestaciones' lab.id %}" 
-                                    class="btn-reserve text-center">
+                                    class="btn-reserve text-center" style="text-decoration: none;">
                                         📅 Reservar Estación
                                     </a>
                                     {% endif %}

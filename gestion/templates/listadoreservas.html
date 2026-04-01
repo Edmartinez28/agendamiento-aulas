@@ -606,6 +606,7 @@
         <div style="align-items: center; text-align: center;">
             <a href="{% url 'gestion:obtenerhorario' laboratorio.id %}" class="btn-horario">📅 Ver en Horario</a>
             <a href="{% url 'gestion:correos_pendientes_agrupados' laboratorio.id %}" class="btn-horario">📧 Envio de Correos</a>
+            <a href="{% url 'gestion:exportar_reservas_pdf' laboratorio.id %}" class="btn-horario">📄 Exportar PDF Agenda</a>
         </div>
 
         <!-- Sección: Reservas de Laboratorios -->
@@ -630,19 +631,27 @@
                 </select>
 
                 <input type="text" class="filter-select" id="labFilterCarrera"
-                       placeholder="Filtrar por carrera"
-                       oninput="filterReservations('laboratorio')">
+                        placeholder="Filtrar por carrera"
+                        oninput="filterReservations('laboratorio')">
 
                 <input type="date" class="filter-select" id="labFilterFecha"
-                       onchange="filterReservations('laboratorio')">
+                        onchange="filterReservations('laboratorio')">
 
                 <input type="text" class="filter-select" id="labFilterAsignatura"
-                       placeholder="Filtrar por asignatura"
-                       oninput="filterReservations('laboratorio')">
+                        placeholder="Filtrar por asignatura"
+                        oninput="filterReservations('laboratorio')">
 
                 <input type="text" class="filter-select" id="labFilterTipo"
-                       placeholder="Filtrar por tipo"
-                       oninput="filterReservations('laboratorio')">
+                        placeholder="Filtrar por tipo"
+                        oninput="filterReservations('laboratorio')">
+                
+                <input type="text" class="filter-select" id="labFilterUsuario"
+                        placeholder="Filtrar por usuario"
+                        oninput="filterReservations('laboratorio')">
+
+                <input type="text" class="filter-select" id="labFilterId"
+                        placeholder="Filtrar por ID"
+                        oninput="filterReservations('laboratorio')">
 
                 <button type="button" class="btn-save" onclick="clearFilters('laboratorio')">
                     Limpiar
@@ -653,11 +662,13 @@
             {% if reservaslaboratorio %}
                 {% for reserva in reservaslaboratorio %}
                 <div class="reservation-card"
-                     data-estado="{{ reserva.estado }}"
-                     data-carrera="{{ reserva.carrera.nombre|lower }}"
-                     data-fecha="{{ reserva.fecha|date:'Y-m-d' }}"
-                     data-asignatura="{{ reserva.asignatura|lower }}"
-                     data-tipo="{{ reserva.tipo|lower }}">
+                    data-estado="{{ reserva.estado }}"
+                    data-carrera="{{ reserva.carrera.nombre|lower }}"
+                    data-fecha="{{ reserva.fecha|date:'Y-m-d' }}"
+                    data-asignatura="{{ reserva.asignatura|lower }}"
+                    data-tipo="{{ reserva.tipo|lower }}"
+                    data-usuario="{{ reserva.usuario.get_full_name|lower }}"
+                    data-id="{{ reserva.id }}">
 
                     <div class="reservation-header">
                         <div class="reservation-info">
@@ -778,19 +789,27 @@
                 </select>
 
                 <input type="text" class="filter-select" id="estacionFilterCarrera"
-                       placeholder="Filtrar por carrera"
-                       oninput="filterReservations('estacion')">
+                        placeholder="Filtrar por carrera"
+                        oninput="filterReservations('estacion')">
 
                 <input type="date" class="filter-select" id="estacionFilterFecha"
-                       onchange="filterReservations('estacion')">
+                        onchange="filterReservations('estacion')">
 
                 <input type="text" class="filter-select" id="estacionFilterAsignatura"
-                       placeholder="Filtrar por asignatura"
-                       oninput="filterReservations('estacion')">
+                        placeholder="Filtrar por asignatura"
+                        oninput="filterReservations('estacion')">
 
                 <input type="text" class="filter-select" id="estacionFilterTipo"
-                       placeholder="Filtrar por tipo"
-                       oninput="filterReservations('estacion')">
+                        placeholder="Filtrar por tipo"
+                        oninput="filterReservations('estacion')">
+
+                <input type="text" class="filter-select" id="estacionFilterUsuario"
+                        placeholder="Filtrar por usuario"
+                        oninput="filterReservations('estacion')">
+
+                <input type="text" class="filter-select" id="estacionFilterId"
+                        placeholder="Filtrar por ID"
+                        oninput="filterReservations('estacion')">
 
                 <button type="button" class="btn-save" onclick="clearFilters('estacion')">
                     Limpiar
@@ -805,7 +824,9 @@
                          data-carrera="{{ reserva.carrera.nombre|lower }}"
                          data-fecha="{{ reserva.fecha|date:'Y-m-d' }}"
                          data-asignatura="{{ reserva.asignatura|lower }}"
-                         data-tipo="{{ reserva.tipo|lower }}">
+                         data-tipo="{{ reserva.tipo|lower }}"
+                         data-usuario="{{ reserva.usuario.get_full_name|lower }}"
+                         data-id="{{ reserva.id }}">
 
                         <div class="reservation-header">
                             <div class="reservation-info">
@@ -924,6 +945,8 @@
             const fecha = document.getElementById(isLab ? 'labFilterFecha' : 'estacionFilterFecha').value;
             const asignatura = document.getElementById(isLab ? 'labFilterAsignatura' : 'estacionFilterAsignatura').value.toLowerCase().trim();
             const tipoReserva = document.getElementById(isLab ? 'labFilterTipo' : 'estacionFilterTipo').value.toLowerCase().trim();
+            const usuario = document.getElementById(isLab ? 'labFilterUsuario' : 'estacionFilterUsuario').value.toLowerCase().trim();
+            const id = document.getElementById(isLab ? 'labFilterId' : 'estacionFilterId').value.trim();
 
             const cards = document.querySelectorAll(`#${listId} .reservation-card`);
             let visibles = 0;
@@ -934,14 +957,18 @@
                 const cardFecha = card.getAttribute("data-fecha") || "";
                 const cardAsignatura = card.getAttribute("data-asignatura") || "";
                 const cardTipo = card.getAttribute("data-tipo") || "";
+                const cardUsuario = card.getAttribute("data-usuario") || "";
+                const cardId = card.getAttribute("data-id") || "";
 
                 const matchEstado = (estado === "TODAS" || cardEstado === estado);
                 const matchCarrera = (!carrera || cardCarrera.includes(carrera));
                 const matchFecha = (!fecha || cardFecha === fecha);
                 const matchAsignatura = (!asignatura || cardAsignatura.includes(asignatura));
                 const matchTipo = (!tipoReserva || cardTipo.includes(tipoReserva));
+                const matchUsuario = (!usuario || cardUsuario.includes(usuario));
+                const matchId = (!id || cardId.includes(id));
 
-                if (matchEstado && matchCarrera && matchFecha && matchAsignatura && matchTipo) {
+                if (matchEstado && matchCarrera && matchFecha && matchAsignatura && matchTipo && matchUsuario && matchId) {
                     card.style.display = "block";
                     visibles++;
                 } else {
@@ -961,6 +988,8 @@
             document.getElementById(isLab ? 'labFilterFecha' : 'estacionFilterFecha').value = '';
             document.getElementById(isLab ? 'labFilterAsignatura' : 'estacionFilterAsignatura').value = '';
             document.getElementById(isLab ? 'labFilterTipo' : 'estacionFilterTipo').value = '';
+            document.getElementById(isLab ? 'labFilterUsuario' : 'estacionFilterUsuario').value = '';
+            document.getElementById(isLab ? 'labFilterId' : 'estacionFilterId').value = '';
 
             filterReservations(tipo);
         }

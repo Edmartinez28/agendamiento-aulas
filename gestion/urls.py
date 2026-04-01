@@ -8,4 +8,5 @@ urlpatterns = [
     path("reservas/<int:id_lab>/", listadoreservas , name="listadoreservas"),
     path("reservas/<int:reserva_id>/estado/",cambiar_estado_reserva,name="cambiar_estado_reserva"),
     path("correos/pendientes/<int:id_lab>/", correos_pendientes_agrupados, name="correos_pendientes_agrupados"),
+    path('exportar-reservas-pdf/<int:laboratorio_id>/', exportar_reservas_pdf, name='exportar_reservas_pdf'),
 ]

@@ -336,13 +336,25 @@ def exportar_reservas_pdf(request, laboratorio_id):
         row_colors.append(color)
 
     # Crear tabla
-    table = Table(data, repeatRows=1)
+    table = Table(data, repeatRows=1, colWidths=[
+        30, 100, 100, 60, 60, 100, 70, 90, 70
+    ])
 
     style = TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
         ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
         ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+
+        # 🔥 mejoras
+        ('FONTSIZE', (0, 0), (-1, -1), 7),
+        ('LEADING', (0, 0), (-1, -1), 8),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+
+        ('LEFTPADDING', (0, 0), (-1, -1), 4),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 4),
+        ('TOPPADDING', (0, 0), (-1, -1), 2),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 2),
     ])
 
     # Aplicar colores por fila

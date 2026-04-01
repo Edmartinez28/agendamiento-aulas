@@ -269,6 +269,17 @@ def correos_pendientes_agrupados(request, id_lab):
     return render(request, "correos_pendientes_agrupados.html", context)
 
 
+def truncar_por_ancho(texto, ancho_columna, factor=4):
+    if not texto:
+        return ""
+    
+    max_chars = int(ancho_columna / factor)
+    
+    if len(texto) > max_chars:
+        return texto[:max_chars - 3] + "..."
+    
+    return texto
+
 @login_required
 @rol_required(["TECNICO", "ADMIN"])
 def exportar_reservas_pdf(request, laboratorio_id):
@@ -320,7 +331,7 @@ def exportar_reservas_pdf(request, laboratorio_id):
 
         color = colores[color_index % len(colores)]
 
-        fila = [
+        """fila = [
             str(reserva.id),
             reserva.usuario.get_full_name(),
             reserva.carrera.nombre,
@@ -330,7 +341,26 @@ def exportar_reservas_pdf(request, laboratorio_id):
             reserva.fecha.strftime("%Y-%m-%d"),
             f"{reserva.slot.hora_inicio} - {reserva.slot.hora_fin}",
             reserva.estado
+        ]"""
+
+        styleN = styles['Normal']
+        styleN.fontSize = 7
+
+        fila = [
+            str(reserva.id),
+
+            Paragraph(truncar_por_ancho(reserva.usuario.get_full_name(), col_widths[1]), styleN),
+            Paragraph(truncar_por_ancho(reserva.carrera.nombre, col_widths[2]), styleN),
+            Paragraph(truncar_por_ancho(reserva.ciclo.nombre, col_widths[3]), styleN),
+            Paragraph(truncar_por_ancho(reserva.paralelo.nombre, col_widths[4]), styleN),
+            Paragraph(truncar_por_ancho(reserva.asignatura or "-", col_widths[5]), styleN),
+
+            reserva.fecha.strftime("%Y-%m-%d"),
+            f"{reserva.slot.hora_inicio} - {reserva.slot.hora_fin}",
+
+            Paragraph(truncar_por_ancho(reserva.estado, col_widths[8]), styleN),
         ]
+
 
         data.append(fila)
         row_colors.append(color)

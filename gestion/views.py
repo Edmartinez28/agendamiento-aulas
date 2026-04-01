@@ -320,6 +320,7 @@ def exportar_reservas_pdf(request, laboratorio_id):
     grupo_actual = None
     color_index = 0
     row_colors = []
+    col_widths = [30, 100, 100, 60, 60, 100, 70, 90, 70]
 
     for reserva in reservas:
         grupo = f"{reserva.carrera.nombre}-{reserva.ciclo.nombre}-{reserva.paralelo.nombre}"

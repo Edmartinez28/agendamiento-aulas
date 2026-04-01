@@ -269,7 +269,7 @@ def correos_pendientes_agrupados(request, id_lab):
     return render(request, "correos_pendientes_agrupados.html", context)
 
 
-def truncar_por_ancho(texto, ancho_columna, factor=4):
+def truncar_por_ancho(texto, ancho_columna, factor=4.5):
     if not texto:
         return ""
     
@@ -350,7 +350,7 @@ def exportar_reservas_pdf(request, laboratorio_id):
         fila = [
             str(reserva.id),
 
-            Paragraph(truncar_por_ancho(reserva.usuario.get_full_name(), col_widths[1]), styleN),
+            truncar_por_ancho(reserva.usuario.get_full_name(), col_widths[1]),
             Paragraph(truncar_por_ancho(reserva.carrera.nombre, col_widths[2]), styleN),
             Paragraph(truncar_por_ancho(reserva.ciclo.nombre, col_widths[3]), styleN),
             Paragraph(truncar_por_ancho(reserva.paralelo.nombre, col_widths[4]), styleN),

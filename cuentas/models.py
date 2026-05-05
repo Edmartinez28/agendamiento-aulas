@@ -40,4 +40,4 @@ class User(AbstractUser):
     )
 
     def __str__(self):
-        return f"{self.username} - {self.rol}"
+        return f"{self.get_full_name()} - {self.rol}"

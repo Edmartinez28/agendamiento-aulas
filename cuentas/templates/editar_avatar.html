@@ -1,7 +1,122 @@
-<h2>Cambiar foto de perfil</h2>
+{% extends "base.html" %}
 
-<form method="POST" enctype="multipart/form-data">
+{% block titulo %}Cambiar foto · {{ parametros.marca_nombre }}{% endblock %}
+
+{% block clase_lienzo %}lienzo lienzo--angosto{% endblock %}
+
+{% block ruta %}
+    <a href="{% url 'cuentas:mostrarperfil' %}">Mi perfil</a>
+    <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+    <strong>Foto de perfil</strong>
+{% endblock %}
+
+{% block css %}
+<style>
+    .avatar-preview { display: grid; place-items: center; margin-bottom: var(--esp-4); }
+
+    .avatar-preview img,
+    .avatar-vacio {
+        width: 148px;
+        height: 148px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 1px solid var(--filo);
+    }
+
+    .avatar-vacio {
+        display: grid;
+        place-items: center;
+        background: var(--ranura);
+        color: var(--tinta-4);
+        font-size: 46px;
+    }
+
+    #id_avatar, .campo-archivo input[type="file"] { display: none; }
+
+    .archivo {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--esp-2);
+        padding: var(--esp-4);
+        border: 1px dashed var(--filo-fuerte);
+        border-radius: var(--r-control);
+        color: var(--tinta-2);
+        font-size: 13.5px;
+        cursor: pointer;
+        transition: border-color var(--rapido) var(--curva), color var(--rapido) var(--curva);
+    }
+
+    .archivo:hover { border-color: var(--senal); color: var(--tinta); }
+</style>
+{% endblock %}
+
+{% block contenido %}
+
+<div class="cabecera">
+    <div class="cabecera__texto">
+        <div class="cabecera__eyebrow">Cuenta institucional</div>
+        <h1 class="t-display">Foto de perfil</h1>
+    </div>
+</div>
+
+<form method="POST" enctype="multipart/form-data" action="{% url 'cuentas:editar_avatar' %}">
     {% csrf_token %}
-    {{ form.avatar }}
-    <button type="submit">Guardar</button>
+
+    <div class="panel">
+        <div class="panel__cuerpo">
+            <div class="avatar-preview">
+                {% if user.avatar %}
+                    <img id="previewImg" src="{{ user.avatar.url }}" alt="">
+                {% else %}
+                    <img id="previewImg" alt="" hidden>
+                    <span class="avatar-vacio" id="avatarVacio">
+                        <i class="fa-solid fa-user" aria-hidden="true"></i>
+                    </span>
+                {% endif %}
+            </div>
+
+            <label class="archivo" for="id_avatar">
+                <i class="fa-solid fa-arrow-up-from-bracket" aria-hidden="true"></i>
+                <span id="nombreArchivo">Seleccionar imagen</span>
+            </label>
+            <input type="file" name="avatar" id="id_avatar" accept="image/*">
+        </div>
+
+        <div class="panel__pie">
+            <a class="btn btn--sutil" href="{% url 'cuentas:mostrarperfil' %}">Cancelar</a>
+            <span class="empuje"></span>
+            <button type="submit" class="btn btn--primario">
+                <i class="fa-regular fa-floppy-disk" aria-hidden="true"></i> Guardar
+            </button>
+        </div>
+    </div>
 </form>
+
+{% endblock %}
+
+{% block js %}
+<script>
+(function () {
+    var entrada = document.getElementById("id_avatar");
+    if (!entrada) return;
+
+    entrada.addEventListener("change", function () {
+        var archivo = entrada.files && entrada.files[0];
+        if (!archivo) return;
+
+        document.getElementById("nombreArchivo").textContent = archivo.name;
+
+        var lector = new FileReader();
+        lector.onload = function () {
+            var img = document.getElementById("previewImg");
+            var vacio = document.getElementById("avatarVacio");
+            img.src = lector.result;
+            img.hidden = false;
+            if (vacio) vacio.remove();
+        };
+        lector.readAsDataURL(archivo);
+    });
+})();
+</script>
+{% endblock %}

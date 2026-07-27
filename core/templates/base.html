@@ -1,0 +1,237 @@
+{% load static %}<!DOCTYPE html>
+<!--`tema_fijo` lo usan las pantallas públicas (portada, acceso), que siempre se
+   ven como la sala VR a oscuras y no admiten el interruptor. -->
+<html lang="es" data-tema="{% block tema %}{{ parametros.tema_defecto|default:'claro' }}{% endblock %}" {% block tema_fijo %}{% endblock %}>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light dark">
+    <title>{% block titulo %}{{ parametros.marca_nombre }}{% endblock %}</title>
+
+    <link rel="icon" href="{% static 'img/UC.png' %}">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <!--── Parametrizaciones → variables CSS ──────────────────────────────────
+       Todo el sistema deriva de estas. Cambiar un registro de `Parametro` en
+       el admin repinta la aplicación completa. -->
+    <style>
+        :root {
+        {% for etiqueta, valor in parametros_css.items %}    --p-{{ etiqueta }}: {{ valor }};
+        {% endfor %}}
+    </style>
+
+    <link rel="stylesheet" href="{% static 'css/ite.css' %}">
+
+    <!--Restaura el tema antes del primer pintado para que no haya destello -->
+    <script>
+        (function () {
+            if (document.documentElement.hasAttribute("data-tema-fijo")) return;
+            try {
+                var guardado = localStorage.getItem("ite-tema");
+                if (guardado === "claro" || guardado === "oscuro") {
+                    document.documentElement.dataset.tema = guardado;
+                } else if (document.documentElement.dataset.tema === "sistema") {
+                    document.documentElement.dataset.tema =
+                        window.matchMedia("(prefers-color-scheme: dark)").matches ? "oscuro" : "claro";
+                }
+            } catch (e) { document.documentElement.dataset.tema = "claro"; }
+        })();
+    </script>
+
+    {% block css %}{% endblock %}
+</head>
+<body>
+
+{% block barra %}
+<header class="barra">
+    <div class="barra__interior">
+        <a class="barra__marca" href="{% url 'cuentas:mostrarperfil' %}">
+            <img src="{% static 'img/UC.png' %}" alt="{{ parametros.marca_institucion }}">
+            <span class="barra__nombre">{{ parametros.marca_nombre }}</span>
+        </a>
+
+        <nav class="barra__ruta" aria-label="Ubicación">
+            {% block ruta %}{% endblock %}
+        </nav>
+
+        <div class="barra__acciones">
+            <button type="button" class="tema-btn" data-tema-toggle
+                    aria-label="Cambiar entre tema claro y oscuro" title="Cambiar tema">
+                <i class="fa-regular fa-moon icono-claro" aria-hidden="true"></i>
+                <i class="fa-regular fa-sun icono-oscuro" aria-hidden="true"></i>
+            </button>
+
+            {% if user.is_authenticated %}
+            <a class="usuario" href="{% url 'cuentas:mostrarperfil' %}">
+                {% if user.avatar %}
+                    <img class="usuario__avatar" src="{{ user.avatar.url }}" alt="">
+                {% else %}
+                    <span class="usuario__avatar">{{ user.first_name|slice:":1"|upper }}{{ user.last_name|slice:":1"|upper }}</span>
+                {% endif %}
+                <span class="usuario__datos">
+                    <span class="usuario__nombre">{{ user.get_full_name|default:user.username }}</span>
+                    <span class="usuario__rol">{{ user.rol|default:"—" }}</span>
+                </span>
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</header>
+{% endblock %}
+
+<main class="{% block clase_lienzo %}lienzo{% endblock %}">
+    {% if messages %}
+    <div class="avisos">
+        {% for message in messages %}
+        <div class="aviso aviso--{{ message.tags|default:'info' }}">
+            <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+            <span>{{ message }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% block contenido %}{% endblock %}
+</main>
+
+{% block pie %}
+<footer class="pie">
+    © {% now "Y" %} {{ parametros.marca_institucion }} · {{ parametros.pie_texto }}
+</footer>
+{% endblock %}
+
+<!--── Comportamientos compartidos ───────────────────────────────────────────
+   Tema, modales (`data-modal-abrir` / `data-modal-cerrar`) y galerías.
+   Sustituyen a Bootstrap: ninguna plantilla necesita ya el bundle. -->
+<script>
+(function () {
+    "use strict";
+
+    // Tema ────────────────────────────────────────────────────────────────
+    document.querySelectorAll("[data-tema-toggle]").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+            var raiz = document.documentElement;
+            var nuevo = raiz.dataset.tema === "oscuro" ? "claro" : "oscuro";
+            raiz.dataset.tema = nuevo;
+            try { localStorage.setItem("ite-tema", nuevo); } catch (e) {}
+        });
+    });
+
+    // Avisos flotantes ────────────────────────────────────────────────────
+    // Para acciones que ya no recargan la página y necesitan confirmar que
+    // pasaron. `window.avisar(mensaje, "success" | "error" | "warning" | "info")`
+    var bandeja = null;
+    var ICONOS = {
+        success: "fa-circle-check",
+        error: "fa-circle-exclamation",
+        warning: "fa-triangle-exclamation",
+        info: "fa-circle-info"
+    };
+
+    window.avisar = function (mensaje, tipo) {
+        tipo = ICONOS[tipo] ? tipo : "info";
+
+        if (!bandeja) {
+            bandeja = document.createElement("div");
+            bandeja.className = "avisos avisos--flotante";
+            bandeja.setAttribute("role", "status");
+            bandeja.setAttribute("aria-live", "polite");
+            document.body.appendChild(bandeja);
+        }
+
+        var aviso = document.createElement("div");
+        aviso.className = "aviso aviso--" + tipo;
+        aviso.innerHTML = '<i class="fa-solid ' + ICONOS[tipo] + '" aria-hidden="true"></i><span></span>';
+        aviso.querySelector("span").textContent = mensaje;
+
+        bandeja.appendChild(aviso);
+        setTimeout(function () { aviso.remove(); }, tipo === "error" ? 8000 : 5000);
+    };
+
+    // CSRF para las peticiones que no envían el formulario entero
+    window.csrfToken = function () {
+        var campo = document.querySelector("[name=csrfmiddlewaretoken]");
+        return campo ? campo.value : "";
+    };
+
+    // Modales ─────────────────────────────────────────────────────────────
+    function abrirModal(id) {
+        var m = document.getElementById(id);
+        if (!m) return;
+        m.classList.add("abierto");
+        document.body.style.overflow = "hidden";
+        var foco = m.querySelector("input, select, textarea, button");
+        if (foco) foco.focus();
+    }
+
+    function cerrarModal(m) {
+        if (!m) return;
+        m.classList.remove("abierto");
+        if (!document.querySelector(".modal-ite.abierto")) document.body.style.overflow = "";
+    }
+
+    window.abrirModal = abrirModal;
+    window.cerrarModal = cerrarModal;
+
+    document.addEventListener("click", function (e) {
+        var abre = e.target.closest("[data-modal-abrir]");
+        if (abre) {
+            e.preventDefault();
+            abrirModal(abre.getAttribute("data-modal-abrir"));
+            return;
+        }
+        var cierra = e.target.closest("[data-modal-cerrar]");
+        if (cierra) {
+            e.preventDefault();
+            cerrarModal(cierra.closest(".modal-ite"));
+            return;
+        }
+        // Clic en el velo, fuera de la caja
+        if (e.target.classList && e.target.classList.contains("modal-ite")) {
+            cerrarModal(e.target);
+        }
+    });
+
+    document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape") cerrarModal(document.querySelector(".modal-ite.abierto"));
+    });
+
+    // Galerías ────────────────────────────────────────────────────────────
+    document.querySelectorAll(".galeria").forEach(function (galeria) {
+        var pista = galeria.querySelector(".galeria__pista");
+        var laminas = galeria.querySelectorAll(".galeria__lamina");
+        var puntos = galeria.querySelectorAll(".galeria__punto");
+        if (!pista || laminas.length < 2) return;
+
+        var actual = 0;
+
+        function ir(i) {
+            actual = (i + laminas.length) % laminas.length;
+            pista.style.transform = "translateX(-" + actual * 100 + "%)";
+            puntos.forEach(function (p, j) { p.classList.toggle("activo", j === actual); });
+        }
+
+        galeria.querySelectorAll("[data-galeria-ir]").forEach(function (btn) {
+            btn.addEventListener("click", function () {
+                ir(parseInt(btn.getAttribute("data-galeria-ir"), 10));
+            });
+        });
+
+        var prev = galeria.querySelector("[data-galeria-prev]");
+        var next = galeria.querySelector("[data-galeria-next]");
+        if (prev) prev.addEventListener("click", function () { ir(actual - 1); });
+        if (next) next.addEventListener("click", function () { ir(actual + 1); });
+
+        ir(0);
+    });
+})();
+</script>
+
+{% block js %}{% endblock %}
+
+</body>
+</html>

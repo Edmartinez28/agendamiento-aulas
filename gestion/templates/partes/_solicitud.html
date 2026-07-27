@@ -1,0 +1,101 @@
+<!--Tarjeta de solicitud de reserva con su decisión de estado.
+   Los `data-*` son a la vez la entrada del filtro y la del sistema de diseño:
+   `data-estado` pinta el filo guardián sin una sola línea extra de CSS. -->
+<article class="panel panel--alto guardian solicitud"
+         data-estado="{{ reserva.estado }}"
+         data-carrera="{{ reserva.carrera.nombre|default_if_none:''|lower }}"
+         data-fecha="{{ reserva.fecha|date:'Y-m-d' }}"
+         data-asignatura="{{ reserva.asignatura|default_if_none:''|lower }}"
+         data-tipo="{{ reserva.tipo|lower }}"
+         data-usuario="{{ reserva.usuario.get_full_name|lower }}"
+         data-id="{{ reserva.id }}">
+
+    <div class="solicitud__alto">
+        <div>
+            <div class="solicitud__id">RESERVA #{{ reserva.id }}</div>
+            <div class="solicitud__titulo">
+                {{ reserva.carrera.nombre|default:"Sin carrera" }}
+                <span class="tenue">·</span> {{ reserva.ciclo.nombre|default:"—" }}
+                {{ reserva.paralelo.nombre|default:"" }}
+            </div>
+            <div class="meta" style="margin-top:8px">
+                <span class="meta__item">
+                    <i class="fa-regular fa-user" aria-hidden="true"></i>
+                    {{ reserva.usuario.get_full_name|default:reserva.usuario.username }}
+                </span>
+                <span class="meta__item">
+                    <i class="fa-regular fa-paper-plane" aria-hidden="true"></i>
+                    Solicitada el <span class="dato">{{ reserva.fecha_creacion|date:"d/m/Y H:i" }}</span>
+                </span>
+                {% if reserva.estacion %}
+                <span class="meta__item">
+                    <i class="fa-solid fa-desktop" aria-hidden="true"></i>
+                    <span class="dato">{{ reserva.estacion.codigo }}</span>
+                </span>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="fila" style="gap:6px">
+            <!-- `data-chip-estado` es el enganche que el JS actualiza sin recargar -->
+            <span class="chip" data-chip-estado>{{ reserva.estado }}</span>
+            <span class="chip chip--tenue">{{ reserva.tipo|capfirst }}</span>
+        </div>
+    </div>
+
+    <div class="solicitud__cuerpo">
+        <div class="pares">
+            <div class="par">
+                <span class="par__etiqueta">Fecha</span>
+                <span class="par__valor dato">{{ reserva.fecha|date:"d/m/Y" }}</span>
+            </div>
+            <div class="par">
+                <span class="par__etiqueta">Horario</span>
+                <span class="par__valor dato">{{ reserva.slot.hora_inicio|time:"H:i" }}–{{ reserva.slot.hora_fin|time:"H:i" }}</span>
+            </div>
+            <div class="par">
+                <span class="par__etiqueta">Asignatura</span>
+                <span class="par__valor">{{ reserva.asignatura|default:"—" }}</span>
+            </div>
+            <div class="par">
+                <span class="par__etiqueta">Grupo</span>
+                <span class="par__valor dato">{{ reserva.grupo }}</span>
+            </div>
+            <div class="par">
+                <span class="par__etiqueta">Estudiantes</span>
+                <span class="par__valor dato">{{ reserva.estudiantes }}</span>
+            </div>
+        </div>
+
+        {% if reserva.observacion %}
+        <div class="observacion">
+            <i class="fa-regular fa-comment" aria-hidden="true"></i>
+            <span>{{ reserva.observacion }}</span>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="panel__pie">
+        <form method="post" action="{% url 'gestion:cambiar_estado_reserva' reserva.id %}" style="width:100%">
+            {% csrf_token %}
+            <div class="decidir" data-estado="{{ reserva.estado }}">
+                <label class="solo-lectores" for="estado{{ reserva.id }}">Estado de la reserva #{{ reserva.id }}</label>
+                <select name="estado" id="estado{{ reserva.id }}" class="campo">
+                    {% for clave, texto in reserva.ESTADOS_CHOICES %}
+                    <option value="{{ clave }}" {% if reserva.estado == clave %}selected{% endif %}>{{ texto }}</option>
+                    {% endfor %}
+                </select>
+
+                <!--Se deshabilita desde JS: sin JS el formulario debe seguir siendo usable -->
+                <button type="submit" class="btn btn--primario btn--sm">
+                    <i class="fa-regular fa-floppy-disk" aria-hidden="true"></i> Guardar cambio
+                </button>
+
+                <span class="decidir__aviso">
+                    <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
+                    Se enviará un correo al solicitante
+                </span>
+            </div>
+        </form>
+    </div>
+</article>

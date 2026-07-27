@@ -1,564 +1,305 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <title>Listado de Aulas ITE-VR</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg,{{ fondo|default:"#4C758A" }} 0%, #F2F2F2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .header {
-            position: relative;
-            text-align: center;
-            padding: 10px 40px;
-            color: {{ titulos|default:"#FFFFFF" }};
-            margin-bottom: 30px;
-        }
-
-        .header-content {
-            margin: 0 auto;
-        }
-
-        .btn-back {
-            position: absolute;
-            right: 10px;
-            top: 50%;
-            padding: 8px 14px;
-            background: {{ fondo|default:"#4C758A" }};
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            text-decoration: none;
-        }
-
-        .btn-back:hover {
-            background: white;
-            color: {{ fondo|default:"#4C758A" }};
-        }
-
-        .header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
-        }
-
-        .header p {
-            font-size: 1.1rem;
-            opacity: 0.95;
-        }
-
-        .search-bar {
-            background: white;
-            border-radius: 12px;
-            padding: 15px 20px;
-            margin-bottom: 30px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .search-bar input {
-            flex: 1;
-            border: none;
-            outline: none;
-            font-size: 1rem;
-            padding: 8px;
-        }
-
-        .search-icon {
-            color: #667eea;
-            font-size: 1.2rem;
-        }
-
-        .labs-grid {
-            display: grid;
-            gap: 25px;
-        }
-
-        .lab-card {
-            background: white;
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            transition: all 0.3s ease;
-            display: flex;
-            flex-direction: row;
-            position: relative;
-        }
-
-        .lab-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
-        }
-
-        .lab-image {
-            width: 280px;
-            min-width: 280px;
-            height: 100%;
-            object-fit: cover;
-            background: linear-gradient(135deg, {{ fondo|default:"#4C758A" }} 0%, #F2F2F2 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 3rem;
-            position: relative;
-        }
-
-        .lab-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .lab-image-placeholder {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(135deg, {{ fondo|default:"#4C758A" }} 0%, #F2F2F2 100%);
-        }
-
-        .status-badge {
-            position: absolute;
-            top: 15px;
-            left: 15px;
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-        }
-
-        .status-activo {
-            background: #4caf50;
-            color: white;
-        }
-
-        .status-inactivo {
-            background: #f44336;
-            color: white;
-        }
-
-        .status-mantenimiento {
-            background: #ff9800;
-            color: white;
-        }
-
-        .lab-content {
-            flex: 1;
-            padding: 30px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-
-        .lab-header {
-            margin-bottom: 20px;
-        }
-
-        .lab-name {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: #333;
-            margin-bottom: 8px;
-        }
-
-        .lab-location {
-            color: #666;
-            font-size: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .lab-details {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .detail-item {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-
-        .detail-label {
-            font-size: 0.85rem;
-            color: #888;
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .detail-value {
-            font-size: 1.1rem;
-            color: #333;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .capacity-icon {
-            color: #667eea;
-        }
-
-        .lab-actions {
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            gap: 15px;
-            margin-top: auto;
-        }
-
-        .btn-reserve {
-            background:{{ fondo|default:"#4C758A" }};
-            color: white;
-            padding: 14px 35px;
-            border: none;
-            border-radius: 10px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .btn-reserve:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
-        }
-
-        .btn-reserve:active {
-            transform: translateY(0);
-        }
-
-        .btn-reserve:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-            box-shadow: none;
-        }
-
-        .btn-reserve:disabled:hover {
-            transform: none;
-        }
-
-        .no-results {
-            text-align: center;
-            padding: 60px 20px;
-            background: white;
-            border-radius: 16px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-        }
-
-        .no-results-icon {
-            font-size: 4rem;
-            margin-bottom: 20px;
-            opacity: 0.3;
-        }
-
-        .no-results h3 {
-            color: #666;
-            font-size: 1.5rem;
-            margin-bottom: 10px;
-        }
-
-        .no-results p {
-            color: #999;
-        }
-
-        /* Badge de reservas en esquina superior derecha */
-        .reservas-badge {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background: rgba(102, 126, 234, 0.95);
-            color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 700;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(10px);
-            z-index: 5;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        /* Asegurar que el contenedor tenga position relative */
-        .lab-image {
-            position: relative;
-        }
-
-        /* Responsive Design */
-        @media (max-width: 968px) {
-            .lab-card {
-                flex-direction: column;
-            }
-
-            .lab-image {
-                width: 100%;
-                min-width: 100%;
-                height: 220px;
-            }
-
-            .lab-name {
-                font-size: 1.5rem;
-            }
-
-            .lab-content {
-                padding: 25px;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .header h1 {
-                font-size: 2rem;
-            }
-
-            .header p {
-                font-size: 1rem;
-            }
-
-            .lab-details {
-                grid-template-columns: 1fr;
-            }
-
-            .lab-actions {
-                justify-content: stretch;
-            }
-
-            .btn-reserve {
-                width: 100%;
-                justify-content: center;
-            }
-        }
-
-        @media (max-width: 480px) {
-            body {
-                padding: 10px;
-            }
-
-            .header h1 {
-                font-size: 1.6rem;
-            }
-
-            .lab-card {
-                border-radius: 12px;
-            }
-
-            .lab-content {
-                padding: 20px;
-            }
-
-            .lab-name {
-                font-size: 1.3rem;
-            }
-
-            .search-bar {
-                padding: 12px 15px;
-            }
-        }
-
-        /* Loading Animation */
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: white;
-            font-size: 1.2rem;
-        }
-
-        .spinner {
-            border: 4px solid rgba(255, 255, 255, 0.3);
-            border-top: 4px solid white;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-    </style>
-</head>
-<body>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <div class="container">
-
-        <div class="header">
-            <div class="header-content">
-                <h1>Aulas ITE-VR Disponibles</h1>
-                <p>Explora nuestras instalaciones y reserva el espacio perfecto para tus actividades</p>
-            </div>
-
-            <a class="btn-back" href="{% url 'cuentas:mostrarperfil' %}"><i class="fa-solid fa-circle-user"></i> Perfil</a>
-        </div>
-
-        <div class="labs-grid" id="labsGrid">
-            {% if laboratorios %}
-                {% for lab in laboratorios %}
-                    <div class="modal fade" id="modalProgramas{{ lab.id }}" tabindex="-1">
-                        <div class="modal-dialog">
-                            <div class="modal-content">
-
-                            <div class="modal-header">
-                                <h5 class="modal-title">Programas - {{ lab.nombre }}</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                            </div>
-
-                            <div class="modal-body">
-                                {% if lab.programas_unicos %}
-                                    <ul>
-                                        {% for programa in lab.programas_unicos %}
-                                            <li>{{ programa.nombre }}</li>
-                                        {% endfor %}
-                                    </ul>
-                                {% else %}
-                                    <p>No hay programas registrados</p>
-                                {% endif %}
-                            </div>
-
-                            </div>
-                        </div>
-                    </div>
-                    <div class="lab-card" data-estado="{{ lab.estado }}">
-                        
-                        <div class="lab-image">
-                            {% if lab.imagen %}
-                                <img src="{{ lab.imagen.url }}" alt="{{ lab.nombre }}">
-                            {% else %}
-                                <div class="lab-image-placeholder">🔬</div>
-                            {% endif %}
-
-                            <span class="status-badge status-{{ lab.estado|lower }}">
-                                {% if lab.estado == "ACTIVO" %}
-                                    Disponible
-                                {% elif lab.estado == "INACTIVO" %}
-                                    No Disponible
-                                {% else %}
-                                    En Mantenimiento
-                                {% endif %}
-                            </span>
-
-                        </div>
-
-                        <div class="lab-content">
-                            <div class="lab-header">
-                                <h2 class="lab-name">{{ lab.nombre }}</h2>
-                                <div class="lab-location">
-                                    <span>📍</span>
-                                    <span>
-                                        {{ lab.ubicacion|default:"Ubicación no especificada" }}
-                                    </span>
-                                </div>
-
-                                <!-- BADGE DE TOTAL RESERVAS - NUEVO -->
-                                <span class="reservas-badge">
-                                    📅 {{ lab.total_reservas }} Reservas Existentes
-                                </span>
-                            </div>
-
-                            <div class="lab-details">
-                                <div class="detail-item">
-                                    <span class="detail-label">Responsable</span>
-                                    <span class="detail-value">
-                                        👤 {{ lab.responsable }}
-                                    </span>
-                                </div>
-
-                                <div class="detail-item">
-                                    <span class="detail-label">Capacidad</span>
-                                    <span class="detail-value">
-                                        👥 {{ lab.capacidad }} estudiantes
-                                    </span>
-                                </div>
-                            </div>
-
-                            <div class="lab-actions d-flex flex-column flex-md-row gap-2">
-                                {% if lab.estado == "ACTIVO" %}
-                                    {% if user.rol in "TECNICO,ADMIN" %}
-                                    <a href="{% url 'inventario:inventario_por_laboratorio' lab.id %}" 
-                                    class="btn-reserve text-center" style="text-decoration: none;">
-                                        📝 Ver Inventario
-                                    </a>
-                                    
-                                    <a href="{% url 'gestion:listadoreservas' lab.id %}" 
-                                    class="btn-reserve text-center" style="text-decoration: none;">
-                                        📅 Ver Reservas
-                                    </a>
-                                    {% endif %}
-
-                                    {% if user.rol in "DOCENTE,TECNICO,ADMIN" %}
-                                    <a href="{% url 'reservas:reservaslaboratorios' lab.id %}" 
-                                    class="btn-reserve text-center" style="text-decoration: none;">
-                                        📅 Reservar Laboratorio
-                                    </a>
-                                    {% endif %}
-
-                                    {% if user.rol in "ESTUDIANTE,TECNICO,ADMIN" %}
-                                    <a href="{% url 'reservas:reservasestaciones' lab.id %}" 
-                                    class="btn-reserve text-center" style="text-decoration: none;">
-                                        📅 Reservar Estación
-                                    </a>
-                                    {% endif %}
-
-                                    <button class="btn-reserve"
-                                            data-bs-toggle="modal"
-                                            data-bs-target="#modalProgramas{{ lab.id }}">
-                                        🧪 Ver Programas
-                                    </button>
-                                {% else %}
-                                    <button class="btn-reserve" disabled>
-                                        No Disponible
-                                    </button>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-                {% endfor %}
+{% extends "base.html" %}
+
+{% block titulo %}Aulas ITE-VR{% endblock %}
+
+{% block ruta %}
+    <strong>Aulas ITE-VR</strong>
+{% endblock %}
+
+{% block css %}
+<style>
+    /* La tarjeta de aula es una ficha de sala: la fotografía manda a la
+       izquierda, los datos duros al centro, las acciones abajo a la derecha.
+       El filo guardián lleva el estado operativo del aula. */
+    .aula {
+        display: grid;
+        grid-template-columns: 260px 1fr;
+        align-items: stretch;
+    }
+
+    .aula__foto {
+        position: relative;
+        background: color-mix(in oklab, var(--marca) 14%, var(--ranura));
+        min-height: 210px;
+        overflow: hidden;
+    }
+
+    .aula__foto img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .aula__sinfoto {
+        width: 100%;
+        height: 100%;
+        display: grid;
+        place-items: center;
+        color: color-mix(in oklab, var(--marca) 55%, var(--tinta-4));
+        font-size: 30px;
+    }
+
+    /* Contador de reservas sobre la foto: dato en monoespaciada, sin píldora
+       de color que compita con el chip de estado. */
+    .aula__contador {
+        position: absolute;
+        left: var(--esp-3);
+        bottom: var(--esp-3);
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 10px;
+        border-radius: var(--r-chip);
+        background: rgba(10, 16, 19, 0.62);
+        backdrop-filter: blur(8px);
+        color: #fff;
+        font-size: 11.5px;
+    }
+
+    .aula__cuerpo {
+        display: flex;
+        flex-direction: column;
+        gap: var(--esp-4);
+        padding: var(--esp-5);
+        min-width: 0;
+    }
+
+    .aula__titulo {
+        display: flex;
+        align-items: center;
+        gap: var(--esp-3);
+        flex-wrap: wrap;
+    }
+
+    .aula__nombre {
+        font-family: var(--tipo-titulo);
+        font-size: 21px;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+    }
+
+    .aula__acciones {
+        display: flex;
+        gap: var(--esp-2);
+        flex-wrap: wrap;
+        margin-top: auto;
+        padding-top: var(--esp-2);
+        border-top: 1px solid var(--filo-suave);
+    }
+
+    .aula__acciones .btn:first-child { margin-right: auto; }
+
+    .programas { display: flex; flex-direction: column; gap: 2px; }
+
+    .programas li {
+        list-style: none;
+        display: flex;
+        align-items: center;
+        gap: var(--esp-3);
+        padding: 10px 0;
+        border-bottom: 1px solid var(--filo-suave);
+        font-size: 13.5px;
+    }
+
+    .programas li:last-child { border-bottom: none; }
+
+    .programas li::before {
+        content: "";
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: var(--senal);
+        flex-shrink: 0;
+    }
+
+    @media (max-width: 860px) {
+        .aula { grid-template-columns: 1fr; }
+        .aula__foto { min-height: 170px; }
+        .aula__cuerpo { padding: var(--esp-4); }
+        .aula__acciones .btn { flex: 1 1 auto; }
+        .aula__acciones .btn:first-child { margin-right: 0; }
+    }
+</style>
+{% endblock %}
+
+{% block contenido %}
+
+<div class="cabecera">
+    <div class="cabecera__texto">
+        <div class="cabecera__eyebrow">Innovación en Tecnología Educativa</div>
+        <h1 class="t-display">Aulas ITE-VR</h1>
+        <p class="t-sub cabecera__sub">
+            Espacios de realidad virtual disponibles para clases, inducciones y prácticas.
+            Elige un aula para revisar su agenda, su inventario o reservar un bloque.
+        </p>
+    </div>
+
+    <div class="cabecera__acciones">
+        <label class="solo-lectores" for="buscarAula">Buscar aula</label>
+        <input type="search" id="buscarAula" class="campo" style="min-width:240px"
+               placeholder="Buscar por nombre o ubicación…" autocomplete="off">
+    </div>
+</div>
+
+<div class="pila" id="listaAulas">
+    {% for lab in laboratorios %}
+    <article class="panel panel--interactivo guardian aula"
+             data-estado="{{ lab.estado }}"
+             data-buscar="{{ lab.nombre|lower }} {{ lab.ubicacion|default_if_none:''|lower }} {{ lab.responsable|lower }}">
+
+        <div class="aula__foto">
+            {% if lab.imagen %}
+                <img src="{{ lab.imagen.url }}" alt="Aula {{ lab.nombre }}" loading="lazy">
             {% else %}
-                <div class="no-results">
-                    <div class="no-results-icon">🔍</div>
-                    <h3>No hay laboratorios registrados</h3>
-                </div>
+                <div class="aula__sinfoto"><i class="fa-solid fa-vr-cardboard" aria-hidden="true"></i></div>
             {% endif %}
 
+            <span class="aula__contador">
+                <i class="fa-regular fa-calendar" aria-hidden="true"></i>
+                <span class="dato">{{ lab.total_reservas }}</span> reservas
+            </span>
         </div>
 
+        <div class="aula__cuerpo">
+            <div>
+                <div class="aula__titulo">
+                    <h2 class="aula__nombre">{{ lab.nombre }}</h2>
+                    <span class="chip">
+                        {% if lab.estado == "ACTIVO" %}Disponible
+                        {% elif lab.estado == "INACTIVO" %}No disponible
+                        {% else %}{{ lab.estado|capfirst }}{% endif %}
+                    </span>
+                </div>
+                <div class="meta" style="margin-top:6px">
+                    <span class="meta__item">
+                        <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
+                        {{ lab.ubicacion|default:"Ubicación no especificada" }}
+                    </span>
+                </div>
+            </div>
+
+            <div class="pares">
+                <div class="par">
+                    <span class="par__etiqueta">Responsable</span>
+                    <span class="par__valor">{{ lab.responsable }}</span>
+                </div>
+                <div class="par">
+                    <span class="par__etiqueta">Aforo</span>
+                    <span class="par__valor dato">{{ lab.capacidad }} <span class="tenue">estudiantes</span></span>
+                </div>
+                <div class="par">
+                    <span class="par__etiqueta">Estaciones</span>
+                    <!--`|length` reutiliza el prefetch de la vista; `.count` dispararía una consulta por aula -->
+                    <span class="par__valor dato">{{ lab.estaciones.all|length }}</span>
+                </div>
+            </div>
+
+            <div class="aula__acciones">
+                {% if lab.estado == "ACTIVO" %}
+                    <button type="button" class="btn btn--sutil btn--sm"
+                            data-modal-abrir="modalProgramas{{ lab.id }}">
+                        <i class="fa-solid fa-cubes" aria-hidden="true"></i> Programas
+                    </button>
+
+                    {% if user.rol in "TECNICO,ADMIN" %}
+                    <a class="btn btn--sm" href="{% url 'inventario:inventario_por_laboratorio' lab.id %}">
+                        <i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i> Inventario
+                    </a>
+                    <a class="btn btn--sm" href="{% url 'gestion:listadoreservas' lab.id %}">
+                        <i class="fa-regular fa-rectangle-list" aria-hidden="true"></i> Reservas
+                    </a>
+                    {% endif %}
+
+                    {% if user.rol in "ESTUDIANTE,TECNICO,ADMIN" %}
+                    <a class="btn btn--sm btn--fantasma" href="{% url 'reservas:reservasestaciones' lab.id %}">
+                        <i class="fa-solid fa-desktop" aria-hidden="true"></i> Reservar estación
+                    </a>
+                    {% endif %}
+
+                    {% if user.rol in "DOCENTE,TECNICO,ADMIN" %}
+                    <a class="btn btn--sm btn--primario" href="{% url 'reservas:reservaslaboratorios' lab.id %}">
+                        <i class="fa-regular fa-calendar-plus" aria-hidden="true"></i> Reservar aula
+                    </a>
+                    {% endif %}
+                {% else %}
+                    <span class="tenue" style="font-size:13px">
+                        <i class="fa-solid fa-circle-minus" aria-hidden="true"></i>
+                        Esta aula no admite reservas por ahora.
+                    </span>
+                {% endif %}
+            </div>
+        </div>
+    </article>
+
+    <!--Modal de programas instalados en el aula -->
+    <div class="modal-ite" id="modalProgramas{{ lab.id }}" role="dialog" aria-modal="true">
+        <div class="modal-ite__caja">
+            <div class="modal-ite__cabecera">
+                <div>
+                    <div class="etiqueta">Software instalado</div>
+                    <h2 class="modal-ite__titulo">{{ lab.nombre }}</h2>
+                </div>
+                <button type="button" class="modal-ite__cerrar" data-modal-cerrar aria-label="Cerrar">
+                    <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                </button>
+            </div>
+            <div class="modal-ite__cuerpo">
+                {% if lab.programas_unicos %}
+                <ul class="programas">
+                    {% for programa in lab.programas_unicos %}
+                    <li>{{ programa.nombre }}</li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <div class="vacio">
+                    <div class="vacio__icono"><i class="fa-solid fa-cube" aria-hidden="true"></i></div>
+                    <p>No hay programas registrados para esta aula.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
     </div>
-</body>
-</html>
+    {% empty %}
+    <div class="panel">
+        <div class="vacio">
+            <div class="vacio__icono"><i class="fa-solid fa-vr-cardboard" aria-hidden="true"></i></div>
+            <p class="vacio__titulo">Todavía no hay aulas registradas</p>
+            <p>Cuando se den de alta aulas ITE-VR aparecerán aquí con su agenda e inventario.</p>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="panel oculto" id="sinResultados">
+    <div class="vacio">
+        <div class="vacio__icono"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i></div>
+        <p class="vacio__titulo">Ningún aula coincide con la búsqueda</p>
+        <p>Prueba con otro nombre, ubicación o responsable.</p>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block js %}
+<script>
+(function () {
+    var buscador = document.getElementById("buscarAula");
+    var aulas = document.querySelectorAll("#listaAulas .aula");
+    var vacio = document.getElementById("sinResultados");
+    if (!buscador) return;
+
+    buscador.addEventListener("input", function () {
+        var q = buscador.value.trim().toLowerCase();
+        var visibles = 0;
+
+        aulas.forEach(function (aula) {
+            var coincide = !q || (aula.dataset.buscar || "").indexOf(q) !== -1;
+            aula.classList.toggle("oculto", !coincide);
+            if (coincide) visibles++;
+        });
+
+        vacio.classList.toggle("oculto", visibles > 0 || aulas.length === 0);
+    });
+})();
+</script>
+{% endblock %}

@@ -1,671 +1,255 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Correos Pendientes</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, {{ fondo|default:"#4C758A" }} 0%, #F2F2F2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        .page-header {
-            text-align: center;
-            color: {{ titulos|default:"#FFFFFF" }};
-            margin-bottom: 40px;
-        }
-
-        .page-header h2 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-        }
-
-        .page-header p {
-            font-size: 1.1rem;
-            opacity: 0.95;
-        }
-
-        /* Empty state */
-        .empty-state {
-            background: white;
-            border-radius: 16px;
-            padding: 80px 20px;
-            text-align: center;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-        }
-
-        .empty-state-icon {
-            font-size: 5rem;
-            margin-bottom: 20px;
-            opacity: 0.3;
-        }
-
-        .empty-state h3 {
-            font-size: 1.5rem;
-            color: #666;
-            margin-bottom: 10px;
-        }
-
-        .empty-state p {
-            color: #999;
-            font-size: 1rem;
-        }
-
-        /* Solicitante card */
-        .solicitante-card {
-            background: white;
-            border-radius: 16px;
-            overflow: hidden;
-            margin-bottom: 30px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            transition: all 0.3s ease;
-        }
-
-        .solicitante-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
-        }
-
-        .solicitante-header {
-            background: {{ fondo|default:"#4C758A" }};
-            color: white;
-            padding: 25px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-
-        .solicitante-info {
-            flex: 1;
-        }
-
-        .solicitante-name {
-            font-size: 1.6rem;
-            font-weight: 700;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .solicitante-email {
-            font-size: 1rem;
-            opacity: 0.95;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .pending-count {
-            background: rgba(255, 255, 255, 0.25);
-            padding: 12px 24px;
-            border-radius: 25px;
-            font-weight: 700;
-            font-size: 1.1rem;
-            text-align: center;
-            backdrop-filter: blur(10px);
-            border: 2px solid rgba(255, 255, 255, 0.3);
-        }
-
-        .pending-count-label {
-            font-size: 0.85rem;
-            opacity: 0.9;
-            margin-bottom: 5px;
-        }
-
-        .pending-count-number {
-            font-size: 1.8rem;
-        }
-
-        /* Table wrapper */
-        .table-wrapper {
-            padding: 25px 25px 0px 25px;
-        }
-
-        .table-container {
-            overflow-x: auto;
-            border-radius: 12px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-            margin-bottom: 20px;
-        }
-
-        .reservations-table {
-            width: 100%;
-            border-collapse: collapse;
-            min-width: 900px;
-            background: white;
-        }
-
-        .reservations-table thead {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-        }
-
-        .reservations-table th {
-            padding: 15px 12px;
-            text-align: left;
-            font-weight: 700;
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            color: #495057;
-            letter-spacing: 0.5px;
-            border-bottom: 2px solid #dee2e6;
-        }
-
-        .reservations-table tbody tr {
-            border-bottom: 1px solid #f0f0f0;
-            transition: all 0.2s ease;
-        }
-
-        .reservations-table tbody tr:hover {
-            background: #f8f9ff;
-        }
-
-        .reservations-table tbody tr:last-child {
-            border-bottom: none;
-        }
-
-        .reservations-table td {
-            padding: 15px 12px;
-            font-size: 0.9rem;
-            color: #333;
-        }
-
-        /* Badges */
-        .badge {
-            display: inline-block;
-            padding: 6px 12px;
-            border-radius: 16px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-            white-space: nowrap;
-        }
-
-        .badge.estado-aprobada {
-            background: #e8f5e9;
-            color: #2e7d32;
-        }
-
-        .badge.estado-en-revision {
-            background: #fff3e0;
-            color: #e65100;
-        }
-
-        .badge.estado-cancelada {
-            background: #ffebee;
-            color: #c62828;
-        }
-
-        .badge.estado-finalizada {
-            background: #e3f2fd;
-            color: #1565c0;
-        }
-
-        .badge.estado-bloqueada {
-            background: #f3e5f5;
-            color: #6a1b9a;
-        }
-
-        .badge.estado-estudiantil {
-            background: #e0f7fa;
-            color: #00838f;
-        }
-
-        .badge.tipo {
-            background: #f5f5f5;
-            color: #555;
-        }
-
-        .badge.lab-completo {
-            background: {{ fondo|default:"#4C758A" }};
-            color: white;
-        }
-
-        .badge.estacion {
-            background: #e3f2fd;
-            color: #1976d2;
-        }
-
-        /* Cell icons */
-        .cell-with-icon {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        /* Actions */
-        .actions-container {
-            padding: 0 25px 25px;
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-
-        .btn {
-            flex: 1;
-            min-width: 150px;
-            padding: 14px 25px;
-            border: none;
-            border-radius: 10px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .btn-send {
-            background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);
-            color: white;
-            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
-        }
-
-        .btn-send:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
-        }
-
-        .btn-cancel {
-            background: linear-gradient(135deg, #f44336 0%, #ef5350 100%);
-            color: white;
-            box-shadow: 0 4px 15px rgba(244, 67, 54, 0.3);
-        }
-
-        .btn-cancel:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(244, 67, 54, 0.4);
-        }
-
-        .btn:active {
-            transform: translateY(0);
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .page-header h2 {
-                font-size: 2rem;
-                flex-direction: column;
-                gap: 10px;
-            }
-
-            .solicitante-header {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .solicitante-name {
-                font-size: 1.3rem;
-            }
-
-            .pending-count {
-                width: 100%;
-            }
-
-            .reservations-table th,
-            .reservations-table td {
-                font-size: 0.8rem;
-                padding: 12px 8px;
-            }
-
-            .actions-container {
-                flex-direction: column;
-            }
-
-            .btn {
-                width: 100%;
-            }
-        }
-
-        @media (max-width: 480px) {
-            body {
-                padding: 10px;
-            }
-
-            .page-header h2 {
-                font-size: 1.6rem;
-            }
-
-            .solicitante-card {
-                border-radius: 12px;
-                margin-bottom: 20px;
-            }
-
-            .solicitante-header {
-                padding: 20px;
-            }
-        }
-
-        /* Loading animation */
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .solicitante-card {
-            animation: fadeIn 0.5s ease;
-        }
-
-        /* Summary stats */
-        .summary-stats {
-            background: white;
-            border-radius: 16px;
-            padding: 25px;
-            margin-bottom: 30px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-        }
-
-        .stat-item {
-            text-align: center;
-            padding: 20px;
-            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
-            border-radius: 12px;
-            border: 2px solid #f0f0f0;
-        }
-
-        .stat-number {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: #667eea;
-            margin-bottom: 8px;
-        }
-
-        .stat-label {
-            font-size: 0.9rem;
-            color: #666;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .detalle-container {
-            margin: 15px 20px 10px 20px;
-        }
-
-        .detalle-label {
-            display: block;
-            font-weight: 600;
-            color: #495057;
-            margin-bottom: 8px;
-            font-size: 14px;
-        }
-
-        .detalle-textarea {
-            width: 100%;
-            min-height: 80px;
-            resize: vertical;
-            padding: 10px 12px;
-            border-radius: 10px;
-            border: 1px solid #ced4da;
-            font-size: 14px;
-            transition: all 0.2s ease;
-            outline: none;
-        }
-
-        /* Hover */
-        .detalle-textarea:hover {
-            border-color: #80bdff;
-        }
-
-        /* Focus (cuando haces click) */
-        .detalle-textarea:focus {
-            border-color: #4CAF50;
-            box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
-        }
-
-        /* Placeholder */
-        .detalle-textarea::placeholder {
-            color: #adb5bd;
-            font-style: italic;
-        }
-
-    </style>
-</head>
-<body>
-    <div class="container">
-        <!-- Header -->
-        <div class="page-header">
-            <h2>
-                <span>📧</span>
-                Correos Pendientes Agrupados
-                <span>📋</span>
-            </h2>
-            <p>Gestiona los correos de notificación pendientes por solicitante</p>
+{% extends "base.html" %}
+
+{% block titulo %}Correos pendientes · {{ laboratorio.nombre }}{% endblock %}
+
+{% block clase_lienzo %}lienzo lienzo--ancho{% endblock %}
+
+{% block ruta %}
+    <a href="{% url 'gestion:obtenerlaboratorios' %}">Aulas</a>
+    <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+    <a href="{% url 'gestion:listadoreservas' laboratorio.id %}">{{ laboratorio.nombre }}</a>
+    <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+    <strong>Correos</strong>
+{% endblock %}
+
+{% block css %}
+<style>
+    /* Cada panel es una bandeja de salida por solicitante: a quién se le
+       escribe, qué reservas le van dentro, y qué se le añade a mano. */
+    .destinatario {
+        display: flex;
+        align-items: center;
+        gap: var(--esp-3);
+        min-width: 0;
+    }
+
+    .destinatario__inicial {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        flex-shrink: 0;
+        background: color-mix(in oklab, var(--marca) 15%, var(--ranura));
+        color: var(--marca);
+        font-family: var(--tipo-titulo);
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .destinatario__nombre {
+        font-family: var(--tipo-titulo);
+        font-size: 15.5px;
+        font-weight: 600;
+    }
+
+    .destinatario__correo {
+        font-family: var(--tipo-dato);
+        font-size: 12px;
+        color: var(--tinta-3);
+        overflow-wrap: anywhere;
+    }
+
+    /* El número de correos en cola: el dato que decide si hay trabajo aquí */
+    .cola {
+        display: flex;
+        align-items: baseline;
+        gap: 6px;
+        flex-shrink: 0;
+    }
+
+    .cola__n {
+        font-family: var(--tipo-dato);
+        font-size: 24px;
+        font-weight: 500;
+        letter-spacing: -0.03em;
+        color: var(--revision);
+        font-variant-numeric: tabular-nums;
+    }
+
+    .cola__etiqueta {
+        font-size: 10.5px;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--tinta-3);
+    }
+
+    .nota { padding: var(--esp-4) var(--esp-5); border-top: 1px solid var(--filo-suave); }
+    .nota .campo-etiqueta { margin-bottom: 6px; display: block; }
+
+    .sin-correo {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        color: var(--cancelada);
+    }
+
+    @media (max-width: 780px) {
+        .nota { padding: var(--esp-4); }
+        .panel__pie .btn { flex: 1 1 auto; }
+    }
+</style>
+{% endblock %}
+
+{% block contenido %}
+
+<div class="cabecera">
+    <div class="cabecera__texto">
+        <div class="cabecera__eyebrow">Notificaciones</div>
+        <h1 class="t-display">Correos pendientes</h1>
+        <p class="t-sub cabecera__sub">
+            Cada cambio de estado deja un correo en cola. Se agrupan por solicitante
+            para enviar un único mensaje con todas sus reservas.
+        </p>
+    </div>
+    <div class="cabecera__acciones">
+        <a class="btn" href="{% url 'gestion:listadoreservas' laboratorio.id %}">
+            <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Reservas
+        </a>
+    </div>
+</div>
+
+{% if not grupos %}
+<div class="panel">
+    <div class="vacio">
+        <div class="vacio__icono"><i class="fa-regular fa-envelope-open" aria-hidden="true"></i></div>
+        <p class="vacio__titulo">No hay correos pendientes</p>
+        <p>Todas las notificaciones de este aula ya se procesaron.</p>
+    </div>
+</div>
+{% else %}
+
+<div class="pila">
+
+    <div class="tiles">
+        <div class="tile guardian guardian--alto">
+            <div class="tile__valor">{{ grupos|length }}</div>
+            <div class="tile__etiqueta">Solicitantes</div>
         </div>
-
-        {% if not grupos %}
-            <!-- Empty State -->
-            <div class="empty-state">
-                <div class="empty-state-icon">✅</div>
-                <h3>No hay correos pendientes</h3>
-                <p>Todos los correos han sido procesados</p>
-            </div>
-        {% else %}
-            <!-- Summary Statistics -->
-            <div class="summary-stats">
-                <div class="stat-item">
-                    <div class="stat-number">{{ grupos|length }}</div>
-                    <div class="stat-label">Solicitantes</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-number" id="totalCorreos">0</div>
-                    <div class="stat-label">Total Correos</div>
-                </div>
-            </div>
-
-            <!-- Solicitantes -->
-            {% for solicitante, correos in grupos.items %}
-                <div class="solicitante-card">
-                    <!-- Header del solicitante -->
-                    <div class="solicitante-header">
-                        <div class="solicitante-info">
-                            <div class="solicitante-name">
-                                <span>👤</span>
-                                {{ solicitante.get_full_name|default:solicitante.username }}
-                            </div>
-                            {% if solicitante.email %}
-                                <div class="solicitante-email">
-                                    <span>📧</span>
-                                    {{ solicitante.email }}
-                                </div>
-                            {% endif %}
-                        </div>
-                        <div class="pending-count">
-                            <div class="pending-count-label">Pendientes</div>
-                            <div class="pending-count-number">{{ correos|length }}</div>
-                        </div>
-                    </div>
-
-                    <!-- Tabla de reservas -->
-                    <div class="table-wrapper">
-                        <div class="table-container">
-                            <table class="reservations-table">
-                                <thead>
-                                    <tr>
-                                        <th>📅 Fecha</th>
-                                        <th>🕐 Horario</th>
-                                        <th>🔬 Laboratorio</th>
-                                        <th>💻 Estación</th>
-                                        <th>📊 Estado</th>
-                                        <th>📚 Tipo</th>
-                                        <th>📖 Asignatura</th>
-                                        <th>👥 Grupo</th>
-                                        <th>🧑‍🎓 Estudiantes</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for c in correos %}
-                                        <tr>
-                                            <td>
-                                                <div class="cell-with-icon">
-                                                    <span>📅</span>
-                                                    {{ c.reserva.fecha }}
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div class="cell-with-icon">
-                                                    <span>🕐</span>
-                                                    {{ c.reserva.slot.hora_inicio }} - {{ c.reserva.slot.hora_fin }}
-                                                </div>
-                                            </td>
-                                            <td>{{ c.reserva.laboratorio.nombre }}</td>
-                                            <td>
-                                                {% if c.reserva.estacion %}
-                                                    <span class="badge estacion">💻 {{ c.reserva.estacion.codigo }}</span>
-                                                {% else %}
-                                                    <span class="badge lab-completo">🏢 LAB COMPLETO</span>
-                                                {% endif %}
-                                            </td>
-                                            <td>
-                                                <span class="badge estado-{{ c.reserva.estado|lower|cut:' ' }}">
-                                                    {{ c.reserva.estado }}
-                                                </span>
-                                            </td>
-                                            <td>
-                                                <span class="badge tipo">{{ c.reserva.tipo }}</span>
-                                            </td>
-                                            <td>{{ c.reserva.asignatura|default:"-" }}</td>
-                                            <td>
-                                                <div class="cell-with-icon">
-                                                    <span>👥</span>
-                                                    {{ c.reserva.grupo }}
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div class="cell-with-icon">
-                                                    <span>🧑‍🎓</span>
-                                                    {{ c.reserva.estudiantes }}
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <div class="detalle-container">
-                        <label class="detalle-label">
-                            📝 Ingrese detalles adicionales a informar
-                        </label>
-
-                        <textarea 
-                            id="detalles_global" 
-                            name="detalles" 
-                            class="detalle-textarea"
-                            placeholder="Escribe un mensaje adicional para el correo..."
-                            rows="3"
-                        ></textarea>
-                    </div>
-                    
-
-                    <!-- Actions -->
-                    <div class="actions-container">
-                        <!-- ENVIAR -->
-                        <form method="post" action="" style="flex: 1; min-width: 150px;">
-                            {% csrf_token %}
-                            <input type="hidden" name="action" value="enviar">
-                            <input type="hidden" name="solicitante_id" value="{{ solicitante.id }}">
-
-                            <button type="submit" class="btn btn-send">
-                                <span>📤</span>
-                                Enviar Correos
-                            </button>
-                        </form>
-
-                        <!-- CANCELAR -->
-                        <form method="post" action="" style="flex: 1; min-width: 150px;">
-                            {% csrf_token %}
-                            <input type="hidden" name="action" value="cancelar">
-                            <input type="hidden" name="solicitante_id" value="{{ solicitante.id }}">
-
-                            <button type="submit" class="btn btn-cancel">
-                                <span>❌</span>
-                                Cancelar Todo
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            {% endfor %}
-        {% endif %}
+        <div class="tile tile--estado guardian guardian--alto" data-estado="PENDIENTE">
+            <div class="tile__valor" id="totalCorreos">0</div>
+            <div class="tile__etiqueta">Correos en cola</div>
+        </div>
     </div>
 
-    <script>
-        // Calcular total de correos
-        document.addEventListener('DOMContentLoaded', () => {
-            const cards = document.querySelectorAll('.solicitante-card');
-            let total = 0;
-            
-            cards.forEach(card => {
-                const countElement = card.querySelector('.pending-count-number');
-                if (countElement) {
-                    total += parseInt(countElement.textContent);
-                }
-            });
+    {% for solicitante, correos in grupos.items %}
+    <section class="panel">
+        <!--Un solo formulario por solicitante: la nota viaja dentro y cada botón
+           declara su propia acción. Antes la nota era un id repetido y todos los
+           envíos usaban el texto del primer bloque. -->
+        <form method="post" action="">
+            {% csrf_token %}
+            <input type="hidden" name="solicitante_id" value="{{ solicitante.id }}">
 
-            const totalElement = document.getElementById('totalCorreos');
-            if (totalElement) {
-                totalElement.textContent = total;
-            }
+            <div class="panel__cabecera">
+                <div class="destinatario">
+                    <span class="destinatario__inicial">{{ solicitante.first_name|slice:":1"|upper }}{{ solicitante.last_name|slice:":1"|upper }}</span>
+                    <div style="min-width:0">
+                        <div class="destinatario__nombre">{{ solicitante.get_full_name|default:solicitante.username }}</div>
+                        {% if solicitante.email %}
+                        <div class="destinatario__correo">{{ solicitante.email }}</div>
+                        {% else %}
+                        <div class="sin-correo">
+                            <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+                            Sin correo registrado
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="cola">
+                    <span class="cola__n" data-pendientes>{{ correos|length }}</span>
+                    <span class="cola__etiqueta">en cola</span>
+                </div>
+            </div>
+
+            <div class="tabla-scroll">
+                <table class="tabla">
+                    <thead>
+                        <tr>
+                            <th scope="col">Fecha</th>
+                            <th scope="col">Horario</th>
+                            <th scope="col">Aula</th>
+                            <th scope="col">Ubicación</th>
+                            <th scope="col">Estado</th>
+                            <th scope="col">Tipo</th>
+                            <th scope="col">Asignatura</th>
+                            <th scope="col">Grupo</th>
+                            <th scope="col">Est.</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for c in correos %}
+                        <tr>
+                            <td class="dato">{{ c.reserva.fecha|date:"d/m/Y" }}</td>
+                            <td class="dato">{{ c.reserva.slot.hora_inicio|time:"H:i" }}–{{ c.reserva.slot.hora_fin|time:"H:i" }}</td>
+                            <td>{{ c.reserva.laboratorio.nombre }}</td>
+                            <td>
+                                {% if c.reserva.estacion %}
+                                <span class="dato">{{ c.reserva.estacion.codigo }}</span>
+                                {% else %}
+                                <span class="tenue">Aula completa</span>
+                                {% endif %}
+                            </td>
+                            <td><span class="chip" data-estado="{{ c.reserva.estado }}">{{ c.reserva.estado }}</span></td>
+                            <td><span class="chip chip--tenue">{{ c.reserva.tipo|capfirst }}</span></td>
+                            <td>{{ c.reserva.asignatura|default:"—" }}</td>
+                            <td class="dato">{{ c.reserva.grupo }}</td>
+                            <td class="dato">{{ c.reserva.estudiantes }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="nota">
+                <label class="campo-etiqueta" for="detalles{{ solicitante.id }}">
+                    Mensaje adicional para {{ solicitante.first_name|default:"el solicitante" }}
+                </label>
+                <textarea class="campo" id="detalles{{ solicitante.id }}" name="detalles" rows="3"
+                          placeholder="Opcional: contexto, condiciones o instrucciones que quieras incluir en el correo…"></textarea>
+            </div>
+
+            <div class="panel__pie">
+                <button type="submit" name="action" value="cancelar" class="btn btn--peligro btn--sm"
+                        data-confirmar="Se descartarán los {{ correos|length }} correos en cola de {{ solicitante.get_full_name|default:solicitante.username }} sin avisarle. ¿Continuar?">
+                    <i class="fa-solid fa-xmark" aria-hidden="true"></i> Descartar cola
+                </button>
+
+                <span class="empuje"></span>
+
+                <button type="submit" name="action" value="enviar" class="btn btn--primario btn--sm"
+                        {% if not solicitante.email %}disabled{% endif %}
+                        data-confirmar="Se enviará un correo a {{ solicitante.email }} con {{ correos|length }} reserva{{ correos|length|pluralize:"s" }}. ¿Continuar?">
+                    <i class="fa-regular fa-paper-plane" aria-hidden="true"></i> Enviar correo
+                </button>
+            </div>
+        </form>
+    </section>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block js %}
+<script>
+(function () {
+    var total = 0;
+    document.querySelectorAll("[data-pendientes]").forEach(function (n) {
+        total += parseInt(n.textContent, 10) || 0;
+    });
+    var destino = document.getElementById("totalCorreos");
+    if (destino) destino.textContent = total;
+
+    // Enviar y descartar son irreversibles: se confirman con el detalle concreto
+    document.querySelectorAll("[data-confirmar]").forEach(function (boton) {
+        boton.addEventListener("click", function (e) {
+            if (!window.confirm(boton.getAttribute("data-confirmar"))) e.preventDefault();
         });
-
-        // Confirmación antes de enviar o cancelar
-        document.querySelectorAll('form').forEach(form => {
-            form.addEventListener('submit', (e) => {
-                const action = form.querySelector('input[name="action"]').value;
-                const mensaje = action === 'enviar' 
-                    ? '¿Estás seguro de que deseas enviar estos correos?' 
-                    : '¿Estás seguro de que deseas cancelar todos estos correos?';
-                
-                if (!confirm(mensaje)) {
-                    e.preventDefault();
-                }
-            });
-        });
-
-        document.querySelectorAll('form').forEach(form => {
-            form.addEventListener('submit', () => {
-                let input = document.createElement("input");
-                input.type = "hidden";
-                input.name = "detalles";
-                input.value = document.getElementById("detalles_global").value;
-                form.appendChild(input);
-            });
-        });
-
-    </script>
-</body>
-</html>
+    });
+})();
+</script>
+{% endblock %}

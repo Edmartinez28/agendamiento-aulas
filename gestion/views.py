@@ -21,7 +21,9 @@ from django.conf import settings
 from django.core.mail import EmailMultiAlternatives, get_connection
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
+from django.utils.text import slugify
 
+from core import periodo
 from cuentas.decorators import rol_required
 from django.contrib.auth.decorators import login_required
 
@@ -31,7 +33,8 @@ from django.contrib import messages
 from .tasks import enviar_correo_reservas_solicitante
 
 
-from django.http import HttpResponse
+from django.core.exceptions import ValidationError
+from django.http import HttpResponse, JsonResponse
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter, landscape
@@ -66,53 +69,107 @@ def obtenerlaboratorios(request):
 @login_required
 @rol_required(["TECNICO", "ADMIN"])
 def listadoreservas(request, id_lab):
-    laboratorio = Laboratorio.objects.get(id=id_lab)
+    laboratorio = get_object_or_404(Laboratorio, id=id_lab)
 
-    reservas_laboratorio = Reserva.objects.filter(laboratorio=laboratorio, estacion__isnull=True).order_by('-fecha')
-    reservas_estaciones = Reserva.objects.filter(laboratorio=laboratorio, estacion__isnull=False).order_by('-fecha')
+    # Sólo el periodo académico vigente: esta pantalla es de trabajo del día a
+    # día, no un archivo histórico. El horario del aula sí muestra todo.
+    del_periodo = periodo.filtrar(Reserva.objects.filter(laboratorio=laboratorio))
 
-    total = reservas_laboratorio.count() + reservas_estaciones.count()
-    pendientes = Reserva.objects.filter(laboratorio=laboratorio,estado="EN REVISION").count()
-    aprobadas = Reserva.objects.filter(laboratorio=laboratorio,estado="APROBADA").count()
-    rechazadas = Reserva.objects.filter(laboratorio=laboratorio,estado="CANCELADA").count()
+    reservas_laboratorio = del_periodo.filter(estacion__isnull=True).order_by('-fecha')
+    reservas_estaciones = del_periodo.filter(estacion__isnull=False).order_by('-fecha')
 
     contexto = {
         "laboratorio": laboratorio,
         "reservaslaboratorio": reservas_laboratorio,
         "reservasestaciones": reservas_estaciones,
-        "total": total,
-        "pendientes": pendientes,
-        "aprobadas": aprobadas,
-        "rechazadas": rechazadas,
         "fondo":get_fondo_valor,
         "titulos":get_letra_titulos,
     }
+    # Los mismos contadores que devuelve el endpoint AJAX, para que los números
+    # no salten al cambiar un estado sin recargar.
+    contexto.update(_totales_laboratorio(laboratorio))
 
     return render(request, "listadoreservas.html", contexto)
+
+def _totales_laboratorio(laboratorio):
+    """Contadores de la cabecera. Se recalculan en el servidor tras cada cambio
+    en vez de sumar y restar en el navegador: si dos técnicos trabajan a la vez,
+    los números siguen siendo los de la base.
+
+    Cuentan sólo el periodo vigente, igual que la lista que hay debajo."""
+    reservas = periodo.filtrar(Reserva.objects.filter(laboratorio=laboratorio))
+    return {
+        "total": reservas.count(),
+        "pendientes": reservas.filter(estado="EN REVISION").count(),
+        "aprobadas": reservas.filter(estado="APROBADA").count(),
+        "rechazadas": reservas.filter(estado="CANCELADA").count(),
+    }
+
 
 @login_required
 @rol_required(["TECNICO", "ADMIN"])
 def cambiar_estado_reserva(request, reserva_id):
+    """Cambia el estado de una reserva.
+
+    Responde JSON si la piden por AJAX (la pantalla de gestión actualiza la
+    tarjeta en sitio, sin recargar) y con redirect si no, para que el formulario
+    siga funcionando sin JavaScript.
+    """
     reserva = get_object_or_404(Reserva, id=reserva_id)
+    es_ajax = request.headers.get("x-requested-with") == "XMLHttpRequest"
+    volver = redirect("gestion:listadoreservas", id_lab=reserva.laboratorio_id)
 
-    if request.method == "POST":
-        nuevo_estado = request.POST.get("estado")
-        estado_anterior = reserva.estado
+    if request.method != "POST":
+        return volver
 
-        ESTADOS_VALIDOS = {"APROBADA", "EN REVISION", "CANCELADA"}
+    nuevo_estado = (request.POST.get("estado") or "").strip()
+    estado_anterior = reserva.estado
 
-        if nuevo_estado and nuevo_estado != estado_anterior and nuevo_estado in ESTADOS_VALIDOS: # Solo si cambia el estado, actualiza y crea correo
-            Correo.objects.create(
-                reserva=reserva,
-                tecnico=request.user,
-                solicitante=reserva.usuario,
-                estado="PENDIENTE"
-            )
-        
-        reserva.estado = nuevo_estado
-        reserva.save()
+    # Antes se asignaba el estado sin comprobarlo: un POST con un valor vacío o
+    # inventado llegaba a full_clean() y reventaba con un 500.
+    ESTADOS_VALIDOS = {clave for clave, _ in Reserva.ESTADOS_CHOICES}
 
-    return redirect("gestion:listadoreservas", id_lab=reserva.laboratorio.id)
+    if nuevo_estado not in ESTADOS_VALIDOS:
+        if es_ajax:
+            return JsonResponse({"ok": False, "error": "Estado no válido."}, status=400)
+        messages.error(request, "Estado no válido.")
+        return volver
+
+    # Sólo estas transiciones generan aviso al solicitante.
+    NOTIFICABLES = {"APROBADA", "EN REVISION", "CANCELADA"}
+    correo_encolado = nuevo_estado != estado_anterior and nuevo_estado in NOTIFICABLES
+
+    try:
+        # Atómico: si la reserva no valida, el correo tampoco se queda creado.
+        with transaction.atomic():
+            if correo_encolado:
+                Correo.objects.create(
+                    reserva=reserva,
+                    tecnico=request.user,
+                    solicitante=reserva.usuario,
+                    estado="PENDIENTE",
+                )
+
+            reserva.estado = nuevo_estado
+            reserva.save()  # full_clean() valida choques de horario
+
+    except ValidationError as e:
+        # Aprobar una reserva que choca con otra ya no es un 500: se explica.
+        detalle = " ".join(e.messages) if hasattr(e, "messages") else str(e)
+        if es_ajax:
+            return JsonResponse({"ok": False, "error": detalle}, status=409)
+        messages.error(request, detalle)
+        return volver
+
+    if es_ajax:
+        return JsonResponse({
+            "ok": True,
+            "estado": reserva.estado,
+            "correo_encolado": correo_encolado,
+            "totales": _totales_laboratorio(reserva.laboratorio),
+        })
+
+    return volver
 
 @login_required
 @rol_required(["TECNICO", "ADMIN"])
@@ -263,6 +320,7 @@ def correos_pendientes_agrupados(request, id_lab):
     # GET: render pantalla
     context = {
         "grupos": dict(grupos),  # {User: [Correo, Correo, ...]}
+        "laboratorio": get_object_or_404(Laboratorio, id=id_lab),  # para la ruta de navegación
         "fondo":get_fondo_valor,
         "titulos":get_letra_titulos,
     }
@@ -283,20 +341,47 @@ def truncar_por_ancho(texto, ancho_columna, factor=4.5):
 @login_required
 @rol_required(["TECNICO", "ADMIN"])
 def exportar_reservas_pdf(request, laboratorio_id):
-    reservas = Reserva.objects.filter(laboratorio_id=laboratorio_id)\
-        .select_related('carrera', 'ciclo', 'paralelo', 'usuario')\
+    laboratorio = get_object_or_404(Laboratorio, id=laboratorio_id)
+
+    # Mismo recorte que el listado desde el que se lanza esta exportación: si
+    # la pantalla muestra el periodo vigente, el PDF no puede traer más filas.
+    reservas = (
+        periodo.filtrar(Reserva.objects.filter(laboratorio=laboratorio))
+        .select_related('carrera', 'ciclo', 'paralelo', 'usuario', 'slot', 'estacion')
         .order_by('carrera__nombre', 'ciclo__nombre', 'paralelo__nombre', 'fecha')
+    )
+
+    inicio, fin, nombre_periodo = periodo.periodo_vigente()
+
+    # El nombre del archivo distingue el aula y el periodo: dos exportaciones
+    # distintas ya no se pisan en la carpeta de descargas.
+    partes = ["agenda", slugify(laboratorio.nombre) or str(laboratorio.id)]
+    if inicio or fin:
+        partes.append(f"{inicio or 'inicio'}_{fin or 'fin'}")
 
     response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = 'attachment; filename="reservas_agenda.pdf"'
+    response['Content-Disposition'] = f'attachment; filename="{"-".join(partes)}.pdf"'
 
     doc = SimpleDocTemplate(response, pagesize=landscape(letter))
     elements = []
 
     styles = getSampleStyleSheet()
 
-    # Título
-    elements.append(Paragraph("Agenda de Reservas", styles['Title']))
+    # Título y subtítulo: un papel impreso tiene que decir de qué aula y de qué
+    # rango de fechas es, o no significa nada fuera de la pantalla que lo generó.
+    elements.append(Paragraph(f"Agenda de Reservas · {laboratorio.nombre}", styles['Title']))
+
+    if inicio or fin:
+        rango = f"{inicio.strftime('%d/%m/%Y') if inicio else '—'} al {fin.strftime('%d/%m/%Y') if fin else '—'}"
+        subtitulo = f"{nombre_periodo}: {rango}"
+    else:
+        subtitulo = "Todas las reservas registradas (sin periodo configurado)"
+
+    estilo_sub = styles['Normal'].clone('subtituloAgenda')
+    estilo_sub.fontSize = 9
+    estilo_sub.alignment = 1  # centrado
+    estilo_sub.textColor = colors.HexColor("#5B6B78")
+    elements.append(Paragraph(subtitulo, estilo_sub))
     elements.append(Spacer(1, 10))
 
     # Encabezados tabla
@@ -323,7 +408,13 @@ def exportar_reservas_pdf(request, laboratorio_id):
     col_widths = [30, 100, 100, 60, 60, 100, 70, 90, 70]
 
     for reserva in reservas:
-        grupo = f"{reserva.carrera.nombre}-{reserva.ciclo.nombre}-{reserva.paralelo.nombre}"
+        # carrera/ciclo/paralelo son opcionales en el modelo: sin este guardado
+        # una sola reserva sin curso tumbaba la exportación entera.
+        grupo = "-".join([
+            reserva.carrera.nombre if reserva.carrera else "",
+            reserva.ciclo.nombre if reserva.ciclo else "",
+            reserva.paralelo.nombre if reserva.paralelo else "",
+        ])
 
         # Cambiar color por grupo
         if grupo != grupo_actual:
@@ -351,9 +442,9 @@ def exportar_reservas_pdf(request, laboratorio_id):
             str(reserva.id),
 
             truncar_por_ancho(reserva.usuario.get_full_name(), col_widths[1]),
-            Paragraph(truncar_por_ancho(reserva.carrera.nombre, col_widths[2]), styleN),
-            Paragraph(truncar_por_ancho(reserva.ciclo.nombre, col_widths[3]), styleN),
-            Paragraph(truncar_por_ancho(reserva.paralelo.nombre, col_widths[4]), styleN),
+            Paragraph(truncar_por_ancho(reserva.carrera.nombre if reserva.carrera else "-", col_widths[2]), styleN),
+            Paragraph(truncar_por_ancho(reserva.ciclo.nombre if reserva.ciclo else "-", col_widths[3]), styleN),
+            Paragraph(truncar_por_ancho(reserva.paralelo.nombre if reserva.paralelo else "-", col_widths[4]), styleN),
             Paragraph(truncar_por_ancho(reserva.asignatura or "-", col_widths[5]), styleN),
 
             reserva.fecha.strftime("%Y-%m-%d"),

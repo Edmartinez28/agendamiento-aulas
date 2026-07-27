@@ -1,0 +1,66 @@
+<!--Cuerpo compartido por 404 y 500.
+   Un error no es una fiesta: el código en monoespaciada grande, una frase que
+   explica qué pasó, y la salida más cercana. Sin globos ni animaciones. -->
+{% extends "base.html" %}
+
+{% block clase_lienzo %}lienzo lienzo--angosto error-pagina{% endblock %}
+
+{% block ruta %}<strong>{% block ruta_texto %}Error{% endblock %}</strong>{% endblock %}
+
+{% block css %}
+<style>
+    .error-pagina {
+        min-height: calc(100vh - 58px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .error {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: var(--esp-4);
+        text-align: center;
+        padding: var(--esp-7) var(--esp-5);
+    }
+
+    .error__codigo {
+        font-family: var(--tipo-dato);
+        font-size: clamp(56px, 12vw, 92px);
+        font-weight: 600;
+        line-height: 1;
+        letter-spacing: -0.06em;
+        color: var(--guardian, var(--marca));
+        font-variant-numeric: tabular-nums;
+    }
+
+    .error__titulo {
+        font-family: var(--tipo-titulo);
+        font-size: clamp(20px, 3vw, 25px);
+        font-weight: 600;
+        letter-spacing: -0.02em;
+    }
+
+    .error__acciones { display: flex; gap: var(--esp-2); flex-wrap: wrap; justify-content: center; }
+</style>
+{% endblock %}
+
+{% block contenido %}
+<div class="panel guardian" data-estado="{% block error_estado %}CANCELADA{% endblock %}" style="width:100%">
+    <div class="error">
+        <div class="error__codigo">{% block error_codigo %}{% endblock %}</div>
+        <h1 class="error__titulo">{% block error_titulo %}{% endblock %}</h1>
+        <p class="t-sub">{% block error_texto %}{% endblock %}</p>
+
+        <div class="error__acciones">
+            {% block error_acciones %}
+            <a class="btn btn--primario" href="{% url 'cuentas:mostrarperfil' %}">
+                <i class="fa-solid fa-house" aria-hidden="true"></i> Volver al inicio
+            </a>
+            <a class="btn" href="{% url 'gestion:obtenerlaboratorios' %}">Ver aulas ITE-VR</a>
+            {% endblock %}
+        </div>
+    </div>
+</div>
+{% endblock %}

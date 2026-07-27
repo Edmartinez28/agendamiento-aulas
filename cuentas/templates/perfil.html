@@ -1,936 +1,463 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mi Perfil</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, {{ fondo|default:"#4C758A" }} 0%, #F2F2F2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .header {
-            text-align: center;
-            color: {{ titulos|default:"#FFFFFF" }};
-            margin-bottom: 40px;
-        }
-
-        .header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
-        }
-
-        .header p {
-            font-size: 1.1rem;
-            opacity: 0.95;
-        }
-
-        .profile-grid {
-            display: grid;
-            grid-template-columns: 350px 2fr;
-            gap: 30px;
-            margin-bottom: 30px;
-        }
-
-        /* Sección de datos personales */
-        .profile-card {
-            background: white;
-            border-radius: 16px;
-            padding: 0;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            overflow: hidden;
-            height: fit-content;
-        }
-
-        .profile-header {
-            background: linear-gradient(135deg, {{ fondo|default:"#4C758A" }} 0%, #7397cb 100%);
-            padding: 40px 30px;
-            text-align: center;
-            color: white;
-        }
-
-        .profile-avatar {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            background: white;
-            margin: 0 auto 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 3.5rem;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-
-            overflow: hidden; /* 👈 clave para recortar */
-        }
-
-        .profile-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover; /* 👈 recorte tipo Instagram */
-        }
-        .profile-name {
-            font-size: 1.6rem;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
-
-        .profile-email {
-            font-size: 0.95rem;
-            opacity: 0.95;
-        }
-
-        .profile-body {
-            padding: 30px;
-        }
-
-        .profile-field {
-            margin-bottom: 25px;
-            padding-bottom: 25px;
-            border-bottom: 2px solid #f0f0f0;
-        }
-
-        .profile-field:last-child {
-            margin-bottom: 0;
-            padding-bottom: 0;
-            border-bottom: none;
-        }
-
-        .profile-label {
-            font-size: 0.8rem;
-            color: #888;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 8px;
-        }
-
-        .profile-value {
-            font-size: 1.1rem;
-            color: #333;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .user-type-badge {
-            display: inline-block;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .user-type-badge.estudiante {
-            background: linear-gradient(135deg, #00bcd4 0%, #26c6da 100%);
-            color: white;
-        }
-
-        .user-type-badge.docente {
-            background: linear-gradient(135deg, #9c27b0 0%, #ab47bc 100%);
-            color: white;
-        }
-
-        .user-type-badge.administrador {
-            background: linear-gradient(135deg, #ff9800 0%, #ffa726 100%);
-            color: white;
-        }
-
-        .profile-actions {
-            padding: 0 30px 30px;
-        }
-
-        /* Sección de reservas */
-        .reservations-section {
-            background: white;
-            border-radius: 16px;
-            padding: 30px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-        }
-
-        .reservations-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-            padding-bottom: 20px;
-            border-bottom: 2px solid #f0f0f0;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-
-        .reservations-title {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .reservations-title h2 {
-            font-size: 1.8rem;
-            color: #333;
-            font-weight: 700;
-        }
-
-        .reservations-count {
-            background: {{ fondo|default:"#4C758A" }};
-            color: white;
-            padding: 6px 16px;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            font-weight: 600;
-        }
-
-        .btn-new-reservation {
-            padding: 12px 25px;
-            background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 0.95rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
-        }
-
-        .btn-new-reservation:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
-        }
-
-        /* Filtros de reservas */
-        .reservations-filters {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-
-        .filter-btn {
-            padding: 8px 18px;
-            border-radius: 20px;
-            border: 2px solid #e0e0e0;
-            background: white;
-            color: #666;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 0.9rem;
-            font-weight: 600;
-        }
-
-        .filter-btn:hover {
-            border-color: #667eea;
-            color: #667eea;
-        }
-
-        .filter-btn.active {
-            background: {{ fondo|default:"#4C758A" }};
-            color: white;
-            border-color: transparent;
-        }
-
-        /* Lista de reservas */
-        .reservations-list {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .reservation-item {
-            border: 2px solid #f0f0f0;
-            border-radius: 12px;
-            padding: 20px;
-            transition: all 0.3s ease;
-            background: #fafafa;
-            cursor: pointer;
-        }
-
-        .reservation-item:hover {
-            border-color: #667eea;
-            background: white;
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.1);
-            transform: translateY(-2px);
-        }
-
-        .reservation-header-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-
-        .reservation-main-info {
-            flex: 1;
-            min-width: 250px;
-        }
-
-        .reservation-lab-name {
-            font-size: 1.3rem;
-            font-weight: 700;
-            color: #333;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .reservation-meta {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            color: #666;
-            font-size: 0.9rem;
-        }
-
-        .meta-item {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .reservation-badges {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-
-        .status-badge {
-            padding: 6px 14px;
-            border-radius: 16px;
-            font-size: 0.8rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .status-badge.aprobada {
-            background: #e8f5e9;
-            color: #2e7d32;
-        }
-
-        .status-badge.en-revision {
-            background: #fff3e0;
-            color: #e65100;
-        }
-
-        .status-badge.cancelada {
-            background: #ffebee;
-            color: #c62828;
-        }
-
-        .status-badge.finalizada {
-            background: #e3f2fd;
-            color: #1565c0;
-        }
-
-        .status-badge.bloqueada {
-            background: #f3e5f5;
-            color: #6a1b9a;
-        }
-
-        .status-badge.estudiantil {
-            background: #e0f7fa;
-            color: #00838f;
-        }
-
-        .type-badge {
-            padding: 6px 12px;
-            border-radius: 12px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            background: #f5f5f5;
-            color: #555;
-        }
-
-        .reservation-details {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 15px;
-            padding: 15px;
-            background: white;
-            border-radius: 8px;
-        }
-
-        .detail-item {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-
-        .detail-label {
-            font-size: 0.75rem;
-            color: #888;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-
-        .detail-value {
-            font-size: 0.95rem;
-            color: #333;
-            font-weight: 600;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 80px 20px;
-            color: #999;
-        }
-
-        .empty-state-icon {
-            font-size: 5rem;
-            margin-bottom: 20px;
-            opacity: 0.3;
-        }
-
-        .empty-state h3 {
-            font-size: 1.5rem;
-            margin-bottom: 10px;
-            color: #666;
-        }
-
-        .empty-state p {
-            font-size: 1rem;
-        }
-
-        /* Stats rápidas */
-        .stats-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
-            margin-bottom: 25px;
-        }
-
-        .stat-card-small {
-            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
-            padding: 20px;
-            border-radius: 12px;
-            text-align: center;
-            border: 2px solid #f0f0f0;
-        }
-
-        .stat-number {
-            font-size: 2rem;
-            font-weight: 700;
-            color: #667eea;
-            margin-bottom: 5px;
-        }
-
-        .stat-label {
-            font-size: 0.85rem;
-            color: #666;
-            font-weight: 600;
-        }
-
-        .profile-actions {
-            padding: 0 30px 30px;
-        }
-
-        .btn-edit-profile {
-            width: 100%;
-            padding: 14px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .btn-edit-profile:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-        }
-
-        /* Responsive */
-        @media (max-width: 1024px) {
-            .profile-grid {
-                grid-template-columns: 2fr;
-            }
-
-            .profile-card {
-                max-width: 100%;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .header h1 {
-                font-size: 2rem;
-            }
-
-            .profile-avatar {
-                width: 100px;
-                height: 100px;
-                font-size: 3rem;
-            }
-
-            .profile-name {
-                font-size: 1.4rem;
-            }
-
-            .reservations-header {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .btn-new-reservation {
-                width: 100%;
-                justify-content: center;
-            }
-
-            .reservation-details {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        @media (max-width: 480px) {
-            body {
-                padding: 10px;
-            }
-
-            .header h1 {
-                font-size: 1.6rem;
-            }
-
-            .profile-card,
-            .reservations-section {
-                border-radius: 12px;
-                padding: 20px;
-            }
-
-            .profile-header {
-                padding: 30px 20px;
-            }
-
-            .profile-body {
-                padding: 20px;
-            }
-
-            .stats-cards {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        /* Fondo modal */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 999;
-            inset: 0;
-            background: rgba(0,0,0,0.6);
-            backdrop-filter: blur(4px);
-        }
-
-        .avatar-modal{
-            position: relative;
-            z-index: 1000;
-        }
-
-        /* Caja modal */
-        .avatar-modal {
-            background: white;
-            width: 380px;
-            margin: 8% auto;
-            padding: 25px;
-            border-radius: 14px;
-            text-align: center;
-            position: relative;
-            animation: modalFade 0.25s ease;
-        }
-
-        #id_avatar{
-            position:absolute;
-            opacity:0;
-            width:0;
-            height:0;
-        }
-
-        @keyframes modalFade {
-            from { transform: translateY(-20px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-
-        .close {
-            position: absolute;
-            right: 15px;
-            top: 10px;
-            font-size: 24px;
-            cursor: pointer;
-        }
-
-        /* Preview */
-        .avatar-preview {
-            width: 130px;
-            height: 130px;
-            margin: 15px auto;
-            border-radius: 50%;
-            overflow: hidden;
-            border: 3px solid #eee;
-        }
-
-        .avatar-preview img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        /* Ocultar input real */
-        .file-label input {
-            position: absolute;
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        .file-label {
-            display: inline-block;
-            background: #f1f1f1;
-            padding: 10px 18px;
-            border-radius: 8px;
-            cursor: pointer;
-            margin-top: 10px;
-            transition: 0.2s;
-        }
-
-        .file-label:hover {
-            background: #e4e4e4;
-        }
-
-        /* Botón guardar */
-        .btn-save {
-            display: block;
-            width: 100%;
-            margin-top: 15px;
-            padding: 11px;
-            border: none;
-            border-radius: 8px;
-            background: #4CAF50;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-        .btn-save:hover {
-            background: #43a047;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>Mi Perfil</h1>
-            <p>Administra tu información y tus reservas</p>
-        </div>
-
-        <div class="profile-grid">
-            <!-- Sección de datos personales -->
-            <div class="profile-card">
-                <div class="profile-header">
-                    <div class="profile-avatar">
-                        {% if usuario.avatar %}
-                        <img src="{{ usuario.avatar.url }}">
-                        {% else %}
-                        👤
-                        {% endif %}
-                    </div>
-                    <div class="profile-name" id="userName">{{ usuario.get_full_name }}</div>
-                    <div class="profile-email" id="userEmail">{{ usuario.email }}</div>
-                </div>
-
-                <div class="profile-body">
-                    <div class="profile-field">
-                        <div class="profile-label">📧 Correo Electrónico</div>
-                        <div class="profile-value" id="displayEmail">
-                            {{ usuario.email }}
-                        </div>
-                    </div>
-
-                    <div class="profile-field">
-                        <div class="profile-label">👤 Nombres Completos</div>
-                        <div class="profile-value" id="displayFullName">
-                            {{ usuario.get_full_name }}
-                        </div>
-                    </div>
-
-                    <div class="profile-field">
-                        <div class="profile-label">🎓 Tipo de Usuario</div>
-                        <div class="profile-value">
-                            <span class="user-type-badge estudiante" id="userTypeBadge">
-                                {{ usuario.rol }}
-                            </span>
-                        </div>
-                    </div>
-
-                    <div class="profile-field">
-                        <div class="profile-label">📅 Miembro Desde</div>
-                        <div class="profile-value" id="memberSince">
-                            🗓 {{ usuario.date_joined }}
-                        </div>
-                    </div>
-                </div>
-
-                <!-- <div class="profile-actions">
-                    <a href="{% url 'cuentas:editar_avatar' %}" class="btn-edit-profile" style="text-decoration:none;">
-                        <span>✏️</span>
-                        Editar Perfil
-                    </a>
-                </div> -->
-                
-                <div class="profile-actions">
-                    <button class="btn-edit-profile" onclick="openAvatarModal()">
-                        <span>✏️</span>
-                        Editar Perfil
-                    </button><br>
-                    <form method="post" action="{% url 'cuentas:logout' %}">
-                    {% csrf_token %}
-                        <button type="submit" class="btn-edit-profile">Cerrar sesión</button>
-                    </form>
-                </div>
-
-                <!-- MODAL AVATAR -->
-                <div id="avatarModal" class="modal">
-                    <div class="modal-content avatar-modal">
-                        <span class="close" onclick="closeAvatarModal()">&times;</span>
-
-                        <h2>Cambiar foto de perfil</h2>
-
-                        <form method="POST" enctype="multipart/form-data" action="{% url 'cuentas:editar_avatar' %}">
-                            {% csrf_token %}
-
-                            <!-- Preview -->
-                            <div class="avatar-preview">
-                                {% if user.avatar %}
-                                    <img id="previewImg" src="{{ user.avatar.url }}">
-                                {% else %}
-                                    <img id="previewImg" src="https://imgs.search.brave.com/8qyEaGUob0Wn32iZ_6C51NWBNj-ZFD1lGX9VqWRyWZs/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9tZWRp/YS5pc3RvY2twaG90/by5jb20vaWQvMTM0/NTAwMjYwMC92ZWN0/b3IvZ2VuZGVyLW5l/dXRyYWwtcHJvZmls/ZS1hdmF0YXItZnJv/bnQtdmlldy1vZi1h/bi1hbm9ueW1vdXMt/cGVyc29uLWZhY2Uu/anBnP3M9NjEyeDYx/MiZ3PTAmaz0yMCZj/PTA4MnFqLWxwcFl4/b0haa0RFVEx2d0xT/d3QxV2FUaVJnUmFh/UURjc2RiZmc9">
-                                {% endif %}
-                            </div>
-
-                            <!-- Input oculto -->
-                            <label for="id_avatar" class="file-label">Seleccionar imagen</label>
-                            <input type="file" name="avatar" id="id_avatar" accept="image/*">
-
-                            {{ form.avatar }}
-
-                            <button type="submit" class="btn-save">Guardar cambios</button>
-                        </form>
-                    </div>
-                </div>
-
-            </div>
-
-            <!-- Sección de reservas -->
-            <div class="reservations-section">
-                <div class="reservations-header">
-                    <div class="reservations-title">
-                        <h2>📅 Mis Reservas</h2>
-                        <span class="reservations-count" id="reservationsCount">0 reservas</span>
-                    </div>
-                    {% if user.rol in "TECNICO,ADMIN" %}
-                    <a class="btn-new-reservation" href="{% url 'inventario:inventariototal' %}" style="text-decoration: none;">
-                        Inventario
-                    </a>
-                    {% endif %}
-                    <a class="btn-new-reservation" href="{% url 'gestion:obtenerlaboratorios' %}" style="text-decoration: none;">
-                        <span>➕</span>
-                        Visitar Aulas ITE-VR
-                    </a>
-                </div>
-
-                <!-- Estadísticas rápidas -->
-                <div class="stats-cards">
-                    <div class="stat-card-small">
-                        <div class="stat-number" id="statAprobadas">0</div>
-                        <div class="stat-label">Aprobadas</div>
-                    </div>
-                    <div class="stat-card-small">
-                        <div class="stat-number" id="statRevision">0</div>
-                        <div class="stat-label">En Revisión</div>
-                    </div>
-                    <div class="stat-card-small">
-                        <div class="stat-number" id="statFinalizadas">0</div>
-                        <div class="stat-label">Finalizadas</div>
-                    </div>
-                    <div class="stat-card-small">
-                        <div class="stat-number" id="statTotal">0</div>
-                        <div class="stat-label">Total</div>
-                    </div>
-                </div>
-
-                <!-- Filtros -->
-                <div class="reservations-filters">
-                    <button class="filter-btn active" onclick="filterReservations('TODAS')">Todas</button>
-                    <button class="filter-btn" onclick="filterReservations('APROBADA')">Aprobadas</button>
-                    <button class="filter-btn" onclick="filterReservations('EN REVISION')">En Revisión</button>
-                    <button class="filter-btn" onclick="filterReservations('FINALIZADA')">Finalizadas</button>
-                </div>
-
-                <!-- Lista de reservas -->
-                <div class="reservations-list" id="reservationsList">
-                    {% for reserva in reservas%}
-
-                    <div class="reservation-item" data-estado="{{ reserva.estado|upper }}">
-                        <div class="reservation-header-item">
-                            <div class="reservation-main-info">
-                                <div class="reservation-lab-name">
-                                    {{reserva.laboratorio.nombre}}
-                                </div>
-                                <div class="reservation-meta">
-                                    <span class="meta-item">📅 {{reserva.fecha}}</span>
-                                    <span class="meta-item">🕐 {{reserva.slot.hora_inicio}} - {{reserva.slot.hora_fin}}</span>
-                                    {% if reserva.estacion %}
-                                    <span class="meta-item">💻 {{reserva.estacion.codigo}}</span>
-                                    {% else %}
-                                    <span class="meta-item">🏢 Lab. Completo</span>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            <div class="reservation-badges">
-                                <span class="status-badge {{ reserva.estado|slugify }}">{{ reserva.estado }}</span>
-                                <span class="type-badge">{{ reserva.tipo }}</span>
-                            </div>
-                        </div>
-
-                        <div class="reservation-details">
-
-                            <div class="detail-item">
-                                <span class="detail-label">N° de Reserva</span>
-                                <span class="detail-value">{{ reserva.id }}</span>
-                            </div>
-
-                            <div class="detail-item">
-                                <span class="detail-label">Asignatura</span>
-                                <span class="detail-value">{{ reserva.asignatura|default:"N/A" }}</span>
-                            </div>
-
-                            <div class="detail-item">
-                                <span class="detail-label">Carrera</span>
-                                <span class="detail-value">
-                                    {{ reserva.carrera.nombre|default:"N/A" }}
-                                </span>
-                            </div>
-
-                            <div class="detail-item">
-                                <span class="detail-label">Ciclo - Paralelo</span>
-                                <span class="detail-value">
-                                    {{ reserva.ciclo.nombre|default:"N/A" }} - {{ reserva.paralelo.nombre|default:"N/A" }}
-                                </span>
-                            </div>
-
-                            <div class="detail-item">
-                                <span class="detail-label">Grupo</span>
-                                <span class="detail-value">Grupo {{ reserva.grupo|default:"N/A" }}</span>
-                            </div>
-
-                            <div class="detail-item">
-                                <span class="detail-label">Estudiantes</span>
-                                <span class="detail-value">👥 {{ reserva.estudiantes|default:"0" }}</span>
-                            </div>
-
-                        </div>
-
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
+{% extends "base.html" %}
+
+{% block titulo %}Mi perfil · {{ parametros.marca_nombre }}{% endblock %}
+
+{% block ruta %}
+    <strong>Mi perfil</strong>
+{% endblock %}
+
+{% block css %}
+<style>
+    .perfil {
+        display: grid;
+        grid-template-columns: 320px 1fr;
+        gap: var(--esp-5);
+        align-items: start;
+    }
+
+    /* La identidad se queda fija: es el contexto de todo lo que hay al lado */
+    .identidad { position: sticky; top: 78px; }
+
+    .identidad__cara {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: var(--esp-3);
+        padding: var(--esp-6) var(--esp-5) var(--esp-5);
+        text-align: center;
+        border-bottom: 1px solid var(--filo-suave);
+    }
+
+    .identidad__avatar {
+        width: 82px;
+        height: 82px;
+        border-radius: 50%;
+        object-fit: cover;
+        display: grid;
+        place-items: center;
+        background: color-mix(in oklab, var(--marca) 16%, var(--ranura));
+        border: 1px solid var(--filo);
+        color: var(--marca);
+        font-family: var(--tipo-titulo);
+        font-size: 26px;
+        font-weight: 600;
+    }
+
+    .identidad__nombre {
+        font-family: var(--tipo-titulo);
+        font-size: 18px;
+        font-weight: 600;
+        letter-spacing: -0.015em;
+    }
+
+    .identidad__correo {
+        font-size: 12.5px;
+        color: var(--tinta-3);
+        overflow-wrap: anywhere;
+    }
+
+    .identidad__datos {
+        display: flex;
+        flex-direction: column;
+        gap: var(--esp-4);
+        padding: var(--esp-5);
+    }
+
+    .identidad__pie {
+        display: flex;
+        flex-direction: column;
+        gap: var(--esp-2);
+        padding: var(--esp-4) var(--esp-5);
+        border-top: 1px solid var(--filo-suave);
+        background: color-mix(in oklab, var(--tinta) 2.5%, transparent);
+    }
+
+    .identidad__pie form { display: contents; }
+
+    /* Una reserva es una franja: el filo guardián lleva el estado, y la hora
+       va en monoespaciada porque es el dato que se compara de un vistazo. */
+    .reserva { padding: var(--esp-4) var(--esp-4) var(--esp-4) var(--esp-5); }
+
+    .reserva__alto {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: var(--esp-3);
+        flex-wrap: wrap;
+    }
+
+    .reserva__aula {
+        font-family: var(--tipo-titulo);
+        font-size: 15.5px;
+        font-weight: 600;
+    }
+
+    .reserva__marcas { display: flex; gap: 6px; flex-wrap: wrap; }
+
+    .reserva__detalle {
+        margin-top: var(--esp-4);
+        padding-top: var(--esp-3);
+        border-top: 1px solid var(--filo-suave);
+    }
+
+    .avatar-preview {
+        display: grid;
+        place-items: center;
+        margin-bottom: var(--esp-4);
+    }
+
+    .avatar-preview img,
+    .avatar-vacio {
+        width: 128px;
+        height: 128px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 1px solid var(--filo);
+    }
+
+    .avatar-vacio {
+        display: grid;
+        place-items: center;
+        background: var(--ranura);
+        color: var(--tinta-4);
+        font-size: 40px;
+    }
+
+    /* El input de archivo nativo no se puede estilar: se oculta y la etiqueta
+       hace de zona de carga. */
+    #modalAvatar input[type="file"] { display: none; }
+
+    .archivo {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--esp-2);
+        padding: var(--esp-4);
+        border: 1px dashed var(--filo-fuerte);
+        border-radius: var(--r-control);
+        color: var(--tinta-2);
+        font-size: 13.5px;
+        cursor: pointer;
+        transition: border-color var(--rapido) var(--curva), color var(--rapido) var(--curva);
+    }
+
+    .archivo:hover { border-color: var(--senal); color: var(--tinta); }
+
+    @media (max-width: 900px) {
+        .perfil { grid-template-columns: 1fr; }
+        .identidad { position: static; }
+    }
+</style>
+{% endblock %}
+
+{% block contenido %}
+
+<div class="cabecera">
+    <div class="cabecera__texto">
+        <div class="cabecera__eyebrow">Cuenta institucional</div>
+        <h1 class="t-display">Mi perfil</h1>
+        <p class="t-sub cabecera__sub">
+            Tus datos y tus reservas en las aulas ITE-VR
+            {% if periodo.activo %}durante el periodo académico vigente{% endif %}.
+        </p>
+        {% if periodo.activo %}
+        {# Decir qué se está mostrando evita que una reserva antigua parezca perdida #}
+        <span class="chip chip--tenue" style="margin-top:var(--esp-3)">
+            <i class="fa-regular fa-calendar-check" aria-hidden="true"></i>
+            &nbsp;{{ periodo.nombre }}:
+            <span class="dato">&nbsp;{{ periodo.inicio|date:"d/m/Y"|default:"—" }} → {{ periodo.fin|date:"d/m/Y"|default:"—" }}</span>
+        </span>
+        {% endif %}
     </div>
+    <div class="cabecera__acciones">
+        {% if user.rol in "TECNICO,ADMIN" %}
+        <a class="btn" href="{% url 'inventario:inventariototal' %}">
+            <i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i> Inventario
+        </a>
+        {% endif %}
+        <a class="btn btn--fantasma" href="{% url 'cuentas:mihorario' %}">
+            <i class="fa-regular fa-calendar-days" aria-hidden="true"></i> Mi horario
+        </a>
+        <a class="btn btn--primario" href="{% url 'gestion:obtenerlaboratorios' %}">
+            <i class="fa-solid fa-vr-cardboard" aria-hidden="true"></i> Visitar aulas ITE-VR
+        </a>
+    </div>
+</div>
 
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
+<div class="perfil">
 
-            const reservations = document.querySelectorAll(".reservation-item");
+    <!-- ── Identidad ──────────────────────────────────────────────────── -->
+    <section class="panel identidad">
+        <div class="identidad__cara">
+            {% if usuario.avatar %}
+                <img class="identidad__avatar" src="{{ usuario.avatar.url }}" alt="">
+            {% else %}
+                <span class="identidad__avatar">{{ usuario.first_name|slice:":1"|upper }}{{ usuario.last_name|slice:":1"|upper }}</span>
+            {% endif %}
+            <div>
+                <div class="identidad__nombre">{{ usuario.get_full_name|default:usuario.username }}</div>
+                <div class="identidad__correo">{{ usuario.email }}</div>
+            </div>
+            <span class="chip chip--tenue">{{ usuario.get_rol_display|default:"Sin rol asignado" }}</span>
+        </div>
 
-            let aprobadas = 0;
-            let revision = 0;
-            let finalizadas = 0;
+        <div class="identidad__datos">
+            <div class="par">
+                <span class="par__etiqueta">Correo electrónico</span>
+                <span class="par__valor">{{ usuario.email|default:"—" }}</span>
+            </div>
+            <div class="par">
+                <span class="par__etiqueta">Nombres completos</span>
+                <span class="par__valor">{{ usuario.get_full_name|default:"—" }}</span>
+            </div>
+            <div class="par">
+                <span class="par__etiqueta">Miembro desde</span>
+                <span class="par__valor dato">{{ usuario.date_joined|date:"d/m/Y" }}</span>
+            </div>
+        </div>
 
-            reservations.forEach(res => {
-                const estado = res.dataset.estado?.trim();
+        <div class="identidad__pie">
+            <button type="button" class="btn btn--bloque" data-modal-abrir="modalAvatar">
+                <i class="fa-regular fa-image" aria-hidden="true"></i> Cambiar foto
+            </button>
+            <form method="post" action="{% url 'cuentas:logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn--sutil btn--bloque">
+                    <i class="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i> Cerrar sesión
+                </button>
+            </form>
+        </div>
+    </section>
 
-                if (estado === "APROBADA") aprobadas++;
-                if (estado === "EN REVISION") revision++;
-                if (estado === "FINALIZADA") finalizadas++;
+    <!-- ── Reservas ───────────────────────────────────────────────────── -->
+    <section class="pila">
+
+        <div class="tiles">
+            <div class="tile tile--estado guardian guardian--alto" data-estado="APROBADA">
+                <div class="tile__valor" id="statAprobadas">0</div>
+                <div class="tile__etiqueta">Aprobadas</div>
+            </div>
+            <div class="tile tile--estado guardian guardian--alto" data-estado="EN REVISION">
+                <div class="tile__valor" id="statRevision">0</div>
+                <div class="tile__etiqueta">En revisión</div>
+            </div>
+            <div class="tile tile--estado guardian guardian--alto" data-estado="FINALIZADA">
+                <div class="tile__valor" id="statFinalizadas">0</div>
+                <div class="tile__etiqueta">Finalizadas</div>
+            </div>
+            <div class="tile guardian guardian--alto">
+                <div class="tile__valor" id="statTotal">0</div>
+                <div class="tile__etiqueta">Total</div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel__cabecera">
+                <div class="fila">
+                    <h2 class="t-titulo">Mis reservas</h2>
+                    <span class="panel__conteo" id="conteoReservas">0 reservas</span>
+                    <!-- Segundo acceso: estás mirando la lista, el salto a la semana es natural -->
+                    <a class="btn btn--sutil btn--sm" href="{% url 'cuentas:mihorario' %}">
+                        <i class="fa-regular fa-calendar-days" aria-hidden="true"></i> Ver en horario
+                    </a>
+                </div>
+
+                <div class="segmentado" role="group" aria-label="Filtrar reservas por estado">
+                    <button type="button" class="segmentado__op activo" data-filtro="TODAS" aria-pressed="true">Todas</button>
+                    <button type="button" class="segmentado__op" data-filtro="APROBADA" aria-pressed="false">Aprobadas</button>
+                    <button type="button" class="segmentado__op" data-filtro="EN REVISION" aria-pressed="false">En revisión</button>
+                    <button type="button" class="segmentado__op" data-filtro="FINALIZADA" aria-pressed="false">Finalizadas</button>
+                </div>
+            </div>
+
+            <div class="pila pila--corta" style="padding: var(--esp-4)" id="listaReservas">
+                {% for reserva in reservas %}
+                <article class="panel panel--alto guardian reserva" data-estado="{{ reserva.estado|upper }}">
+                    <div class="reserva__alto">
+                        <div>
+                            <div class="reserva__aula">{{ reserva.laboratorio.nombre }}</div>
+                            <div class="meta" style="margin-top:6px">
+                                <span class="meta__item">
+                                    <i class="fa-regular fa-calendar" aria-hidden="true"></i>
+                                    <span class="dato">{{ reserva.fecha|date:"d/m/Y" }}</span>
+                                </span>
+                                <span class="meta__item">
+                                    <i class="fa-regular fa-clock" aria-hidden="true"></i>
+                                    <span class="dato">{{ reserva.slot.hora_inicio|time:"H:i" }}–{{ reserva.slot.hora_fin|time:"H:i" }}</span>
+                                </span>
+                                <span class="meta__item">
+                                    {% if reserva.estacion %}
+                                    <i class="fa-solid fa-desktop" aria-hidden="true"></i>
+                                    <span class="dato">{{ reserva.estacion.codigo }}</span>
+                                    {% else %}
+                                    <i class="fa-solid fa-building" aria-hidden="true"></i> Aula completa
+                                    {% endif %}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="reserva__marcas">
+                            <span class="chip">{{ reserva.estado }}</span>
+                            <span class="chip chip--tenue">{{ reserva.tipo|capfirst }}</span>
+                        </div>
+                    </div>
+
+                    <div class="reserva__detalle pares">
+                        <div class="par">
+                            <span class="par__etiqueta">N° de reserva</span>
+                            <span class="par__valor dato">#{{ reserva.id }}</span>
+                        </div>
+                        <div class="par">
+                            <span class="par__etiqueta">Asignatura</span>
+                            <span class="par__valor">{{ reserva.asignatura|default:"—" }}</span>
+                        </div>
+                        <div class="par">
+                            <span class="par__etiqueta">Carrera</span>
+                            <span class="par__valor">{{ reserva.carrera.nombre|default:"—" }}</span>
+                        </div>
+                        <div class="par">
+                            <span class="par__etiqueta">Ciclo · paralelo</span>
+                            <span class="par__valor">{{ reserva.ciclo.nombre|default:"—" }} · {{ reserva.paralelo.nombre|default:"—" }}</span>
+                        </div>
+                        <div class="par">
+                            <span class="par__etiqueta">Grupo</span>
+                            <span class="par__valor dato">{{ reserva.grupo|default:"—" }}</span>
+                        </div>
+                        <div class="par">
+                            <span class="par__etiqueta">Estudiantes</span>
+                            <span class="par__valor dato">{{ reserva.estudiantes|default:"0" }}</span>
+                        </div>
+                    </div>
+                </article>
+                {% empty %}
+                <div class="vacio">
+                    <div class="vacio__icono"><i class="fa-regular fa-calendar" aria-hidden="true"></i></div>
+                    <p class="vacio__titulo">
+                        {% if periodo.activo %}No tienes reservas en este periodo{% else %}Todavía no tienes reservas{% endif %}
+                    </p>
+                    <p>Entra a las aulas ITE-VR y reserva tu primer bloque de clase o tu estación.</p>
+                    <a class="btn btn--primario btn--sm" href="{% url 'gestion:obtenerlaboratorios' %}"
+                       style="margin-top:var(--esp-3)">Ver aulas disponibles</a>
+                </div>
+                {% endfor %}
+
+                <div class="vacio oculto" id="sinCoincidencias">
+                    <div class="vacio__icono"><i class="fa-solid fa-filter" aria-hidden="true"></i></div>
+                    <p class="vacio__titulo">Ninguna reserva en este estado</p>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- ── Modal: cambiar foto ────────────────────────────────────────────── -->
+<div class="modal-ite" id="modalAvatar" role="dialog" aria-modal="true">
+    <div class="modal-ite__caja" style="width:min(420px,100%)">
+        <form method="POST" enctype="multipart/form-data" action="{% url 'cuentas:editar_avatar' %}">
+            {% csrf_token %}
+
+            <div class="modal-ite__cabecera">
+                <div>
+                    <div class="etiqueta">Cuenta</div>
+                    <h2 class="modal-ite__titulo">Cambiar foto de perfil</h2>
+                </div>
+                <button type="button" class="modal-ite__cerrar" data-modal-cerrar aria-label="Cerrar">
+                    <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                </button>
+            </div>
+
+            <div class="modal-ite__cuerpo">
+                <div class="avatar-preview">
+                    {% if user.avatar %}
+                        <img id="previewImg" src="{{ user.avatar.url }}" alt="">
+                    {% else %}
+                        <img id="previewImg" alt="" hidden>
+                        <span class="avatar-vacio" id="avatarVacio">
+                            <i class="fa-solid fa-user" aria-hidden="true"></i>
+                        </span>
+                    {% endif %}
+                </div>
+
+                <label class="archivo" for="id_avatar">
+                    <i class="fa-solid fa-arrow-up-from-bracket" aria-hidden="true"></i>
+                    <span id="nombreArchivo">Seleccionar imagen</span>
+                </label>
+                <input type="file" name="avatar" id="id_avatar" accept="image/*">
+            </div>
+
+            <div class="modal-ite__pie">
+                <button type="button" class="btn btn--sutil" data-modal-cerrar>Cancelar</button>
+                <button type="submit" class="btn btn--primario">Guardar cambios</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block js %}
+<script>
+(function () {
+    var reservas = document.querySelectorAll("#listaReservas .reserva");
+    var sinCoincidencias = document.getElementById("sinCoincidencias");
+
+    // Recuento por estado ──────────────────────────────────────────────
+    var cuenta = { "APROBADA": 0, "EN REVISION": 0, "FINALIZADA": 0 };
+
+    reservas.forEach(function (r) {
+        var estado = (r.dataset.estado || "").trim();
+        if (estado in cuenta) cuenta[estado]++;
+    });
+
+    document.getElementById("statAprobadas").textContent = cuenta["APROBADA"];
+    document.getElementById("statRevision").textContent = cuenta["EN REVISION"];
+    document.getElementById("statFinalizadas").textContent = cuenta["FINALIZADA"];
+    document.getElementById("statTotal").textContent = reservas.length;
+    document.getElementById("conteoReservas").textContent =
+        reservas.length + (reservas.length === 1 ? " reserva" : " reservas");
+
+    // Filtro por estado ────────────────────────────────────────────────
+    var botones = document.querySelectorAll("[data-filtro]");
+
+    botones.forEach(function (btn) {
+        btn.addEventListener("click", function () {
+            var filtro = btn.dataset.filtro;
+            var visibles = 0;
+
+            botones.forEach(function (otro) {
+                var activo = otro === btn;
+                otro.classList.toggle("activo", activo);
+                otro.setAttribute("aria-pressed", activo ? "true" : "false");
             });
 
-            // Totales
-            document.getElementById("statAprobadas").innerText = aprobadas;
-            document.getElementById("statRevision").innerText = revision;
-            document.getElementById("statFinalizadas").innerText = finalizadas;
-            document.getElementById("statTotal").innerText = reservations.length;
-            document.getElementById("reservationsCount").innerText = reservations.length + " reservas";
-        });
-
-
-        function filterReservations(estado) {
-            const reservations = document.querySelectorAll(".reservation-item");
-            const buttons = document.querySelectorAll(".filter-btn");
-
-            // activar botón seleccionado
-            buttons.forEach(btn => btn.classList.remove("active"));
-            event.target.classList.add("active");
-
-            reservations.forEach(res => {
-                const resEstado = res.dataset.estado?.trim();
-
-                if (estado === "TODAS" || resEstado === estado) {
-                    res.style.display = "block";
-                } else {
-                    res.style.display = "none";
-                }
+            reservas.forEach(function (r) {
+                var coincide = filtro === "TODAS" || (r.dataset.estado || "").trim() === filtro;
+                r.classList.toggle("oculto", !coincide);
+                if (coincide) visibles++;
             });
-        }
-    </script>
-    
-    <script>
-        function openAvatarModal() {
-            document.getElementById("avatarModal").style.display = "block";
-        }
 
-        function closeAvatarModal() {
-            document.getElementById("avatarModal").style.display = "none";
-        }
-
-        /* Preview imagen */
-        document.addEventListener("change", function(e){
-            if(e.target.type === "file"){
-                const reader = new FileReader();
-                reader.onload = function(){
-                    document.getElementById("previewImg").src = reader.result;
-                }
-                reader.readAsDataURL(e.target.files[0]);
-            }
+            sinCoincidencias.classList.toggle("oculto", visibles > 0 || reservas.length === 0);
         });
-    </script>
+    });
 
-</body>
-</html>
+    // Vista previa del avatar ──────────────────────────────────────────
+    var entrada = document.getElementById("id_avatar");
+    if (entrada) {
+        entrada.addEventListener("change", function () {
+            var archivo = entrada.files && entrada.files[0];
+            if (!archivo) return;
+            document.getElementById("nombreArchivo").textContent = archivo.name;
+            var lector = new FileReader();
+            lector.onload = function () {
+                var img = document.getElementById("previewImg");
+                var vacio = document.getElementById("avatarVacio");
+                img.src = lector.result;
+                img.hidden = false;
+                if (vacio) vacio.remove();
+            };
+            lector.readAsDataURL(archivo);
+        });
+    }
+})();
+</script>
+{% endblock %}

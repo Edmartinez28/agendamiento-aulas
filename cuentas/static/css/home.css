@@ -1,186 +1,125 @@
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: 'Segoe UI', sans-serif;
+/* =========================================================================
+   Portada · Aula ITE-VR
+   Sólo lo específico de esta pantalla. Los tokens, la tipografía y los
+   componentes (.panel, .btn, .chip, .guardian) vienen de ite.css, que se carga
+   antes. Aquí no hay ni un color literal: todo deriva de las parametrizaciones.
+   ========================================================================= */
+
+.portada {
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: var(--esp-5) var(--esp-5) var(--esp-7);
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-5);
 }
 
-body {
-    background: #0f0f0f;
-    color: white;
-}
-
-/* NAVBAR */
-.navbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px 60px;
-    background: black;
-}
-
-.navbar nav a {
-    color: white;
-    margin-left: 25px;
-    text-decoration: none;
-    font-weight: 500;
-    transition: 0.3s;
-}
-
-.navbar nav a:hover {
-    color: #e10600;
-}
-
-.btn-login {
-    background: #e10600;
-    padding: 8px 18px;
-    border-radius: 20px;
-}
-
-/* HERO */
-.hero {
-    position: relative;
-    height: 95vh;
-    background: url('../img/fondo-vr.jpg') center/cover no-repeat;
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    padding: 0 100px;
-    overflow: hidden;
-}
-
-/* Overlay oscuro con degradado elegante */
-.hero-overlay {
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-
-    background:
-        /* Luz muy sutil detrás de la mujer */
-        radial-gradient(
-            circle at 20% 50%,
-            rgba(255,255,255,0.04) 0%,
-            rgba(255,255,255,0.02) 20%,
-            rgba(0,0,0,0) 40%
-        ),
-
-        /* Oscurecimiento progresivo hacia la derecha */
-        linear-gradient(
-            to right,
-            rgba(0,0,0,0.55) 10%,
-            rgba(0,0,0,0.75) 50%,
-            rgba(0,0,0,0.92) 100%
-        );
-}
-
-/* Imagen artística izquierda */
-.hero-art {
-    position: absolute;
-    left: 0;
-    bottom: 0;
-    z-index: 2;
-}
-
-.hero-art img {
-    height: 70%;
-    max-height: 500px;
-}
-
-/* Contenido derecho */
-.hero-content {
-    position: relative;
-    z-index: 3;
-    max-width: 550px;
-    text-align: left;
-}
-
-.hero h1 {
-    font-size: 60px;
-    margin-bottom: 10px;
-}
-
-.red-line {
-    color: #e10600;
-    font-weight: bold;
-}
-
-.hero h2 {
-    font-weight: 300;
-    margin-bottom: 20px;
-    color: #ddd;
-}
-
-.hero p {
-    line-height: 1.7;
-    margin-bottom: 30px;
-    color: #ccc;
-}
-
-.btn-primary {
-    background: #e10600;
-    padding: 12px 30px;
-    border-radius: 30px;
-    text-decoration: none;
-    color: white;
-    font-weight: bold;
-    transition: 0.3s;
-}
-
-.btn-primary:hover {
-    background: #ff1a1a;
-}
-
-/* INFO SECTION */
-.info {
-    padding: 80px;
-    background: #1a1a1a;
-    text-align: center;
-}
-
-.info h2 {
-    margin-bottom: 20px;
-    font-size: 32px;
-}
-
-.info p {
-    max-width: 800px;
-    margin: auto;
-    margin-bottom: 30px;
-}
-
-.btn-secondary {
-    background: transparent;
-    border: 2px solid #e10600;
-    padding: 10px 25px;
-    border-radius: 25px;
-    color: white;
-    text-decoration: none;
-    transition: 0.3s;
-}
-
-.btn-secondary:hover {
-    background: #e10600;
-}
-
-/* FOOTER */
-footer {
-    text-align: center;
-    padding: 20px;
-    background: black;
-    font-size: 14px;
-}
-
-.logo img {
-    height: 40px;   /* tamaño recomendado navbar */
-    width: auto;
-    object-fit: contain;
-}
+/* ── Hero ───────────────────────────────────────────────────────────────── */
 
 .hero {
-    height: 70vh;   /* antes 90vh */
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: min(66vh, 520px);
+  padding: var(--esp-7) var(--esp-6);
+  border: 1px solid var(--filo);
+  border-radius: var(--r-modal);
+  overflow: hidden;
+  isolation: isolate;
 }
 
-img {
-    max-width: 100%;
-    height: auto;
+/* La sala: la fotografía se hunde bajo un velo para que el texto respire */
+.hero__fondo {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background: url("../img/fondo-vr.jpg") center / cover no-repeat;
+}
+
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    /* el resplandor del visor, a la izquierda */
+    radial-gradient(60% 80% at 22% 55%,
+      color-mix(in oklab, var(--senal) 22%, transparent) 0%,
+      transparent 62%),
+    linear-gradient(100deg,
+      color-mix(in oklab, var(--p-oscuro_sala) 72%, transparent) 0%,
+      color-mix(in oklab, var(--p-oscuro_sala) 88%, transparent) 46%,
+      var(--p-oscuro_sala) 92%);
+}
+
+.hero__figura {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  z-index: -1;
+  max-height: 82%;
+  width: auto;
+  object-fit: contain;
+  -webkit-mask-image: linear-gradient(to top, transparent 0%, #000 18%);
+  mask-image: linear-gradient(to top, transparent 0%, #000 18%);
+}
+
+.hero__texto {
+  margin-left: auto;
+  max-width: 520px;
+}
+
+.hero__titulo {
+  font-family: var(--tipo-titulo);
+  font-size: clamp(38px, 6vw, 60px);
+  font-weight: 700;
+  line-height: 1.02;
+  letter-spacing: -0.04em;
+  margin-bottom: var(--esp-3);
+}
+
+.hero__bajada {
+  font-size: 15.5px;
+  line-height: 1.65;
+  color: var(--tinta-2);
+  margin-bottom: var(--esp-5);
+}
+
+.hero__acciones { display: flex; gap: var(--esp-2); flex-wrap: wrap; }
+
+/* ── Capacidades ────────────────────────────────────────────────────────── */
+
+.capacidades {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--esp-3);
+}
+
+.capacidad__icono {
+  display: block;
+  font-size: 19px;
+  color: var(--guardian, var(--marca));
+  margin-bottom: var(--esp-3);
+}
+
+.capacidad .t-titulo { margin-bottom: 6px; }
+
+/* ── Cierre ─────────────────────────────────────────────────────────────── */
+
+.cierre { text-align: center; }
+.cierre .panel__cuerpo { padding: var(--esp-7) var(--esp-5); }
+.cierre .t-sub { max-width: 62ch; }
+
+/* ── Responsive ─────────────────────────────────────────────────────────── */
+
+@media (max-width: 900px) {
+  .hero { padding: var(--esp-6) var(--esp-5); min-height: 0; }
+  .hero__figura { opacity: 0.28; max-height: 100%; }
+  .hero__texto { margin-left: 0; max-width: none; }
+}
+
+@media (max-width: 780px) {
+  .portada { padding: var(--esp-4) var(--esp-4) var(--esp-6); }
+  .hero__acciones .btn { flex: 1 1 auto; }
 }

@@ -1,62 +1,107 @@
+{% extends "base.html" %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Aula ITE VR</title>
-    <link rel="stylesheet" href="{% static 'css/home.css' %}">
-</head>
-<body>
 
-<header class="navbar">
-    <div class="logo">
-        <img src="{% static 'img/UC.png' %}" alt="Aula ITE VR">
+{% block titulo %}{{ parametros.marca_nombre }} · {{ parametros.marca_institucion }}{% endblock %}
+
+<!--La portada es la sala a oscuras, con el visor encendido: sin interruptor -->
+{% block tema %}oscuro{% endblock %}
+{% block tema_fijo %}data-tema-fijo{% endblock %}
+
+{% block css %}
+<link rel="stylesheet" href="{% static 'css/home.css' %}">
+{% endblock %}
+
+{% block barra %}
+<header class="barra">
+    <div class="barra__interior">
+        <a class="barra__marca" href="{% url 'cuentas:home' %}">
+            <img src="{% static 'img/UC.png' %}" alt="{{ parametros.marca_institucion }}">
+            <span class="barra__nombre">{{ parametros.marca_nombre }}</span>
+        </a>
+
+        <div class="barra__acciones">
+            <a class="btn btn--primario btn--sm" href="{% url 'cuentas:mostrarperfil' %}">
+                Ingresar <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+            </a>
+        </div>
     </div>
-    <nav>
-        <a href="#">Inicio</a>
-        <a href="#">Reserva</a>
-        <a href="#">Contacto</a>
-        <a href="{% url 'cuentas:mostrarperfil'%}" class="btn-login">Ingresar</a>
-    </nav>
 </header>
+{% endblock %}
+
+{% block clase_lienzo %}portada{% endblock %}
+
+{% block contenido %}
 
 <section class="hero">
-    <!-- Overlay oscuro -->
-    <div class="hero-overlay"></div>
+    <div class="hero__fondo" aria-hidden="true"></div>
+    <img class="hero__figura" src="{% static 'img/vr-woman.png' %}" alt="" aria-hidden="true">
 
-    <!-- Imagen artística izquierda -->
-    <div class="hero-art">
-        <img src="{% static 'img/vr-woman.png' %}" alt="VR Woman">
-    </div>
-
-    <!-- Contenido derecho -->
-    <div class="hero-content">
-        <h1>Aula ITE VR</h1>
-        <h2>Aula de Realidad Virtual</h2>
-        <p>
-            Espacio especializado para clases de realidad virtual con estudiantes de las 
-            diferentes carreras. Las aulas ITE VR representan innovación educativa 
-            y tecnología inmersiva.
+    <div class="hero__texto">
+        <div class="cabecera__eyebrow">Innovación en Tecnología Educativa</div>
+        <h1 class="hero__titulo">{{ parametros.marca_nombre }}</h1>
+        <p class="hero__bajada">
+            Aula de realidad virtual para clases inmersivas. Reserva el aula completa
+            para tu curso o una estación individual, revisa el horario de la semana
+            y sigue el estado de tus solicitudes.
         </p>
-        <a href="{% url 'gestion:obtenerlaboratorios' %}" class="btn-primary">
-            Reservar Ahora
-        </a>
+
+        <div class="hero__acciones">
+            <a class="btn btn--primario" href="{% url 'gestion:obtenerlaboratorios' %}">
+                <i class="fa-regular fa-calendar-plus" aria-hidden="true"></i> Reservar ahora
+            </a>
+            <a class="btn btn--fantasma" href="{% url 'cuentas:mostrarperfil' %}">
+                Ver mis reservas
+            </a>
+        </div>
     </div>
 </section>
 
-<section class="info">
-    <div class="info-content">
-        <h2>Aula de Innovación en Tecnología Educativa (ITE) </h2>
-        <p>
-            El Aula ITE VR ofrece un entorno moderno equipado con tecnología
-            de última generación para estudiantes y docentes.
+<section class="capacidades">
+    <article class="panel guardian capacidad">
+        <div class="panel__cuerpo">
+            <i class="fa-solid fa-chalkboard-user capacidad__icono" aria-hidden="true"></i>
+            <h2 class="t-titulo">Aula completa</h2>
+            <p class="t-sub">
+                Los docentes reservan bloques de la semana para su carrera, ciclo y
+                paralelo. El técnico revisa y aprueba cada solicitud.
+            </p>
+        </div>
+    </article>
+
+    <article class="panel guardian capacidad" data-estado="ESTUDIANTIL">
+        <div class="panel__cuerpo">
+            <i class="fa-solid fa-desktop capacidad__icono" aria-hidden="true"></i>
+            <h2 class="t-titulo">Estación individual</h2>
+            <p class="t-sub">
+                Dentro de las franjas que habilita el docente, cada estudiante elige
+                su puesto y su visor para prácticas autónomas.
+            </p>
+        </div>
+    </article>
+
+    <article class="panel guardian capacidad" data-estado="NUEVO">
+        <div class="panel__cuerpo">
+            <i class="fa-solid fa-boxes-stacked capacidad__icono" aria-hidden="true"></i>
+            <h2 class="t-titulo">Equipos al día</h2>
+            <p class="t-sub">
+                Cada visor y cada estación llevan su código, su serie y su estado de
+                mantenimiento en el inventario del aula.
+            </p>
+        </div>
+    </article>
+</section>
+
+<section class="panel cierre">
+    <div class="panel__cuerpo">
+        <h2 class="t-display" style="font-size:clamp(21px,2.4vw,27px)">
+            Aula de Innovación en Tecnología Educativa
+        </h2>
+        <p class="t-sub" style="margin:var(--esp-3) auto 0">
+            Un entorno equipado con tecnología inmersiva de última generación para
+            estudiantes y docentes de todas las carreras de la
+            {{ parametros.marca_institucion }}.
         </p>
     </div>
 </section>
 
-<footer>
-    © 2026 Universidad Católica de Cuenca - Jefatura de Innovación y Emprendimiento
-</footer>
-
-</body>
-</html>
+{% endblock %}

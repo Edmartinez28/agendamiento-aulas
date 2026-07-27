@@ -1,0 +1,1596 @@
+/* =========================================================================
+   ITE-VR · Sistema de interfaz
+   =========================================================================
+
+   Los valores crudos llegan desde los registros de `Parametro` como variables
+   `--p-<etiqueta>` que `base.html` escribe sobre :root. Este archivo NO define
+   colores literales: sólo deriva de esos parámetros.
+
+   Firma del sistema — "el límite guardián":
+   en VR el *guardian* es el borde luminoso que dibujas alrededor de tu espacio
+   seguro. Aquí, toda superficie que tiene un estado lleva un filo luminoso de
+   3px en el color de ese estado más un lavado tintado que se desvanece hacia
+   la derecha. Aparece en tarjetas de reserva, celdas del horario, filas de
+   inventario, tarjetas de aula, tiles de métrica y cabeceras de modal.
+
+   Profundidad: bordes. Una única sombra (`--sombra-flota`) y sólo para lo que
+   de verdad flota sobre la página.
+   ========================================================================= */
+
+/* ── Tokens ─────────────────────────────────────────────────────────────── */
+
+:root {
+  /* Identidad */
+  --marca:        var(--p-fondo);
+  --marca-fuerte: var(--p-marca_fuerte);
+  --marca-tinta:  var(--p-colortitulos);
+  --senal:        var(--p-senal);
+
+  /* Superficies · la sala y sus paneles */
+  --sala:       var(--p-claro_sala);
+  --panel:      var(--p-claro_panel);
+  --panel-alto: var(--p-claro_panel_alto);
+  --ranura:     var(--p-claro_ranura);
+
+  /* Tinta · cuatro niveles, todos derivados de uno solo */
+  --tinta:   var(--p-claro_tinta);
+  --tinta-2: color-mix(in oklab, var(--p-claro_tinta) 72%, var(--p-claro_sala));
+  --tinta-3: color-mix(in oklab, var(--p-claro_tinta) 52%, var(--p-claro_sala));
+  --tinta-4: color-mix(in oklab, var(--p-claro_tinta) 34%, var(--p-claro_sala));
+
+  /* Filos · el borde debe encontrarse, no verse */
+  --filo:        color-mix(in oklab, var(--p-claro_tinta) 11%, transparent);
+  --filo-suave:  color-mix(in oklab, var(--p-claro_tinta) 6%,  transparent);
+  --filo-fuerte: color-mix(in oklab, var(--p-claro_tinta) 18%, transparent);
+  --filo-foco:   color-mix(in oklab, var(--p-senal) 55%, transparent);
+
+  /* Cómo se vuelve legible un color de estado sobre su propio tinte.
+     `--legible` es el extremo hacia el que se arrastra, y `--chip-mezcla` cuánto
+     color se conserva. En claro hace falta arrastrar bastante (60 %) para que
+     un ámbar o un cian pasen 4,5:1 con texto de 11 px; en oscuro basta 82 %
+     porque el estado ya viene aclarado. El punto y el tinte se quedan al 100 %
+     de saturación, así que el chip sigue leyéndose vivo. */
+  --legible: var(--p-claro_tinta);
+  --chip-mezcla: 60%;
+
+  /* Intensidad de los tintes de estado */
+  --tinte-chip: 16%;
+  --tinte-borde: 34%;
+  --tinte-lavado: 12%;
+
+  /* Estados de reserva */
+  --aprobada:    var(--p-estado_aprobada);
+  --revision:    var(--p-estado_revision);
+  --cancelada:   var(--p-estado_cancelada);
+  --finalizada:  var(--p-estado_finalizada);
+  --bloqueada:   var(--p-estado_bloqueada);
+  --estudiantil: var(--p-estado_estudiantil);
+
+  /* Estados de inventario */
+  --inv-nuevo:         var(--p-inv_nuevo);
+  --inv-correcto:      var(--p-inv_correcto);
+  --inv-pendiente:     var(--p-inv_pendiente);
+  --inv-mantenimiento: var(--p-inv_mantenimiento);
+  --inv-fallando:      var(--p-inv_fallando);
+  --inv-baja:          var(--p-inv_baja);
+
+  /* Tipografía */
+  --tipo-titulo: var(--p-tipo_titulo), 'Segoe UI', system-ui, sans-serif;
+  --tipo-texto:  var(--p-tipo_texto),  'Segoe UI', system-ui, sans-serif;
+  --tipo-dato:   var(--p-tipo_dato),   ui-monospace, 'Cascadia Mono', monospace;
+
+  /* Radios · más afilados que lo habitual: esto es un instrumento */
+  --r-panel:   var(--p-radio_panel);
+  --r-control: var(--p-radio_control);
+  --r-modal:   calc(var(--p-radio_panel) + 4px);
+  --r-chip:    999px;
+
+  /* Espaciado · base 4 */
+  --esp-1: 4px;  --esp-2: 8px;  --esp-3: 12px; --esp-4: 16px;
+  --esp-5: 24px; --esp-6: 32px; --esp-7: 48px;
+
+  /* Una sombra. Sólo una. */
+  --sombra-flota:
+    0 1px 2px color-mix(in oklab, var(--p-claro_tinta) 8%, transparent),
+    0 12px 28px -12px color-mix(in oklab, var(--p-claro_tinta) 26%, transparent);
+
+  /* Movimiento · rápido y con desaceleración, sin rebotes */
+  --curva: cubic-bezier(0.2, 0.7, 0.3, 1);
+  --rapido: 120ms;
+  --medio: 220ms;
+
+  color-scheme: light;
+}
+
+[data-tema="oscuro"] {
+  --sala:       var(--p-oscuro_sala);
+  --panel:      var(--p-oscuro_panel);
+  --panel-alto: var(--p-oscuro_panel_alto);
+  --ranura:     var(--p-oscuro_ranura);
+
+  --tinta:   var(--p-oscuro_tinta);
+  --tinta-2: color-mix(in oklab, var(--p-oscuro_tinta) 70%, var(--p-oscuro_sala));
+  --tinta-3: color-mix(in oklab, var(--p-oscuro_tinta) 48%, var(--p-oscuro_sala));
+  --tinta-4: color-mix(in oklab, var(--p-oscuro_tinta) 30%, var(--p-oscuro_sala));
+
+  /* En oscuro el borde se apoya en la luz, no en la sombra */
+  --filo:        color-mix(in oklab, var(--p-oscuro_tinta) 14%, transparent);
+  --filo-suave:  color-mix(in oklab, var(--p-oscuro_tinta) 8%,  transparent);
+  --filo-fuerte: color-mix(in oklab, var(--p-oscuro_tinta) 24%, transparent);
+
+  --legible: var(--p-oscuro_tinta);
+  --chip-mezcla: 82%;
+
+  /* Los semánticos se aclaran para sobrevivir al fondo grafito */
+  --marca:       color-mix(in oklab, var(--p-fondo) 66%, #FFFFFF);
+  --aprobada:    color-mix(in oklab, var(--p-estado_aprobada) 62%, #FFFFFF);
+  --revision:    color-mix(in oklab, var(--p-estado_revision) 62%, #FFFFFF);
+  --cancelada:   color-mix(in oklab, var(--p-estado_cancelada) 62%, #FFFFFF);
+  --finalizada:  color-mix(in oklab, var(--p-estado_finalizada) 62%, #FFFFFF);
+  --bloqueada:   color-mix(in oklab, var(--p-estado_bloqueada) 62%, #FFFFFF);
+  --estudiantil: color-mix(in oklab, var(--p-estado_estudiantil) 62%, #FFFFFF);
+
+  --inv-nuevo:         color-mix(in oklab, var(--p-inv_nuevo) 62%, #FFFFFF);
+  --inv-correcto:      color-mix(in oklab, var(--p-inv_correcto) 62%, #FFFFFF);
+  --inv-pendiente:     color-mix(in oklab, var(--p-inv_pendiente) 62%, #FFFFFF);
+  --inv-mantenimiento: color-mix(in oklab, var(--p-inv_mantenimiento) 62%, #FFFFFF);
+  --inv-fallando:      color-mix(in oklab, var(--p-inv_fallando) 62%, #FFFFFF);
+  --inv-baja:          color-mix(in oklab, var(--p-inv_baja) 62%, #FFFFFF);
+
+  --sombra-flota:
+    0 1px 2px rgba(0, 0, 0, 0.5),
+    0 16px 34px -14px rgba(0, 0, 0, 0.7);
+
+  color-scheme: dark;
+}
+
+/* ── Reset ──────────────────────────────────────────────────────────────── */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+* { margin: 0; padding: 0; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  min-height: 100vh;
+  font-family: var(--tipo-texto);
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--tinta);
+  background: var(--sala);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* La rejilla del guardián: el suelo del espacio seguro, apenas insinuado.
+   Se desvanece antes de llegar al contenido para no competir con nada. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0 0 auto 0;
+  height: 420px;
+  pointer-events: none;
+  z-index: 0;
+  background-image:
+    radial-gradient(circle at 1px 1px,
+      color-mix(in oklab, var(--tinta) 13%, transparent) 1px, transparent 0);
+  background-size: 26px 26px;
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 0%, transparent 100%);
+  opacity: 0.5;
+}
+
+body > * { position: relative; z-index: 1; }
+
+img, svg { display: block; max-width: 100%; }
+a { color: inherit; text-decoration: none; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { background: none; border: none; cursor: pointer; }
+
+:focus-visible {
+  outline: 2px solid var(--senal);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+::selection { background: color-mix(in oklab, var(--senal) 30%, transparent); }
+
+/* ── Tipografía ─────────────────────────────────────────────────────────── */
+
+h1, h2, h3, h4 {
+  font-family: var(--tipo-titulo);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+}
+
+.t-display {
+  font-family: var(--tipo-titulo);
+  font-size: clamp(26px, 3.4vw, 34px);
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+
+.t-titulo {
+  font-family: var(--tipo-titulo);
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.012em;
+}
+
+.t-sub {
+  font-size: 14.5px;
+  color: var(--tinta-2);
+  max-width: 68ch;
+}
+
+/* Etiqueta de campo / encabezado de dato: pequeña, ancha, terciaria */
+.etiqueta {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--tinta-3);
+}
+
+/* El tiempo es la columna vertebral del producto: horas, fechas, códigos y
+   series SIEMPRE en monoespaciada tabular para que alineen en columna. */
+.dato {
+  font-family: var(--tipo-dato);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+  letter-spacing: -0.01em;
+}
+
+.tenue { color: var(--tinta-3); }
+
+/* ── Layout ─────────────────────────────────────────────────────────────── */
+
+.lienzo {
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: var(--esp-6) var(--esp-5) var(--esp-7);
+}
+
+.lienzo--ancho { max-width: 1480px; }
+.lienzo--angosto { max-width: 760px; }
+
+.pila { display: flex; flex-direction: column; gap: var(--esp-5); }
+.pila--corta { gap: var(--esp-3); }
+
+.rejilla { display: grid; gap: var(--esp-4); }
+.rejilla--auto { grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
+.rejilla--2 { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+
+.fila {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-2);
+  flex-wrap: wrap;
+}
+
+.empuje { margin-left: auto; }
+
+/* ── Barra de aplicación ────────────────────────────────────────────────── */
+
+/* Misma base que el lienzo, separada sólo por un filo: una sola sala, no dos
+   mundos distintos. */
+.barra {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: color-mix(in oklab, var(--sala) 86%, transparent);
+  backdrop-filter: saturate(1.4) blur(12px);
+  border-bottom: 1px solid var(--filo);
+}
+
+.barra__interior {
+  max-width: 1480px;
+  margin: 0 auto;
+  padding: 0 var(--esp-5);
+  height: 58px;
+  display: flex;
+  align-items: center;
+  gap: var(--esp-4);
+}
+
+.barra__marca {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-3);
+  flex-shrink: 0;
+}
+
+.barra__marca img { height: 26px; width: auto; }
+
+.barra__nombre {
+  font-family: var(--tipo-titulo);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+/* Ruta: dónde estoy dentro del sistema */
+.barra__ruta {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-2);
+  font-size: 13px;
+  color: var(--tinta-3);
+  min-width: 0;
+  overflow: hidden;
+}
+
+.barra__ruta a:hover { color: var(--tinta); }
+.barra__ruta i { font-size: 9px; color: var(--tinta-4); }
+
+.barra__ruta strong {
+  font-weight: 500;
+  color: var(--tinta);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.barra__acciones {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--esp-2);
+  flex-shrink: 0;
+}
+
+/* Quién soy y con qué permisos: contexto, no adorno */
+.usuario {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-2);
+  padding: 4px 10px 4px 4px;
+  border: 1px solid var(--filo);
+  border-radius: var(--r-chip);
+  transition: border-color var(--rapido) var(--curva);
+}
+
+.usuario:hover { border-color: var(--filo-fuerte); }
+
+.usuario__avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: color-mix(in oklab, var(--marca) 20%, var(--panel));
+  color: var(--marca);
+  display: grid;
+  place-items: center;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  flex-shrink: 0;
+}
+
+.usuario__datos { display: flex; flex-direction: column; line-height: 1.2; }
+.usuario__nombre { font-size: 12.5px; font-weight: 500; }
+.usuario__rol { font-size: 10px; color: var(--tinta-3); letter-spacing: 0.04em; }
+
+/* ── Cabecera de página ─────────────────────────────────────────────────── */
+
+.cabecera {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--esp-5);
+  flex-wrap: wrap;
+  margin-bottom: var(--esp-6);
+}
+
+.cabecera__texto { min-width: 0; }
+
+.cabecera__eyebrow {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--marca);
+  margin-bottom: var(--esp-2);
+  display: flex;
+  align-items: center;
+  gap: var(--esp-2);
+}
+
+.cabecera__eyebrow::before {
+  content: "";
+  width: 14px;
+  height: 2px;
+  background: var(--marca);
+  border-radius: 2px;
+}
+
+.cabecera__sub { margin-top: 6px; }
+.cabecera__acciones { display: flex; gap: var(--esp-2); flex-wrap: wrap; }
+
+/* ── El límite guardián ─────────────────────────────────────────────────── */
+
+/* Filo luminoso + lavado tintado. `--guardian` lo fija cada estado. */
+.guardian {
+  position: relative;
+  --guardian: var(--marca);
+  background-image: linear-gradient(
+    90deg,
+    color-mix(in oklab, var(--guardian) var(--tinte-lavado), transparent) 0%,
+    transparent 46%
+  );
+}
+
+.guardian::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--guardian);
+  box-shadow: 0 0 14px -1px color-mix(in oklab, var(--guardian) 60%, transparent);
+  border-radius: var(--r-panel) 0 0 var(--r-panel);
+}
+
+/* Variante para tiles y cabeceras: el filo va arriba */
+.guardian--alto { background-image: none; }
+
+.guardian--alto::before {
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: auto;
+  width: auto;
+  height: 2px;
+  border-radius: var(--r-panel) var(--r-panel) 0 0;
+}
+
+/* Los estados que ya viajan como data-* en las plantillas alimentan el
+   sistema directamente: el marcado existente ES la entrada del diseño. */
+[data-estado="APROBADA"]      { --guardian: var(--aprobada); }
+[data-estado="EN REVISION"]   { --guardian: var(--revision); }
+[data-estado="CANCELADA"]     { --guardian: var(--cancelada); }
+[data-estado="FINALIZADA"]    { --guardian: var(--finalizada); }
+[data-estado="BLOQUEADA"]     { --guardian: var(--bloqueada); }
+[data-estado="ESTUDIANTIL"]   { --guardian: var(--estudiantil); }
+
+[data-estado="ACTIVO"]           { --guardian: var(--aprobada); }
+[data-estado="INACTIVO"]         { --guardian: var(--cancelada); }
+[data-estado="EN MANTENIMIENTO"] { --guardian: var(--revision); }
+[data-estado="RESTRINGIDO"]      { --guardian: var(--bloqueada); }
+[data-estado="SUSPENDIDO"]       { --guardian: var(--revision); }
+
+[data-estado="NUEVO"]         { --guardian: var(--inv-nuevo); }
+[data-estado="CORRECTO"]      { --guardian: var(--inv-correcto); }
+[data-estado="PENDIENTE"]     { --guardian: var(--inv-pendiente); }
+[data-estado="MANTENIMIENTO"] { --guardian: var(--inv-mantenimiento); }
+[data-estado="FALLANDO"]      { --guardian: var(--inv-fallando); }
+[data-estado="BAJA"]          { --guardian: var(--inv-baja); }
+
+[data-estado="ENVIADO"]   { --guardian: var(--aprobada); }
+[data-estado="CANCELADO"] { --guardian: var(--cancelada); }
+
+/* ── Paneles ────────────────────────────────────────────────────────────── */
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--filo);
+  border-radius: var(--r-panel);
+  overflow: hidden;
+}
+
+.panel--alto { background: var(--panel-alto); }
+
+.panel--interactivo {
+  transition: border-color var(--medio) var(--curva),
+              transform var(--medio) var(--curva);
+}
+
+.panel--interactivo:hover {
+  border-color: var(--filo-fuerte);
+  transform: translateY(-1px);
+}
+
+.panel__cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--esp-4);
+  padding: var(--esp-4) var(--esp-5);
+  border-bottom: 1px solid var(--filo-suave);
+  flex-wrap: wrap;
+}
+
+.panel__cuerpo { padding: var(--esp-5); }
+.panel__cuerpo--ajustado { padding: var(--esp-4); }
+
+.panel__pie {
+  padding: var(--esp-3) var(--esp-5);
+  border-top: 1px solid var(--filo-suave);
+  background: color-mix(in oklab, var(--tinta) 2.5%, transparent);
+  display: flex;
+  align-items: center;
+  gap: var(--esp-2);
+  flex-wrap: wrap;
+}
+
+.panel__conteo {
+  font-family: var(--tipo-dato);
+  font-size: 11.5px;
+  color: var(--tinta-3);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Tiles de métrica ───────────────────────────────────────────────────── */
+
+/* El número manda: grande, monoespaciado, sin icono que le compita al lado. */
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(158px, 1fr));
+  gap: var(--esp-3);
+}
+
+/* Ojo: el respaldo va en el punto de uso — `var(--guardian, …)` — y no como
+   `--guardian: …` aquí. Declararlo en la regla de clase ganaría por orden de
+   cascada a los `[data-estado]` (misma especificidad) y anularía la firma. */
+.tile {
+  position: relative;
+  background: var(--panel);
+  border: 1px solid var(--filo);
+  border-radius: var(--r-panel);
+  padding: var(--esp-4) var(--esp-4) var(--esp-3);
+  overflow: hidden;
+}
+
+.tile__valor {
+  font-family: var(--tipo-dato);
+  font-size: 30px;
+  font-weight: 500;
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+  font-variant-numeric: tabular-nums;
+  color: var(--tinta);
+}
+
+.tile__etiqueta {
+  margin-top: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--tinta-3);
+}
+
+.tile--estado .tile__valor { color: var(--guardian, var(--marca)); }
+
+/* ── Chips de estado ────────────────────────────────────────────────────── */
+
+/* Punto + tinte, nunca una píldora sólida saturada: el estado se lee, no grita */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px 3px 8px;
+  border-radius: var(--r-chip);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: color-mix(in oklab, var(--guardian, var(--tinta-3)) var(--chip-mezcla), var(--legible));
+  background: color-mix(in oklab, var(--guardian, var(--tinta-3)) var(--tinte-chip), transparent);
+  border: 1px solid color-mix(in oklab, var(--guardian, var(--tinta-3)) var(--tinte-borde), transparent);
+}
+
+.chip::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--guardian, var(--tinta-3));
+  box-shadow: 0 0 6px color-mix(in oklab, var(--guardian, var(--tinta-3)) 70%, transparent);
+  flex-shrink: 0;
+}
+
+/* Chip neutro para taxonomía (tipo, carrera…): sin punto, sin color propio */
+.chip--tenue {
+  color: var(--tinta-2);
+  background: color-mix(in oklab, var(--tinta) 5%, transparent);
+  border-color: var(--filo);
+  text-transform: none;
+  letter-spacing: 0.01em;
+  font-weight: 500;
+  padding: 3px 10px;
+}
+
+.chip--tenue::before { display: none; }
+
+/* ── Botones ────────────────────────────────────────────────────────────── */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--esp-2);
+  padding: 9px 16px;
+  border-radius: var(--r-control);
+  border: 1px solid var(--filo);
+  background: var(--panel-alto);
+  color: var(--tinta);
+  font-size: 13.5px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background var(--rapido) var(--curva),
+              border-color var(--rapido) var(--curva),
+              color var(--rapido) var(--curva);
+}
+
+.btn:hover { border-color: var(--filo-fuerte); background: var(--panel); }
+.btn:active { transform: translateY(0.5px); }
+
+.btn:disabled,
+.btn[aria-disabled="true"] {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.btn i { font-size: 0.92em; }
+
+.btn--primario {
+  background: var(--marca);
+  border-color: color-mix(in oklab, var(--marca) 70%, var(--legible));
+  color: var(--marca-tinta);
+}
+
+.btn--primario:hover {
+  background: var(--marca-fuerte);
+  border-color: var(--marca-fuerte);
+}
+
+[data-tema="oscuro"] .btn--primario {
+  color: color-mix(in oklab, var(--p-oscuro_sala) 88%, #000);
+}
+
+/* Acción secundaria: el filo hace el trabajo, no el relleno */
+.btn--fantasma {
+  background: transparent;
+  border-color: color-mix(in oklab, var(--marca) 38%, transparent);
+  color: var(--marca);
+}
+
+.btn--fantasma:hover {
+  background: color-mix(in oklab, var(--marca) 9%, transparent);
+  border-color: var(--marca);
+}
+
+.btn--peligro {
+  background: transparent;
+  border-color: color-mix(in oklab, var(--cancelada) 38%, transparent);
+  color: color-mix(in oklab, var(--cancelada) var(--chip-mezcla), var(--legible));
+}
+
+.btn--peligro:hover {
+  background: color-mix(in oklab, var(--cancelada) 10%, transparent);
+  border-color: var(--cancelada);
+}
+
+.btn--sutil {
+  background: transparent;
+  border-color: transparent;
+  color: var(--tinta-2);
+}
+
+.btn--sutil:hover { background: color-mix(in oklab, var(--tinta) 6%, transparent); }
+
+.btn--sm { padding: 6px 11px; font-size: 12.5px; }
+.btn--bloque { width: 100%; }
+
+.btn--icono {
+  padding: 0;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+}
+
+/* ── Controles de formulario ────────────────────────────────────────────── */
+
+.campo-grupo { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+
+.campo-etiqueta {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--tinta-3);
+}
+
+/* La ranura va MÁS OSCURA que su entorno: recibe contenido, no lo emite */
+.campo {
+  width: 100%;
+  padding: 9px 12px;
+  background: var(--ranura);
+  border: 1px solid var(--filo);
+  border-radius: var(--r-control);
+  color: var(--tinta);
+  font-size: 14px;
+  transition: border-color var(--rapido) var(--curva),
+              box-shadow var(--rapido) var(--curva);
+}
+
+.campo::placeholder { color: var(--tinta-4); }
+
+.campo:hover { border-color: var(--filo-fuerte); }
+
+.campo:focus {
+  outline: none;
+  border-color: var(--senal);
+  box-shadow: 0 0 0 3px var(--filo-foco);
+}
+
+.campo:disabled { opacity: 0.5; cursor: not-allowed; }
+
+textarea.campo { resize: vertical; min-height: 84px; line-height: 1.5; }
+
+/* El desplegable nativo no se puede estilar por dentro; sí su disparador. */
+select.campo {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 34px;
+  cursor: pointer;
+  background-image:
+    linear-gradient(45deg, transparent 50%, currentColor 50%),
+    linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position:
+    calc(100% - 17px) calc(50% + 1px),
+    calc(100% - 12px) calc(50% + 1px);
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+}
+
+select.campo option { background: var(--panel-alto); color: var(--tinta); }
+
+input[type="date"].campo,
+input[type="time"].campo { cursor: pointer; }
+
+[data-tema="oscuro"] input[type="date"].campo::-webkit-calendar-picker-indicator,
+[data-tema="oscuro"] input[type="time"].campo::-webkit-calendar-picker-indicator {
+  filter: invert(1) opacity(0.6);
+}
+
+/* Barra de filtros: los controles se estiran, el botón de limpiar no */
+.filtros {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--esp-2);
+  padding: var(--esp-3) var(--esp-5);
+  border-bottom: 1px solid var(--filo-suave);
+  background: color-mix(in oklab, var(--tinta) 2.5%, transparent);
+}
+
+/* Segmentado: filtros mutuamente excluyentes en una sola pieza */
+.segmentado {
+  display: inline-flex;
+  padding: 3px;
+  gap: 2px;
+  background: var(--ranura);
+  border: 1px solid var(--filo);
+  border-radius: var(--r-control);
+  flex-wrap: wrap;
+}
+
+.segmentado__op {
+  padding: 6px 13px;
+  border-radius: calc(var(--r-control) - 3px);
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--tinta-2);
+  transition: background var(--rapido) var(--curva), color var(--rapido) var(--curva);
+}
+
+.segmentado__op:hover { color: var(--tinta); }
+
+.segmentado__op.activo,
+.segmentado__op[aria-pressed="true"] {
+  background: var(--panel-alto);
+  color: var(--tinta);
+  box-shadow: 0 1px 2px color-mix(in oklab, var(--tinta) 10%, transparent);
+}
+
+/* ── Metadatos en línea ─────────────────────────────────────────────────── */
+
+.meta {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-3);
+  flex-wrap: wrap;
+  font-size: 12.5px;
+  color: var(--tinta-2);
+}
+
+.meta__item { display: inline-flex; align-items: center; gap: 6px; }
+.meta__item i { color: var(--tinta-4); font-size: 11px; }
+
+/* Pares etiqueta/valor: la unidad de lectura de todo el sistema */
+.pares {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--esp-3) var(--esp-4);
+}
+
+.par { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+
+.par__etiqueta {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--tinta-3);
+}
+
+.par__valor {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--tinta);
+  overflow-wrap: anywhere;
+}
+
+/* ── Tablas ─────────────────────────────────────────────────────────────── */
+
+.tabla-scroll { overflow-x: auto; }
+
+.tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+}
+
+.tabla th {
+  text-align: left;
+  padding: var(--esp-3) var(--esp-4);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--tinta-3);
+  background: color-mix(in oklab, var(--tinta) 3%, transparent);
+  border-bottom: 1px solid var(--filo);
+  white-space: nowrap;
+}
+
+.tabla td {
+  padding: var(--esp-3) var(--esp-4);
+  border-bottom: 1px solid var(--filo-suave);
+  vertical-align: middle;
+}
+
+.tabla tbody tr:last-child td { border-bottom: none; }
+
+.tabla tbody tr {
+  transition: background var(--rapido) var(--curva);
+}
+
+.tabla tbody tr:hover { background: color-mix(in oklab, var(--tinta) 3%, transparent); }
+
+/* ── Estados de datos ───────────────────────────────────────────────────── */
+
+.vacio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--esp-2);
+  padding: var(--esp-7) var(--esp-5);
+  color: var(--tinta-3);
+}
+
+.vacio__icono {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 1px dashed var(--filo-fuerte);
+  color: var(--tinta-4);
+  font-size: 16px;
+  margin-bottom: var(--esp-1);
+}
+
+.vacio__titulo {
+  font-family: var(--tipo-titulo);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--tinta-2);
+}
+
+.vacio p { font-size: 13.5px; max-width: 44ch; }
+
+/* Avisos del sistema (django.contrib.messages) */
+.avisos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-2);
+  margin-bottom: var(--esp-5);
+}
+
+.aviso {
+  --guardian: var(--finalizada); /* sin data-estado en juego: aquí sí puede ir en la clase */
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--esp-3);
+  padding: var(--esp-3) var(--esp-4);
+  border: 1px solid color-mix(in oklab, var(--guardian) var(--tinte-borde), transparent);
+  border-radius: var(--r-control);
+  background: color-mix(in oklab, var(--guardian) var(--tinte-lavado), var(--panel));
+  font-size: 13.5px;
+  color: var(--tinta);
+}
+
+/* Avisos flotantes: confirmaciones de acciones que ya no recargan la página */
+.avisos--flotante {
+  position: fixed;
+  bottom: var(--esp-5);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 60;
+  width: max-content;
+  max-width: min(520px, 92vw);
+  margin: 0;
+  pointer-events: none;
+}
+
+.avisos--flotante .aviso {
+  background: var(--panel-alto);
+  box-shadow: var(--sombra-flota);
+  animation: subir var(--medio) var(--curva);
+}
+
+.aviso i { color: var(--guardian); margin-top: 3px; }
+.aviso--success { --guardian: var(--aprobada); }
+.aviso--warning { --guardian: var(--revision); }
+.aviso--error   { --guardian: var(--cancelada); }
+.aviso--info    { --guardian: var(--finalizada); }
+
+/* ── Modal ──────────────────────────────────────────────────────────────── */
+
+.modal-ite {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: var(--esp-4);
+  background: color-mix(in oklab, var(--p-oscuro_sala) 62%, transparent);
+  backdrop-filter: blur(3px);
+}
+
+.modal-ite.abierto { display: flex; animation: aparecer var(--medio) var(--curva); }
+
+.modal-ite__caja {
+  width: min(560px, 100%);
+  max-height: min(86vh, 760px);
+  display: flex;
+  flex-direction: column;
+  background: var(--panel-alto);
+  border: 1px solid var(--filo);
+  border-radius: var(--r-modal);
+  box-shadow: var(--sombra-flota);
+  overflow: hidden;
+  animation: subir var(--medio) var(--curva);
+}
+
+.modal-ite__caja--ancha { width: min(860px, 100%); }
+
+.modal-ite__cabecera {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--esp-4);
+  padding: var(--esp-4) var(--esp-5);
+  border-bottom: 1px solid var(--filo-suave);
+}
+
+/* El guardián también encabeza el modal */
+.modal-ite__cabecera::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 2px;
+  background: var(--guardian, var(--marca));
+}
+
+.modal-ite__titulo {
+  font-family: var(--tipo-titulo);
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.modal-ite__cuerpo { padding: var(--esp-5); overflow-y: auto; }
+
+.modal-ite__pie {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--esp-2);
+  padding: var(--esp-3) var(--esp-5);
+  border-top: 1px solid var(--filo-suave);
+  background: color-mix(in oklab, var(--tinta) 2.5%, transparent);
+  flex-wrap: wrap;
+}
+
+.modal-ite__cerrar {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--r-control);
+  color: var(--tinta-3);
+  font-size: 15px;
+  flex-shrink: 0;
+  transition: background var(--rapido) var(--curva), color var(--rapido) var(--curva);
+}
+
+.modal-ite__cerrar:hover {
+  background: color-mix(in oklab, var(--tinta) 8%, transparent);
+  color: var(--tinta);
+}
+
+@keyframes aparecer { from { opacity: 0; } to { opacity: 1; } }
+
+@keyframes subir {
+  from { opacity: 0; transform: translateY(8px) scale(0.99); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ── Galería ────────────────────────────────────────────────────────────── */
+
+.galeria { position: relative; overflow: hidden; border-radius: var(--r-panel); }
+
+.galeria__pista {
+  display: flex;
+  transition: transform 340ms var(--curva);
+}
+
+.galeria__lamina { min-width: 100%; }
+
+.galeria__lamina img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.galeria__nav {
+  position: absolute;
+  inset: auto 0 var(--esp-3) 0;
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  z-index: 2;
+}
+
+.galeria__punto {
+  width: 22px;
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.42);
+  transition: background var(--rapido) var(--curva);
+}
+
+.galeria__punto.activo { background: #fff; }
+
+.galeria__flecha {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(10, 16, 19, 0.5);
+  color: #fff;
+  backdrop-filter: blur(6px);
+  z-index: 2;
+  opacity: 0;
+  transition: opacity var(--medio) var(--curva);
+}
+
+.galeria:hover .galeria__flecha,
+.galeria__flecha:focus-visible { opacity: 1; }
+
+.galeria__flecha--prev { left: var(--esp-3); }
+.galeria__flecha--next { right: var(--esp-3); }
+
+/* ── Rejilla de la semana (lectura) ─────────────────────────────────────── */
+
+/* La vista de horario: tiempo × día. Es una tabla de verdad, así que se queda
+   como tabla. Lo que cambia es la lectura — la hora ancla la fila desde una
+   columna fija, cada bloque lleva su filo guardián, y el hueco libre no dice
+   "-": calla.
+   La usan el horario del aula y el horario personal de cada usuario. */
+
+.semana {
+  overflow: auto;
+  max-height: calc(100vh - 210px);
+  border-radius: var(--r-panel);
+}
+
+.horario {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  min-width: 900px;
+}
+
+.horario th {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  padding: var(--esp-3);
+  background: var(--panel);
+  border-bottom: 1px solid var(--filo);
+  font-family: var(--tipo-texto);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--tinta-3);
+  text-align: left;
+}
+
+.horario th:first-child {
+  left: 0;
+  z-index: 4;
+  border-right: 1px solid var(--filo);
+}
+
+.horario th .fecha-dia {
+  display: block;
+  font-family: var(--tipo-dato);
+  font-size: 10.5px;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--tinta-4);
+  margin-top: 2px;
+}
+
+.horario td {
+  padding: 5px;
+  border-bottom: 1px solid var(--filo-suave);
+  border-right: 1px solid var(--filo-suave);
+  vertical-align: top;
+  width: 19%;
+}
+
+.horario td:last-child { border-right: none; }
+.horario tr:last-child td { border-bottom: none; }
+
+/* La hora: columna fija, monoespaciada, es el ancla de toda la lectura */
+.celda-hora {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  width: 96px !important;
+  min-width: 96px;
+  padding: var(--esp-3) !important;
+  background: var(--panel);
+  border-right: 1px solid var(--filo) !important;
+  font-family: var(--tipo-dato);
+  font-variant-numeric: tabular-nums;
+  font-size: 12.5px;
+  line-height: 1.35;
+  color: var(--tinta-2);
+  white-space: nowrap;
+}
+
+.celda-hora span { display: block; color: var(--tinta-4); font-size: 11px; }
+
+/* La columna de hoy se levanta apenas: sabes dónde estás sin buscarlo */
+.horario th.hoy { color: color-mix(in oklab, var(--senal) 55%, var(--legible)); }
+.horario td.hoy { background: color-mix(in oklab, var(--senal) 5%, transparent); }
+
+/* Un bloque reservado: filo guardián + lavado tintado, igual que en el resto
+   del sistema. Aquí es donde la firma se gana el sueldo. */
+.bloque {
+  position: relative;
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 8px 10px 8px 12px;
+  margin-bottom: 4px;
+  border-radius: 7px;
+  border: 1px solid color-mix(in oklab, var(--guardian, var(--marca)) var(--tinte-borde), transparent);
+  background: color-mix(in oklab, var(--guardian, var(--marca)) var(--tinte-chip), var(--panel-alto));
+  cursor: pointer;
+  overflow: hidden;
+  transition: border-color var(--rapido) var(--curva),
+              background var(--rapido) var(--curva);
+}
+
+.bloque:last-child { margin-bottom: 0; }
+
+.bloque::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--guardian, var(--marca));
+}
+
+.bloque:hover {
+  border-color: color-mix(in oklab, var(--guardian, var(--marca)) 62%, transparent);
+  background: color-mix(in oklab, var(--guardian, var(--marca)) 24%, var(--panel-alto));
+}
+
+.bloque__titulo {
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--tinta);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.bloque__sub {
+  font-size: 11px;
+  color: var(--tinta-2);
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bloque__pie {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 5px;
+  font-family: var(--tipo-dato);
+  font-size: 10.5px;
+  color: var(--tinta-3);
+}
+
+.bloque__estado {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: color-mix(in oklab, var(--guardian, var(--marca)) var(--chip-mezcla), var(--legible));
+  font-family: var(--tipo-texto);
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.bloque__estado::before {
+  content: "";
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--guardian, var(--marca));
+}
+
+/* El hueco libre no necesita decir nada */
+.libre { min-height: 46px; }
+
+/* Navegación de semana */
+.semana-nav {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-2);
+  flex-wrap: wrap;
+}
+
+.semana-nav__rango {
+  font-family: var(--tipo-dato);
+  font-size: 13px;
+  color: var(--tinta-2);
+  padding: 0 var(--esp-2);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Leyenda siempre visible: seis chips ocupan menos que el botón que los
+   escondía. */
+.leyenda {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding: var(--esp-3) var(--esp-5);
+  border-top: 1px solid var(--filo-suave);
+}
+
+@media (max-width: 780px) {
+  .semana { max-height: none; }
+  .leyenda { padding: var(--esp-3) var(--esp-4); }
+}
+
+/* ── Rejilla de reserva ─────────────────────────────────────────────────── */
+
+/* La interacción central del producto: dibujar tu bloque en la semana.
+   Cada franja es un botón de verdad (foco, teclado, aria-pressed), no un <td>
+   con un click listener. Elegir una franja enciende su límite guardián: es
+   literalmente el gesto de marcar tu espacio. */
+
+.rejilla-horaria { overflow: auto; }
+
+.franjas {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  min-width: 720px;
+}
+
+.franjas th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  padding: var(--esp-3);
+  background: var(--panel);
+  border-bottom: 1px solid var(--filo);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--tinta-3);
+  text-align: center;
+}
+
+.franjas th:first-child { text-align: left; }
+
+.franjas th .franjas__fecha {
+  display: block;
+  font-family: var(--tipo-dato);
+  font-size: 10.5px;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--tinta-4);
+  margin-top: 2px;
+}
+
+.franjas td {
+  padding: 3px;
+  border-bottom: 1px solid var(--filo-suave);
+}
+
+.franjas tr:last-child td { border-bottom: none; }
+
+.franjas__hora {
+  width: 110px;
+  padding: var(--esp-2) var(--esp-3) !important;
+  font-family: var(--tipo-dato);
+  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+  color: var(--tinta-2);
+  white-space: nowrap;
+  border-right: 1px solid var(--filo);
+}
+
+.franja {
+  --guardian: var(--marca);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 40px;
+  border-radius: 7px;
+  border: 1px solid transparent;
+  font-size: 13px;
+  color: var(--tinta-4);
+  transition: background var(--rapido) var(--curva),
+              border-color var(--rapido) var(--curva),
+              color var(--rapido) var(--curva);
+}
+
+/* Libre: casi nada. Sólo aparece cuando te acercas. */
+.franja--libre { cursor: pointer; }
+
+.franja--libre:hover {
+  background: color-mix(in oklab, var(--marca) 8%, transparent);
+  border-color: color-mix(in oklab, var(--marca) 32%, transparent);
+  color: var(--marca);
+}
+
+/* Elegida: el guardián encendido */
+.franja--elegida {
+  background: color-mix(in oklab, var(--marca) 15%, transparent);
+  border-color: var(--marca);
+  color: var(--marca);
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: inset 3px 0 0 var(--marca),
+              0 0 12px -4px color-mix(in oklab, var(--marca) 70%, transparent);
+}
+
+/* Ocupada / no habilitada: se ve, no se toca */
+.franja--ocupada {
+  background: color-mix(in oklab, var(--cancelada) 9%, transparent);
+  border-color: color-mix(in oklab, var(--cancelada) 20%, transparent);
+  color: color-mix(in oklab, var(--cancelada) var(--chip-mezcla), var(--legible));
+  cursor: not-allowed;
+}
+
+/* Bloqueada por horario institucional: rayado, sin color de alarma */
+.franja--bloqueada {
+  cursor: not-allowed;
+  color: var(--tinta-4);
+  background-image: repeating-linear-gradient(
+    -45deg,
+    transparent, transparent 5px,
+    color-mix(in oklab, var(--tinta) 7%, transparent) 5px,
+    color-mix(in oklab, var(--tinta) 7%, transparent) 6px
+  );
+}
+
+/* Leyenda de la rejilla, con las mismas piezas que la rejilla */
+.leyenda-franjas {
+  display: flex;
+  gap: var(--esp-4);
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: var(--tinta-3);
+}
+
+.leyenda-franjas span { display: inline-flex; align-items: center; gap: 7px; }
+
+.leyenda-franjas i {
+  width: 15px;
+  height: 15px;
+  border-radius: 4px;
+  border: 1px solid var(--filo-fuerte);
+}
+
+.leyenda-franjas .m-libre { border-color: color-mix(in oklab, var(--marca) 32%, transparent); }
+
+.leyenda-franjas .m-elegida {
+  background: color-mix(in oklab, var(--marca) 15%, transparent);
+  border-color: var(--marca);
+}
+
+.leyenda-franjas .m-ocupada {
+  background: color-mix(in oklab, var(--cancelada) 12%, transparent);
+  border-color: color-mix(in oklab, var(--cancelada) 28%, transparent);
+}
+
+.leyenda-franjas .m-bloqueada {
+  background-image: repeating-linear-gradient(
+    -45deg, transparent, transparent 3px,
+    color-mix(in oklab, var(--tinta) 16%, transparent) 3px,
+    color-mix(in oklab, var(--tinta) 16%, transparent) 4px);
+}
+
+/* ── Barra de selección ─────────────────────────────────────────────────── */
+
+/* Lo que llevas elegido, siempre a la vista, con la acción al lado. Antes
+   había que bajar hasta el final de la página para saber si algo se marcó. */
+.seleccion {
+  position: sticky;
+  bottom: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: var(--esp-4);
+  padding: var(--esp-3) var(--esp-5);
+  margin-top: var(--esp-5);
+  border: 1px solid var(--filo);
+  border-radius: var(--r-panel);
+  background: color-mix(in oklab, var(--panel-alto) 92%, transparent);
+  backdrop-filter: blur(12px);
+  box-shadow: var(--sombra-flota);
+  flex-wrap: wrap;
+}
+
+.seleccion__cuenta {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  flex-shrink: 0;
+}
+
+.seleccion__n {
+  font-family: var(--tipo-dato);
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  color: var(--marca);
+  font-variant-numeric: tabular-nums;
+}
+
+.seleccion__etiqueta {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--tinta-3);
+}
+
+.seleccion__lista {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.seleccion__acciones { display: flex; gap: var(--esp-2); flex-shrink: 0; }
+
+@media (max-width: 780px) {
+  .seleccion { padding: var(--esp-3) var(--esp-4); }
+  .seleccion__lista { order: 3; width: 100%; }
+  .seleccion__acciones { margin-left: auto; }
+}
+
+/* ── Interruptor de tema ────────────────────────────────────────────────── */
+
+.tema-btn {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--r-control);
+  border: 1px solid var(--filo);
+  color: var(--tinta-2);
+  transition: border-color var(--rapido) var(--curva), color var(--rapido) var(--curva);
+}
+
+.tema-btn:hover { border-color: var(--filo-fuerte); color: var(--tinta); }
+.tema-btn .icono-oscuro { display: none; }
+[data-tema="oscuro"] .tema-btn .icono-oscuro { display: block; }
+[data-tema="oscuro"] .tema-btn .icono-claro { display: none; }
+
+/* ── Pie ────────────────────────────────────────────────────────────────── */
+
+.pie {
+  border-top: 1px solid var(--filo);
+  padding: var(--esp-5);
+  text-align: center;
+  font-size: 12.5px;
+  color: var(--tinta-3);
+}
+
+/* ── Utilidades ─────────────────────────────────────────────────────────── */
+
+.oculto { display: none !important; }
+
+.solo-lectores {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────────── */
+
+@media (max-width: 780px) {
+  .lienzo { padding: var(--esp-5) var(--esp-4) var(--esp-6); }
+  .barra__interior { padding: 0 var(--esp-4); gap: var(--esp-3); }
+  .barra__ruta { display: none; }
+  .usuario__datos { display: none; }
+  .usuario { padding: 4px; }
+  .panel__cabecera, .panel__cuerpo { padding: var(--esp-4); }
+  .filtros { padding: var(--esp-3) var(--esp-4); }
+  .cabecera { margin-bottom: var(--esp-5); }
+  .cabecera__acciones { width: 100%; }
+  .cabecera__acciones .btn { flex: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -1,0 +1,286 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block titulo %}Mi horario · {{ parametros.marca_nombre }}{% endblock %}
+
+{% block clase_lienzo %}lienzo lienzo--ancho{% endblock %}
+
+{% block ruta %}
+    <a href="{% url 'cuentas:mostrarperfil' %}">Mi perfil</a>
+    <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+    <strong>Mi horario</strong>
+{% endblock %}
+
+{% block css %}
+<style>
+    /* A quién escribir si algo no cuadra con la reserva: cierra el modal de
+       detalle, separado del resto de datos. */
+    .contacto {
+        display: flex;
+        align-items: center;
+        gap: var(--esp-2);
+        margin-top: var(--esp-4);
+        padding-top: var(--esp-4);
+        border-top: 1px solid var(--filo-suave);
+        font-size: 13px;
+        color: var(--tinta-2);
+        flex-wrap: wrap;
+    }
+
+    .contacto a { color: var(--marca); }
+    .contacto a:hover { text-decoration: underline; }
+</style>
+{% endblock %}
+
+{% block contenido %}
+
+<div class="cabecera">
+    <div class="cabecera__texto">
+        <div class="cabecera__eyebrow">Mis reservas</div>
+        <h1 class="t-display">Mi horario</h1>
+        <p class="t-sub cabecera__sub">
+            Sólo las franjas que tienes reservadas, de lunes a viernes y en todas las
+            aulas ITE-VR. Pulsa un bloque para ver el detalle completo.
+        </p>
+        {% if periodo.activo %}
+        {# El recorte tiene que verse: si no, parecen reservas perdidas #}
+        <span class="chip chip--tenue" style="margin-top:var(--esp-3)">
+            <i class="fa-regular fa-calendar-check" aria-hidden="true"></i>
+            &nbsp;{{ periodo.nombre }}:
+            <span class="dato">&nbsp;{{ periodo.inicio|date:"d/m/Y"|default:"—" }} → {{ periodo.fin|date:"d/m/Y"|default:"—" }}</span>
+        </span>
+        {% endif %}
+    </div>
+    <div class="cabecera__acciones">
+        <a class="btn" href="{% url 'cuentas:mostrarperfil' %}">
+            <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Mi perfil
+        </a>
+        <a class="btn btn--primario" href="{% url 'gestion:obtenerlaboratorios' %}">
+            <i class="fa-regular fa-calendar-plus" aria-hidden="true"></i> Reservar
+        </a>
+    </div>
+</div>
+
+<div class="pila">
+
+    <div class="tiles">
+        <div class="tile guardian guardian--alto">
+            <div class="tile__valor">{{ total_semana }}</div>
+            <div class="tile__etiqueta">Reservas esta semana</div>
+        </div>
+        <div class="tile guardian guardian--alto">
+            <div class="tile__valor">{{ horas_semana }}</div>
+            <div class="tile__etiqueta">Horas de aula</div>
+        </div>
+        <div class="tile guardian guardian--alto">
+            <div class="tile__valor">{{ aulas_semana }}</div>
+            <div class="tile__etiqueta">Aulas distintas</div>
+        </div>
+        <div class="tile tile--estado guardian guardian--alto" data-estado="EN REVISION">
+            <div class="tile__valor">{{ pendientes_semana }}</div>
+            <div class="tile__etiqueta">Por aprobar</div>
+        </div>
+    </div>
+
+    <section class="panel">
+        <div class="panel__cabecera">
+            <div class="semana-nav">
+                <button type="button" class="btn btn--sm btn--icono" id="semanaPrev" aria-label="Semana anterior">
+                    <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+                </button>
+                <span class="semana-nav__rango">{{ start_week }} → {{ end_week }}</span>
+                <button type="button" class="btn btn--sm btn--icono" id="semanaNext" aria-label="Semana siguiente">
+                    <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+                </button>
+                <button type="button" class="btn btn--sm btn--sutil" id="semanaHoy">Hoy</button>
+            </div>
+
+            {% if total_semana %}
+            <div class="fila">
+                <label class="solo-lectores" for="filtroEstado">Filtrar por estado</label>
+                <select class="campo" id="filtroEstado" style="width:auto;min-width:190px">
+                    <option value="TODOS">Todos los estados</option>
+                    <option value="APROBADA">Aprobadas</option>
+                    <option value="EN REVISION">En revisión</option>
+                    <option value="FINALIZADA">Finalizadas</option>
+                    <option value="CANCELADA">Canceladas</option>
+                    <option value="ESTUDIANTIL">Estudiantiles</option>
+                </select>
+            </div>
+            {% endif %}
+        </div>
+
+        {% if total_semana %}
+        <div class="semana">
+            <table class="horario">
+                <thead>
+                    <tr>
+                        <th scope="col">Hora</th>
+                        <th scope="col" data-dia="0">Lunes<span class="fecha-dia" data-fecha-dia="0"></span></th>
+                        <th scope="col" data-dia="1">Martes<span class="fecha-dia" data-fecha-dia="1"></span></th>
+                        <th scope="col" data-dia="2">Miércoles<span class="fecha-dia" data-fecha-dia="2"></span></th>
+                        <th scope="col" data-dia="3">Jueves<span class="fecha-dia" data-fecha-dia="3"></span></th>
+                        <th scope="col" data-dia="4">Viernes<span class="fecha-dia" data-fecha-dia="4"></span></th>
+                    </tr>
+                </thead>
+                <tbody id="cuerpoHorario"></tbody>
+            </table>
+        </div>
+
+        <div class="leyenda">
+            <span class="chip" data-estado="APROBADA">Aprobada</span>
+            <span class="chip" data-estado="EN REVISION">En revisión</span>
+            <span class="chip" data-estado="FINALIZADA">Finalizada</span>
+            <span class="chip" data-estado="CANCELADA">Cancelada</span>
+            <span class="chip" data-estado="ESTUDIANTIL">Estudiantil</span>
+        </div>
+        {% elif fuera_de_periodo %}
+        <!-- Vacío por estar fuera del periodo: no es lo mismo que "no reservaste" -->
+        <div class="vacio">
+            <div class="vacio__icono"><i class="fa-regular fa-calendar-xmark" aria-hidden="true"></i></div>
+            <p class="vacio__titulo">Esta semana queda fuera del periodo académico</p>
+            <p>
+                {{ periodo.nombre }} va del
+                <span class="dato">{{ periodo.inicio|date:"d/m/Y"|default:"—" }}</span> al
+                <span class="dato">{{ periodo.fin|date:"d/m/Y"|default:"—" }}</span>.
+                Fuera de esas fechas no se muestran reservas.
+            </p>
+            <button type="button" class="btn btn--sm" id="volverAlPeriodo"
+                    style="margin-top:var(--esp-3)">
+                <i class="fa-solid fa-arrow-rotate-left" aria-hidden="true"></i> Volver a hoy
+            </button>
+        </div>
+        {% else %}
+        <!-- Una rejilla de 50 celdas vacías no comunica nada: mejor decirlo -->
+        <div class="vacio">
+            <div class="vacio__icono"><i class="fa-regular fa-calendar" aria-hidden="true"></i></div>
+            <p class="vacio__titulo">No tienes reservas esta semana</p>
+            <p>
+                Revisa otra semana con las flechas de arriba, o reserva un bloque
+                en cualquiera de las aulas ITE-VR.
+            </p>
+            <a class="btn btn--primario btn--sm" href="{% url 'gestion:obtenerlaboratorios' %}"
+               style="margin-top:var(--esp-3)">
+                <i class="fa-solid fa-vr-cardboard" aria-hidden="true"></i> Ver aulas disponibles
+            </a>
+        </div>
+        {% endif %}
+    </section>
+</div>
+
+<!-- ── Detalle de la reserva ──────────────────────────────────────────── -->
+<div class="modal-ite" id="modalReserva" role="dialog" aria-modal="true">
+    <div class="modal-ite__caja" id="cajaReserva">
+        <div class="modal-ite__cabecera">
+            <div>
+                <div class="etiqueta" id="modalEtiqueta">Reserva</div>
+                <h2 class="modal-ite__titulo" id="modalTitulo">Detalle</h2>
+            </div>
+            <button type="button" class="modal-ite__cerrar" data-modal-cerrar aria-label="Cerrar">
+                <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+            </button>
+        </div>
+        <div class="modal-ite__cuerpo">
+            <div class="pares" id="modalPares"></div>
+            <div id="modalObservacion"></div>
+            <div id="modalContacto"></div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block js %}
+<script src="{% static 'js/rejilla-semana.js' %}"></script>
+<script>
+(function () {
+    "use strict";
+
+    var R = window.RejillaSemana;
+
+    R.navegacion({
+        inicioSemana: "{{ start_week }}",
+        prev: document.getElementById("semanaPrev"),
+        next: document.getElementById("semanaNext"),
+        hoy: document.getElementById("semanaHoy")
+    });
+
+    var volver = document.getElementById("volverAlPeriodo");
+    if (volver) {
+        volver.addEventListener("click", function () {
+            var url = new URL(window.location.href);
+            url.searchParams.delete("week");
+            window.location.href = url.toString();
+        });
+    }
+
+    var cuerpo = document.getElementById("cuerpoHorario");
+    if (!cuerpo) return;   // semana sin reservas: no hay rejilla que montar
+
+    var rejilla = R.montar({
+        cuerpo: cuerpo,
+        slots: JSON.parse('{{ slots|escapejs }}'),
+        reservas: JSON.parse('{{ reservas|escapejs }}'),
+        inicioSemana: "{{ start_week }}",
+
+        // Aquí el aula es lo que cambia de un bloque a otro, así que manda ella.
+        // Debajo va tu puesto (estación o aula completa) y al pie la asignatura.
+        bloque: function (r) {
+            return {
+                titulo: r.laboratorio,
+                sub: r.estacion ? "Estación " + r.estacion : "Aula completa",
+                nota: r.asignatura
+            };
+        },
+
+        alAbrir: function (r) {
+            document.getElementById("cajaReserva").setAttribute("data-estado", r.estado);
+            document.getElementById("modalEtiqueta").textContent = "Reserva #" + r.id + " · " + r.estado;
+            document.getElementById("modalTitulo").textContent = r.laboratorio;
+
+            document.getElementById("modalPares").innerHTML =
+                par("Fecha", r.fecha, true) +
+                par("Horario", R.hora(r.hora_inicio) + "–" + R.hora(r.hora_fin), true) +
+                par("Ubicación", r.ubicacion) +
+                par("Puesto", r.estacion ? "Estación " + r.estacion : "Aula completa", !!r.estacion) +
+                par("Asignatura", r.asignatura) +
+                par("Tipo", r.tipo) +
+                par("Carrera", r.carrera) +
+                par("Ciclo · paralelo", (r.ciclo || "—") + " · " + (r.paralelo || "—")) +
+                par("Grupo", r.grupo, true) +
+                par("Estudiantes", r.estudiantes, true);
+
+            document.getElementById("modalObservacion").innerHTML = r.observacion
+                ? '<div class="par" style="margin-top:var(--esp-4)">' +
+                  '<span class="par__etiqueta">Observación</span>' +
+                  '<span class="par__valor" style="font-weight:400">' + R.escapar(r.observacion) + '</span></div>'
+                : "";
+
+            // A quién escribir si algo no cuadra con esta reserva
+            document.getElementById("modalContacto").innerHTML =
+                '<div class="contacto">' +
+                    '<i class="fa-regular fa-circle-question" aria-hidden="true"></i>' +
+                    '<span>Responsable: ' + R.escapar(r.responsable) + '</span>' +
+                    (r.correo_responsable
+                        ? '<a href="mailto:' + R.escapar(r.correo_responsable) + '">' +
+                          R.escapar(r.correo_responsable) + '</a>'
+                        : '') +
+                '</div>';
+
+            window.abrirModal("modalReserva");
+        }
+    });
+
+    function par(etiqueta, valor, mono) {
+        return '<div class="par"><span class="par__etiqueta">' + R.escapar(etiqueta) + '</span>' +
+               '<span class="par__valor' + (mono ? " dato" : "") + '">' +
+               R.escapar(valor || "—") + '</span></div>';
+    }
+
+    var filtro = document.getElementById("filtroEstado");
+    if (filtro) {
+        filtro.addEventListener("change", function () { rejilla.filtrar(this.value); });
+    }
+})();
+</script>
+{% endblock %}

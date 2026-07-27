@@ -1,0 +1,76 @@
+<!--Ficha del aula: galería + datos de contacto. Compartida por las dos
+   pantallas de reserva. La galería usa el componente de base.html, no Bootstrap. -->
+<section class="rejilla rejilla--ficha">
+
+    <div class="panel" style="overflow:hidden">
+        {% if imagenes %}
+        <div class="galeria" style="height:100%;min-height:240px">
+            <div class="galeria__pista">
+                {% for img in imagenes %}
+                <div class="galeria__lamina">
+                    <img src="{{ img.imagen.url }}" alt="{{ laboratorio.nombre }}" loading="lazy"
+                         style="height:100%;min-height:240px">
+                </div>
+                {% endfor %}
+            </div>
+
+            {% if imagenes|length > 1 %}
+            <button type="button" class="galeria__flecha galeria__flecha--prev" data-galeria-prev
+                    aria-label="Imagen anterior">
+                <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+            </button>
+            <button type="button" class="galeria__flecha galeria__flecha--next" data-galeria-next
+                    aria-label="Imagen siguiente">
+                <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+            </button>
+            <div class="galeria__nav">
+                {% for img in imagenes %}
+                <button type="button" class="galeria__punto" data-galeria-ir="{{ forloop.counter0 }}"
+                        aria-label="Ir a la imagen {{ forloop.counter }}"></button>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        {% else %}
+        <div class="vacio" style="min-height:240px;justify-content:center">
+            <div class="vacio__icono"><i class="fa-regular fa-image" aria-hidden="true"></i></div>
+            <p>Sin fotografías del aula</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="panel guardian" data-estado="{{ laboratorio.estado }}">
+        <div class="panel__cabecera">
+            <h2 class="t-titulo">{{ laboratorio.nombre }}</h2>
+            <span class="chip">{{ laboratorio.estado }}</span>
+        </div>
+        <div class="panel__cuerpo">
+            <div class="pares">
+                <div class="par">
+                    <span class="par__etiqueta">Ubicación</span>
+                    <span class="par__valor">{{ laboratorio.ubicacion|default:"No especificada" }}</span>
+                </div>
+                <div class="par">
+                    <span class="par__etiqueta">Aforo</span>
+                    <span class="par__valor dato">{{ laboratorio.capacidad }} <span class="tenue">estudiantes</span></span>
+                </div>
+                <div class="par">
+                    <span class="par__etiqueta">Responsable</span>
+                    <span class="par__valor">{{ laboratorio.responsable }}</span>
+                </div>
+                <div class="par">
+                    <span class="par__etiqueta">Correo</span>
+                    <span class="par__valor">
+                        <a href="mailto:{{ laboratorio.correo_responsable }}" style="color:var(--marca)">
+                            {{ laboratorio.correo_responsable }}
+                        </a>
+                    </span>
+                </div>
+                <div class="par">
+                    <span class="par__etiqueta">Teléfono</span>
+                    <span class="par__valor dato">{{ laboratorio.numero_responsable|default:"—" }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

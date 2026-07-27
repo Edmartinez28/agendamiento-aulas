@@ -1,86 +1,72 @@
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: 'Segoe UI', sans-serif;
+/* =========================================================================
+   Acceso institucional · Aula ITE-VR
+   Una sola puerta, centrada, sobre la sala a oscuras. Tokens y componentes
+   vienen de ite.css.
+   ========================================================================= */
+
+.acceso {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--esp-5);
+  padding: var(--esp-5);
 }
 
-body {
-    height: 100vh;
-    background: url('../img/fondo-vr.jpg') center/cover no-repeat;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    position: relative;
+.acceso__fondo {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(70% 60% at 50% 42%,
+      color-mix(in oklab, var(--senal) 16%, transparent) 0%,
+      transparent 66%),
+    linear-gradient(
+      color-mix(in oklab, var(--p-oscuro_sala) 82%, transparent),
+      var(--p-oscuro_sala)),
+    url("../img/fondo-vr.jpg") center / cover no-repeat;
 }
 
-/* Overlay oscuro elegante */
-.background-overlay {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(
-        to right,
-        rgba(0,0,0,0.8),
-        rgba(0,0,0,0.9)
-    );
-    z-index: 1;
+.acceso__tarjeta {
+  width: min(420px, 100%);
+  box-shadow: var(--sombra-flota);
 }
 
-/* Contenedor principal */
-.login-wrapper {
-    position: relative;
-    z-index: 2;
+.acceso__cara {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--esp-4);
+  padding: var(--esp-7) var(--esp-6);
+  text-align: center;
 }
 
-/* Tarjeta moderna */
-.login-card {
-    background: rgba(20,20,20,0.95);
-    padding: 50px;
-    border-radius: 18px;
-    text-align: center;
-    width: 420px;
-    box-shadow: 0 20px 40px rgba(225,6,0,0.25);
-    backdrop-filter: blur(10px);
+.acceso__logo { height: 42px; width: auto; }
+
+.acceso__titulo {
+  font-family: var(--tipo-titulo);
+  font-size: 27px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
 }
 
-/* Logo */
-.logo {
-    height: 50px;
-    margin-bottom: 20px;
+.acceso__nota {
+  font-size: 12px;
+  color: var(--tinta-3);
+  line-height: 1.6;
 }
 
-.login-card h1 {
-    color: #e10600;
-    margin-bottom: 10px;
-    font-size: 28px;
+.acceso__nota a { color: var(--senal); }
+.acceso__nota a:hover { text-decoration: underline; }
+
+.acceso__pie {
+  font-size: 12px;
+  color: var(--tinta-3);
+  text-align: center;
 }
 
-.login-card h2 {
-    margin-bottom: 20px;
-    font-weight: 400;
-}
-
-.login-card p {
-    margin-bottom: 30px;
-    color: #bbb;
-    font-size: 14px;
-    line-height: 1.5;
-}
-
-/* Botón institucional */
-.btn-login {
-    display: inline-block;
-    background: #e10600;
-    padding: 14px 35px;
-    border-radius: 30px;
-    color: white;
-    text-decoration: none;
-    font-weight: bold;
-    transition: 0.3s;
-}
-
-.btn-login:hover {
-    background: #ff1a1a;
-    transform: scale(1.05);
+@media (max-width: 480px) {
+  .acceso__cara { padding: var(--esp-6) var(--esp-5); }
 }

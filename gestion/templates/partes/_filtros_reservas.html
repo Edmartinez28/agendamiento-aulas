@@ -1,0 +1,47 @@
+<!--Barra de filtros de reservas.
+   `lista`   → id del contenedor de tarjetas sobre el que actúa
+   `prefijo` → prefijo para los id de los controles (accesibilidad de labels)
+
+   Cada control declara `data-campo` (el atributo data-* de la tarjeta que
+   compara) y `data-modo` (exacto | contiene). El JS de la página no sabe nada
+   de campos concretos: los lee de aquí. -->
+<div class="filtros" data-filtros="{{ lista }}">
+
+    <label class="solo-lectores" for="{{ prefijo }}Estado">Estado</label>
+    <select class="campo" id="{{ prefijo }}Estado" data-campo="estado" data-modo="exacto">
+        <option value="TODAS">Todos los estados</option>
+        <option value="APROBADA">Aprobada</option>
+        <option value="EN REVISION">En revisión</option>
+        <option value="CANCELADA">Cancelada</option>
+        <option value="FINALIZADA">Finalizada</option>
+        <option value="BLOQUEADA">Bloqueada</option>
+        <option value="ESTUDIANTIL">Estudiantil</option>
+    </select>
+
+    <label class="solo-lectores" for="{{ prefijo }}Fecha">Fecha</label>
+    <input type="date" class="campo" id="{{ prefijo }}Fecha" data-campo="fecha" data-modo="exacto">
+
+    <label class="solo-lectores" for="{{ prefijo }}Carrera">Carrera</label>
+    <input type="search" class="campo" id="{{ prefijo }}Carrera" data-campo="carrera"
+           placeholder="Carrera" autocomplete="off">
+
+    <label class="solo-lectores" for="{{ prefijo }}Asignatura">Asignatura</label>
+    <input type="search" class="campo" id="{{ prefijo }}Asignatura" data-campo="asignatura"
+           placeholder="Asignatura" autocomplete="off">
+
+    <label class="solo-lectores" for="{{ prefijo }}Tipo">Tipo</label>
+    <input type="search" class="campo" id="{{ prefijo }}Tipo" data-campo="tipo"
+           placeholder="Tipo" autocomplete="off">
+
+    <label class="solo-lectores" for="{{ prefijo }}Usuario">Solicitante</label>
+    <input type="search" class="campo" id="{{ prefijo }}Usuario" data-campo="usuario"
+           placeholder="Solicitante" autocomplete="off">
+
+    <label class="solo-lectores" for="{{ prefijo }}Id">N° de reserva</label>
+    <input type="search" class="campo" id="{{ prefijo }}Id" data-campo="id"
+           placeholder="N° de reserva" autocomplete="off">
+
+    <button type="button" class="btn btn--sutil btn--sm" data-limpiar>
+        <i class="fa-solid fa-eraser" aria-hidden="true"></i> Limpiar
+    </button>
+</div>

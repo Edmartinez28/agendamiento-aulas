@@ -1,630 +1,264 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Insumo - Inventario</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+{% extends "base.html" %}
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, {{ fondo|default:"#4C758A" }} 0%, #F2F2F2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
+{% block titulo %}{% if item %}Editar {{ item.codigo }}{% else %}Nuevo equipo{% endif %} · Inventario{% endblock %}
 
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-        }
+{% block clase_lienzo %}lienzo lienzo--angosto{% endblock %}
 
-        /* Header */
-        .page-header {
-            text-align: center;
-            color: {{ titulos|default:"#FFFFFF" }};
-            margin-bottom: 30px;
-        }
+{% block ruta %}
+    <a href="{% url 'inventario:inventariototal' %}">Inventario</a>
+    <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+    <strong>{% if item %}{{ item.codigo }}{% else %}Nuevo equipo{% endif %}</strong>
+{% endblock %}
 
-        .page-header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-        }
+{% block css %}
+<style>
+    /* Formulario de alta/edición de equipo. Dos columnas en escritorio, una en
+       móvil; los campos largos ocupan el ancho completo. La barra de acción se
+       queda pegada abajo: guardar nunca queda fuera de alcance. */
+    .formulario {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--esp-4);
+        padding: var(--esp-5);
+    }
 
-        .page-header p {
-            font-size: 1.1rem;
-            opacity: 0.95;
-        }
+    .completo { grid-column: 1 / -1; }
 
-        /* Breadcrumb */
-        .breadcrumb {
-            background: white;
-            padding: 15px 20px;
-            border-radius: 12px;
-            margin-bottom: 25px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 0.95rem;
-        }
+    .campo-ayuda {
+        font-size: 11.5px;
+        color: var(--tinta-3);
+    }
 
-        .breadcrumb a {
-            color: #667eea;
-            text-decoration: none;
-            font-weight: 600;
-            transition: color 0.3s ease;
-        }
+    .requerido { color: var(--cancelada); font-weight: 700; }
 
-        .breadcrumb a:hover {
-            color: #764ba2;
-        }
+    .contador {
+        font-family: var(--tipo-dato);
+        font-size: 11px;
+        color: var(--tinta-4);
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+    }
 
-        .breadcrumb span {
-            color: #999;
-        }
+    .acciones-form {
+        position: sticky;
+        bottom: 0;
+        z-index: 5;
+        display: flex;
+        justify-content: flex-end;
+        gap: var(--esp-2);
+        padding: var(--esp-3) var(--esp-5);
+        border-top: 1px solid var(--filo);
+        background: color-mix(in oklab, var(--panel) 92%, transparent);
+        backdrop-filter: blur(8px);
+        flex-wrap: wrap;
+    }
 
-        /* Main card */
-        .main-card {
-            background: white;
-            border-radius: 16px;
-            padding: 40px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            margin-bottom: 30px;
-        }
+    /* Ficha del equipo que se está editando: contexto antes del formulario */
+    .ficha-actual {
+        display: flex;
+        align-items: center;
+        gap: var(--esp-4);
+        flex-wrap: wrap;
+    }
 
-        .card-header {
-            margin-bottom: 35px;
-            padding-bottom: 25px;
-            border-bottom: 2px solid #f0f0f0;
-        }
+    .ficha-actual__codigo {
+        font-family: var(--tipo-dato);
+        font-size: 20px;
+        font-weight: 600;
+        letter-spacing: -0.03em;
+    }
 
-        .card-title {
-            font-size: 2rem;
-            color: #333;
-            font-weight: 700;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
+    @media (max-width: 640px) {
+        .formulario { grid-template-columns: 1fr; padding: var(--esp-4); }
+        .acciones-form { padding: var(--esp-3) var(--esp-4); }
+        .acciones-form .btn { flex: 1 1 auto; }
+    }
+</style>
+{% endblock %}
 
-        .card-subtitle {
-            color: #666;
-            font-size: 1rem;
-        }
+{% block contenido %}
 
-        /* Form */
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 25px;
-            margin-bottom: 30px;
-        }
+<div class="cabecera">
+    <div class="cabecera__texto">
+        <div class="cabecera__eyebrow">Inventario</div>
+        <h1 class="t-display">{% if item %}Editar equipo{% else %}Nuevo equipo{% endif %}</h1>
+        <p class="t-sub cabecera__sub">
+            {% if item %}
+                Actualiza los datos y el estado de mantenimiento de este equipo.
+            {% else %}
+                Registra un equipo en el inventario de un aula. El código y la serie
+                son los que se usan para identificarlo después.
+            {% endif %}
+        </p>
+    </div>
+</div>
 
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .form-group.full-width {
-            grid-column: 1 / -1;
-        }
-
-        .form-label {
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: #555;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .form-label .required {
-            color: #f44336;
-            font-weight: 700;
-        }
-
-        .form-input,
-        .form-select,
-        .form-textarea {
-            padding: 14px 16px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 1rem;
-            font-family: inherit;
-            transition: all 0.3s ease;
-            background: white;
-        }
-
-        .form-input:focus,
-        .form-select:focus,
-        .form-textarea:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .form-textarea {
-            resize: vertical;
-            min-height: 120px;
-        }
-
-        .form-help {
-            font-size: 0.85rem;
-            color: #999;
-            margin-top: -5px;
-        }
-
-        .char-counter {
-            font-size: 0.8rem;
-            color: #999;
-            text-align: right;
-            margin-top: -5px;
-        }
-
-        /* Action buttons */
-        .action-buttons {
-            display: flex;
-            gap: 15px;
-            padding-top: 30px;
-            border-top: 2px solid #f0f0f0;
-            flex-wrap: wrap;
-        }
-
-        .btn {
-            flex: 1;
-            min-width: 150px;
-            padding: 15px 30px;
-            border: none;
-            border-radius: 10px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);
-            color: white;
-            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
-        }
-
-        .btn-cancel {
-            background: #f5f5f5;
-            color: #666;
-            border: 2px solid #e0e0e0;
-        }
-
-        .btn-cancel:hover {
-            background: #e0e0e0;
-        }
-
-        .btn:active {
-            transform: translateY(0);
-        }
-
-        .btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none !important;
-        }
-
-        /* Alert messages */
-        .alert {
-            padding: 15px 20px;
-            border-radius: 10px;
-            margin-bottom: 25px;
-            display: flex;    
-            align-items: center;
-            gap: 12px;
-            font-weight: 500;
-            animation: slideIn 0.3s ease;
-        }
-
-        .alert.success { background: #e8f5e9; color: #1b5e20; }
-        .alert.error { background: #ffebee; color: #b71c1c; }
-        .alert.info { background: #e3f2fd; color: #0d47a1; }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* Info box */
-        .info-box {
-            background: #e3f2fd;
-            border-left: 4px solid #2196f3;
-            padding: 15px 20px;
-            border-radius: 8px;
-            margin-bottom: 25px;
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-        }
-
-        .info-box-icon {
-            font-size: 1.5rem;
-            flex-shrink: 0;
-        }
-
-        .info-box-content {
-            flex: 1;
-        }
-
-        .info-box-title {
-            font-weight: 700;
-            color: #1565c0;
-            margin-bottom: 5px;
-        }
-
-        .info-box-text {
-            font-size: 0.9rem;
-            color: #1976d2;
-            line-height: 1.5;
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            body {
-                padding: 10px;
-            }
-
-            .page-header h1 {
-                font-size: 2rem;
-                flex-direction: column;
-                gap: 10px;
-            }
-
-            .main-card {
-                padding: 25px;
-            }
-
-            .card-title {
-                font-size: 1.6rem;
-            }
-
-            .form-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .action-buttons {
-                flex-direction: column;
-            }
-
-            .btn {
-                width: 100%;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .page-header h1 {
-                font-size: 1.6rem;
-            }
-
-            .main-card {
-                padding: 20px;
-            }
-
-            .card-title {
-                font-size: 1.4rem;
-            }
-
-            .breadcrumb {
-                font-size: 0.85rem;
-                flex-wrap: wrap;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <!-- Header -->
-        <div class="page-header">
-            <h1>
-                <span>📦</span>
-                <h1>{% if item %}✏️ Editar Equipo{% else %}➕ Agregar Nuevo Insumo{% endif %}</h1>
-            </h1>
-            <p>Registra un nuevo insumo en el inventario</p>
+{% if item %}
+<div class="panel guardian" data-estado="{{ item.estado }}" style="margin-bottom:var(--esp-4)">
+    <div class="panel__cuerpo ficha-actual">
+        <div>
+            <div class="etiqueta">Equipo</div>
+            <div class="ficha-actual__codigo">{{ item.codigo }}</div>
         </div>
-
-        <!-- Breadcrumb -->
-        <div class="breadcrumb">
-            <a href="/inventario/">📋 Inventario</a>
-            <span>›</span>
-            <span>Nuevo</span>
-        </div>
-
-        <!-- Alert -->
-        {% if messages %}
-            {% for message in messages %}
-                <div class="alert {% if message.tags %}{{ message.tags }}{% endif %}" id="alert">
-                    <span id="alertIcon">
-                        {% if "success" in message.tags %}✓{% elif "error" in message.tags %}⚠{% else %}ℹ{% endif %}
-                    </span>
-                    <span id="alertMessage">{{ message }}</span>
-                </div>
-            {% endfor %}
-        {% endif %}
-
-        <!-- Main Card -->
-        <div class="main-card">
-            <div class="card-header">
-                <h2 class="card-title">
-                    <span>➕</span>
-                    Información del Equipo
-                </h2>
-                <p class="card-subtitle">Completa todos los campos requeridos para registrar el equipo</p>
-            </div>
-
-            <!-- Info Box -->
-            <div class="info-box">
-                <div class="info-box-icon">💡</div>
-                <div class="info-box-content">
-                    <div class="info-box-title">Información importante</div>
-                    <div class="info-box-text">
-                        Los campos marcados con <span style="color: #f44336; font-weight: 700;">*</span> son obligatorios. 
-                        Asegúrate de ingresar el código y número de serie correctamente.
-                    </div>
-                </div>
-            </div>
-
-            <!-- Form -->
-            <form id="inventoryForm" method="post"
-                action="{% if item %}{% url 'inventario:actualizarinventario' item.id %}{% else %}{% url 'inventario:nuevoinventario' %}{% endif %}">
-                {% csrf_token %}
-                <div class="form-grid">
-                    <!-- Laboratorio -->
-                    <div class="form-group">
-                        <label class="form-label">
-                            🔬 Laboratorio <span class="required">*</span>
-                        </label>
-                        <select class="form-select" id="laboratorio" name="laboratorio" required>
-                            <option value="">Seleccionar laboratorio</option>
-                            {% for laboratorio in laboratorios%}
-                            <option value="{{ laboratorio.id }}"
-                                {% if item and item.laboratorio_id == laboratorio.id %}selected{% endif %}>
-                                {{ laboratorio.nombre }}
-                            </option>
-                            {% endfor %}
-                        </select>
-                    </div>
-
-                    <!-- Código -->
-                    <div class="form-group">
-                        <label class="form-label">
-                            🏷️ Código
-                        </label>
-                        <input 
-                            type="text" 
-                            class="form-input" 
-                            id="codigo" 
-                            name="codigo"
-                            placeholder="Ej: QUI-001"
-                            maxlength="20"
-                            value="{% if item %}{{ item.codigo }}{% endif %}"
-                        >
-                        <div class="form-help">Código único del equipo (máx. 20 caracteres)</div>
-                    </div>
-
-                    <!-- Serie -->
-                    <div class="form-group">
-                        <label class="form-label">
-                            🔢 Número de Serie
-                        </label>
-                        <input 
-                            type="text" 
-                            class="form-input" 
-                            id="serie" 
-                            name="serie"
-                            placeholder="Ej: SN-2024-001"
-                            maxlength="50"
-                            value="{% if item %}{{ item.serie }}{% endif %}"
-                        >
-                        <div class="form-help">Serial del fabricante (máx. 50 caracteres)</div>
-                    </div>
-
-                    <!-- Tipo -->
-                    <div class="form-group">
-                        <label class="form-label">
-                            📦 Tipo de Equipo <span class="required">*</span>
-                        </label>
-                        <input 
-                            type="text" 
-                            class="form-input" 
-                            id="tipo" 
-                            name="tipo"
-                            placeholder="Ej: Computador Laptop"
-                            maxlength="100"
-                            value="{% if item %}{{ item.tipo }}{% endif %}"
-                            required
-                        >
-                    </div>
-
-                    <!-- Marca -->
-                    <div class="form-group">
-                        <label class="form-label">
-                            🏭 Marca
-                        </label>
-                        <input 
-                            type="text" 
-                            class="form-input" 
-                            id="marca" 
-                            name="marca"
-                            placeholder="Ej: Asus"
-                            maxlength="100"
-                            value="{% if item %}{{ item.marca }}{% endif %}"
-                        >
-                    </div>
-
-                    <!-- Modelo -->
-                    <div class="form-group">
-                        <label class="form-label">
-                            📱 Modelo
-                        </label>
-                        <input 
-                            type="text" 
-                            class="form-input" 
-                            id="modelo" 
-                            name="modelo"
-                            placeholder="Ej: ROG Strix"
-                            maxlength="100"
-                            value="{% if item %}{{ item.modelo }}{% endif %}"
-                        >
-                    </div>
-
-                    <!-- Estado -->
-                    <div class="form-group">
-                        <label class="form-label">
-                            📊 Estado <span class="required">*</span>
-                        </label>
-                        <select class="form-select" id="estado" name="estado" required>
-                            <option value="NUEVO" {% if item and item.estado == "NUEVO" %}selected{% endif %}>🆕 Nuevo</option>
-                            <option value="CORRECTO" {% if item and item.estado == "CORRECTO" %}selected{% endif %}>✅ Correcto</option>
-                            <option value="PENDIENTE" {% if not item or item.estado == "PENDIENTE" %}selected{% endif %}>⏳ Pendiente</option>
-                            <option value="MANTENIMIENTO" {% if item and item.estado == "MANTENIMIENTO" %}selected{% endif %}>🔧 Mantenimiento</option>
-                            <option value="FALLANDO" {% if item and item.estado == "FALLANDO" %}selected{% endif %}>⚠️ Fallando</option>
-                            <option value="BAJA" {% if item and item.estado == "BAJA" %}selected{% endif %}>🚫 Baja</option>
-                        </select>
-                    </div>
-
-                    <!-- Detalles -->
-                    <div class="form-group full-width">
-                        <label class="form-label">
-                            📋 Detalles Técnicos
-                        </label>
-                        <input 
-                            type="text" 
-                            class="form-input" 
-                            id="detalles" 
-                            name="detalles"
-                            placeholder="Ej: Capacidad 200g, precisión 0.001g"
-                            maxlength="200"
-                            value="{% if item %}{{ item.detalles }}{% endif %}"
-                            oninput="updateCharCounter('detalles', 200)"
-                        >
-                        <div class="char-counter">
-                            <span id="detallesCounter">0</span> / 200 caracteres
-                        </div>
-                    </div>
-
-                    <!-- Observación -->
-                    <div class="form-group full-width">
-                        <label class="form-label">
-                            ⚠️ Observaciones
-                        </label>
-                        <textarea 
-                            class="form-textarea" 
-                            id="observacion" 
-                            name="observacion"
-                            placeholder="Ingresa observaciones importantes sobre el estado o uso del equipo..."
-                            oninput="updateCharCounter('observacion', null)"
-                        >{% if item %}{{ item.observacion }}{% endif %}</textarea>
-                        <div class="char-counter">
-                            <span id="observacionCounter">0</span> caracteres
-                        </div>
-                    </div>
-                </div>
-
-                <div class="action-buttons">
-                    <button type="submit" class="btn btn-primary" id="submitBtn">
-                        <span>💾</span>
-                        {% if item %}💾 Guardar Cambios{% else %}💾 Guardar Equipo{% endif %}
-                    </button>
-                    <a type="button" class="btn btn-cancel" href="{% url 'inventario:inventariototal' %}">
-                        <span>✕</span>
-                        Cancelar
-                    </a>
-                </div>
-            </form>
+        <span class="chip" data-estado="{{ item.estado }}">{{ item.estado }}</span>
+        <div class="empuje meta">
+            <span class="meta__item">
+                <i class="fa-solid fa-vr-cardboard" aria-hidden="true"></i>
+                {{ item.laboratorio.nombre }}
+            </span>
+            <span class="meta__item">
+                <i class="fa-regular fa-calendar" aria-hidden="true"></i>
+                Ingreso <span class="dato">{{ item.fecha_ingreso|date:"d/m/Y" }}</span>
+            </span>
         </div>
     </div>
+</div>
+{% endif %}
 
-    <script>
-        // Actualizar contador de caracteres
-        function updateCharCounter(fieldId, max) {
-            const field = document.getElementById(fieldId);
-            const counter = document.getElementById(`${fieldId}Counter`);
-            const length = field.value.length;
-            
-            counter.textContent = length;
+<form method="post"
+      action="{% if item %}{% url 'inventario:actualizarinventario' item.id %}{% else %}{% url 'inventario:nuevoinventario' %}{% endif %}">
+    {% csrf_token %}
+
+    <div class="panel">
+        <div class="panel__cabecera">
+            <h2 class="t-titulo">Información del equipo</h2>
+            <span class="panel__conteo">Los campos con <span class="requerido">*</span> son obligatorios</span>
+        </div>
+
+        <!--Se prefiere lo que el usuario acaba de enviar: si el POST falla la
+           validación, el formulario no se le borra delante.
+
+           `firstof` en vez de `|default:item.x`: en el alta no existe `item`, y
+           Django sí lanza VariableDoesNotExist cuando la variable ausente va
+           como ARGUMENTO de filtro. `firstof` e `if` la resuelven tolerando. -->
+        <div class="formulario">
+
+            <div class="campo-grupo">
+                <label class="campo-etiqueta" for="laboratorio">Aula <span class="requerido">*</span></label>
+                <select class="campo" id="laboratorio" name="laboratorio" required>
+                    <option value="">Seleccionar aula…</option>
+                    {% for lab in laboratorios %}
+                    <option value="{{ lab.id }}"
+                        {% if request.POST.laboratorio %}
+                            {% if lab.id|stringformat:"s" == request.POST.laboratorio %}selected{% endif %}
+                        {% elif item and item.laboratorio_id == lab.id %}selected{% endif %}>
+                        {{ lab.nombre }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="campo-grupo">
+                <label class="campo-etiqueta" for="estado">Estado <span class="requerido">*</span></label>
+                <!--`estado_actual` centraliza la precedencia POST → item → defecto,
+                   y cada opción sólo se compara contra él. -->
+                {% if request.POST.estado %}{% firstof request.POST.estado as estado_actual %}
+                {% else %}{% firstof item.estado "PENDIENTE" as estado_actual %}{% endif %}
+                <select class="campo" id="estado" name="estado" required>
+                    <option value="NUEVO" {% if estado_actual == "NUEVO" %}selected{% endif %}>Nuevo</option>
+                    <option value="CORRECTO" {% if estado_actual == "CORRECTO" %}selected{% endif %}>Correcto</option>
+                    <option value="PENDIENTE" {% if estado_actual == "PENDIENTE" %}selected{% endif %}>Pendiente</option>
+                    <option value="MANTENIMIENTO" {% if estado_actual == "MANTENIMIENTO" %}selected{% endif %}>Mantenimiento</option>
+                    <option value="FALLANDO" {% if estado_actual == "FALLANDO" %}selected{% endif %}>Fallando</option>
+                    <option value="BAJA" {% if estado_actual == "BAJA" %}selected{% endif %}>Baja</option>
+                </select>
+            </div>
+
+            <div class="campo-grupo">
+                <label class="campo-etiqueta" for="tipo">Tipo de equipo <span class="requerido">*</span></label>
+                <input type="text" class="campo" id="tipo" name="tipo" maxlength="100" required
+                       placeholder="Ej. Visor VR, Computador de escritorio"
+                       value="{% firstof request.POST.tipo item.tipo %}">
+            </div>
+
+            <div class="campo-grupo">
+                <label class="campo-etiqueta" for="codigo">Código</label>
+                <input type="text" class="campo dato" id="codigo" name="codigo" maxlength="20"
+                       placeholder="Ej. ITEVR-001" autocapitalize="characters"
+                       value="{% firstof request.POST.codigo item.codigo %}">
+                <span class="campo-ayuda">Código interno con el que se identifica el equipo (máx. 20).</span>
+            </div>
+
+            <div class="campo-grupo">
+                <label class="campo-etiqueta" for="serie">Número de serie</label>
+                <input type="text" class="campo dato" id="serie" name="serie" maxlength="50"
+                       placeholder="Ej. SN-2026-0142"
+                       value="{% firstof request.POST.serie item.serie %}">
+                <span class="campo-ayuda">Serial del fabricante (máx. 50).</span>
+            </div>
+
+            <div class="campo-grupo">
+                <label class="campo-etiqueta" for="marca">Marca</label>
+                <input type="text" class="campo" id="marca" name="marca" maxlength="100"
+                       placeholder="Ej. Meta"
+                       value="{% firstof request.POST.marca item.marca %}">
+            </div>
+
+            <div class="campo-grupo">
+                <label class="campo-etiqueta" for="modelo">Modelo</label>
+                <input type="text" class="campo" id="modelo" name="modelo" maxlength="100"
+                       placeholder="Ej. Quest 3"
+                       value="{% firstof request.POST.modelo item.modelo %}">
+            </div>
+
+            <div class="campo-grupo completo">
+                <label class="campo-etiqueta" for="detalles">Detalles técnicos</label>
+                <input type="text" class="campo" id="detalles" name="detalles" maxlength="200"
+                       data-contador="200"
+                       placeholder="Ej. 128 GB, dos mandos, correa de tela"
+                       value="{% firstof request.POST.detalles item.detalles %}">
+                <span class="contador" data-contador-de="detalles">0 / 200</span>
+            </div>
+
+            <div class="campo-grupo completo">
+                <label class="campo-etiqueta" for="observacion">Observaciones</label>
+                <textarea class="campo" id="observacion" name="observacion" rows="4" data-contador
+                          placeholder="Incidencias, condiciones de uso o notas de mantenimiento…">{% firstof request.POST.observacion item.observacion %}</textarea>
+                <span class="contador" data-contador-de="observacion">0 caracteres</span>
+            </div>
+        </div>
+
+        <div class="acciones-form">
+            <a class="btn btn--sutil" href="{% url 'inventario:inventariototal' %}">Cancelar</a>
+            <button type="submit" class="btn btn--primario">
+                <i class="fa-regular fa-floppy-disk" aria-hidden="true"></i>
+                {% if item %}Guardar cambios{% else %}Registrar equipo{% endif %}
+            </button>
+        </div>
+    </div>
+</form>
+
+{% endblock %}
+
+{% block js %}
+<script>
+(function () {
+    // Contadores de caracteres
+    document.querySelectorAll("[data-contador-de]").forEach(function (salida) {
+        var campo = document.getElementById(salida.getAttribute("data-contador-de"));
+        if (!campo) return;
+
+        var max = campo.getAttribute("data-contador");
+
+        function actualizar() {
+            salida.textContent = max
+                ? campo.value.length + " / " + max
+                : campo.value.length + " caracteres";
         }
 
-        // Manejar cancelación
-        function handleCancel() {
-            if (confirm('¿Estás seguro de que deseas cancelar? Se perderán todos los datos ingresados.')) {
-                // window.history.back();
-                // o
-                // window.location.href = '/inventario/';
-                console.log('Cancelar y volver a /inventario/');
-            }
-        }
+        campo.addEventListener("input", actualizar);
+        actualizar();
+    });
 
-        // Mostrar alerta
-        const alertBox = document.getElementById("alert");
-        if (alertBox) {
-            setTimeout(() => alertBox.style.display = "none", 4000);
-        }
-
-        // Obtener CSRF token (para Django)
-        function getCookie(name) {
-            let cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                const cookies = document.cookie.split(';');
-                for (let i = 0; i < cookies.length; i++) {
-                    const cookie = cookies[i].trim();
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
-                    }
-                }
-            }
-            return cookieValue;
-        }
-
-        // Validación adicional en tiempo real
-        document.addEventListener('DOMContentLoaded', () => {
-            // Validar código único (ejemplo)
-            const codigoInput = document.getElementById('codigo');
-            codigoInput.addEventListener('blur', () => {
-                const codigo = codigoInput.value.trim();
-                if (codigo) {
-                    // Aquí podrías validar si el código ya existe
-                    // fetch(`/api/inventario/validar-codigo/?codigo=${codigo}`)
-                    console.log('Validando código:', codigo);
-                }
-            });
-
-            // Auto-mayúsculas en código
-            codigoInput.addEventListener('input', (e) => {
-                e.target.value = e.target.value.toUpperCase();
-            });
+    // El código del equipo va siempre en mayúsculas: es un identificador
+    var codigo = document.getElementById("codigo");
+    if (codigo) {
+        codigo.addEventListener("input", function () {
+            var pos = codigo.selectionStart;
+            codigo.value = codigo.value.toUpperCase();
+            codigo.setSelectionRange(pos, pos);
         });
-    </script>
-</body>
-</html>
+    }
+})();
+</script>
+{% endblock %}

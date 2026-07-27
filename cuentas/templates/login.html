@@ -1,36 +1,53 @@
+{% extends "base.html" %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Acceso Institucional - Aula ITE VR</title>
-    <link rel="stylesheet" href="{% static 'css/login.css' %}">
-</head>
-<body>
 
-<div class="background-overlay"></div>
+{% block titulo %}Acceso institucional · {{ parametros.marca_nombre }}{% endblock %}
 
-<div class="login-wrapper">
+{% block tema %}oscuro{% endblock %}
+{% block tema_fijo %}data-tema-fijo{% endblock %}
 
-    <div class="login-card">
+{% block css %}
+<link rel="stylesheet" href="{% static 'css/login.css' %}">
+{% endblock %}
 
-        <img src="{% static 'img/UC.png' %}" alt="Logo UC" class="logo">
+<!--La pantalla de acceso no tiene barra ni pie: sólo la puerta -->
+{% block barra %}{% endblock %}
+{% block pie %}{% endblock %}
 
-        <h1>Aula ITE VR</h1>
-        <h2>Acceso Institucional</h2>
+{% block clase_lienzo %}acceso{% endblock %}
 
-        <p>
-            Inicia sesión con tu cuenta institucional UCACUE
-            para acceder al sistema de reservas del laboratorio.
+{% block contenido %}
+
+<div class="acceso__fondo" aria-hidden="true"></div>
+
+<div class="panel panel--alto acceso__tarjeta">
+    <div class="acceso__cara">
+        <img class="acceso__logo" src="{% static 'img/UC.png' %}" alt="{{ parametros.marca_institucion }}">
+
+        <div>
+            <div class="cabecera__eyebrow" style="justify-content:center">Acceso institucional</div>
+            <h1 class="acceso__titulo">{{ parametros.marca_nombre }}</h1>
+        </div>
+
+        <p class="t-sub" style="font-size:14px">
+            Inicia sesión con tu cuenta institucional UCACUE para reservar el aula,
+            elegir tu estación y consultar el estado de tus solicitudes.
         </p>
 
-        <a href="{% url 'oidc_authentication_init' %}" class="btn-login">
+        <a href="{% url 'oidc_authentication_init' %}" class="btn btn--primario btn--bloque">
+            <i class="fa-solid fa-right-to-bracket" aria-hidden="true"></i>
             Iniciar sesión con cuenta UCACUE
         </a>
 
+        <p class="acceso__nota">
+            ¿Problemas para entrar? Escribe a
+            <a href="mailto:innovacion@ucacue.edu.ec">innovacion@ucacue.edu.ec</a>
+        </p>
     </div>
-
 </div>
 
-</body>
-</html>
+<p class="acceso__pie">
+    © {% now "Y" %} {{ parametros.marca_institucion }} · {{ parametros.pie_texto }}
+</p>
+
+{% endblock %}

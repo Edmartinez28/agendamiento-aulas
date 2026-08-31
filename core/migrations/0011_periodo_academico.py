@@ -8,9 +8,9 @@ ETIQUETAS = ("periodo_nombre", "periodo_inicio", "periodo_fin")
 def crear(apps, schema_editor):
     """Siembra el periodo académico si aún no existe.
 
-    Las fechas por defecto cubren el rango completo de reservas ya cargadas, de
-    modo que activar el filtro no esconde nada de golpe. Ajústalas desde el
-    admin al empezar cada periodo.
+    Siembra el periodo que en ese momento tenga `core/parametros.py`; sobre una
+    base ya sembrada, quien mueve las fechas al siguiente semestre es una
+    migración de datos posterior (ver `0012_periodo_2026_2`) o el admin.
     """
     Parametro = apps.get_model("core", "Parametro")
     existentes = set(Parametro.objects.values_list("etiqueta", flat=True))

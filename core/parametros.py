@@ -48,9 +48,9 @@ PARAMETROS_DEFECTO = {
     # Formato obligatorio AAAA-MM-DD. Si una fecha está vacía o mal escrita, ese
     # extremo simplemente no se aplica — se prefiere mostrar de más a esconder
     # reservas por una errata en el admin.
-    "periodo_nombre": "Periodo académico 2026-1",
-    "periodo_inicio": "2026-02-01",
-    "periodo_fin": "2026-08-31",
+    "periodo_nombre": "Periodo académico 2026-2",
+    "periodo_inicio": "2026-09-01",
+    "periodo_fin": "2027-01-31",
 
     # ── Estados de reserva ───────────────────────────────────────────────────
     "estado_aprobada": "#0BA05C",

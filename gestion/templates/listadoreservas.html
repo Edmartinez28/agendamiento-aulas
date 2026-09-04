@@ -118,6 +118,9 @@
         {% endif %}
     </div>
     <div class="cabecera__acciones">
+        <a class="btn" href="{% url 'gestion:bloqueos_laboratorio' laboratorio.id %}">
+            <i class="fa-solid fa-ban" aria-hidden="true"></i> Franjas
+        </a>
         <a class="btn" href="{% url 'gestion:obtenerlaboratorios' %}">
             <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Aulas
         </a>

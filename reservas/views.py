@@ -8,6 +8,7 @@ from django.http import JsonResponse
 from django.db.models import Q
 from django.utils import timezone
 from django.http import Http404
+from django.core.exceptions import ValidationError
 
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
@@ -37,11 +38,17 @@ def reservaslaboratorios(request, id_lab):
     if laboratorio.estado == "RESTRINGIDO":
         raise Http404("Laboratorio no disponible")
         
+    bloqueados = slots_bloqueados(laboratorio)
+
     slots = list(TimeSlot.objects.all().order_by("hora_inicio").values("id", "hora_inicio", "hora_fin", "tipo"))
     for s in slots:
         s["hora_inicio"] = s["hora_inicio"].strftime("%H:%M")
         s["hora_fin"] = s["hora_fin"].strftime("%H:%M")
         s["label"] = f"{s['hora_inicio']} - {s['hora_fin']}"
+        # Para quien reserva da igual de dónde venga el bloqueo: la rejilla
+        # sólo distingue franja disponible de franja que no se puede pedir.
+        if s["id"] in bloqueados:
+            s["tipo"] = "BLOQUEADA"
     
     # Obtenemos la semana y las reservas ------------------------------
     week_offset = int(request.GET.get("week", 0))
@@ -156,11 +163,17 @@ def reservasestaciones(request, id_lab):
     if laboratorio.estado == "RESTRINGIDO":
         raise Http404("Laboratorio no disponible")
         
+    bloqueados = slots_bloqueados(laboratorio)
+
     slots = list(TimeSlot.objects.all().order_by("hora_inicio").values("id", "hora_inicio", "hora_fin", "tipo"))
     for s in slots:
         s["hora_inicio"] = s["hora_inicio"].strftime("%H:%M")
         s["hora_fin"] = s["hora_fin"].strftime("%H:%M")
         s["label"] = f"{s['hora_inicio']} - {s['hora_fin']}"
+        # Para quien reserva da igual de dónde venga el bloqueo: la rejilla
+        # sólo distingue franja disponible de franja que no se puede pedir.
+        if s["id"] in bloqueados:
+            s["tipo"] = "BLOQUEADA"
     
     # Obtenemos la semana y las reservas ------------------------------
     week_offset = int(request.GET.get("week", 0))
@@ -281,19 +294,24 @@ def guardar_reserva_estacion(request, id_lab):
         fecha = data.get("fecha")
         observacion = data.get("observacion")
 
-        # ejemplo guardado
-        Reserva.objects.create(
-            laboratorio = laboratorio,
-            asignatura=asignatura,
-            carrera_id=carrera_id,
-            ciclo_id=ciclo_id,
-            paralelo_id=paralelo_id,
-            estacion_id=estacion_id,
-            slot_id=slot_id,
-            fecha=fecha,
-            observacion=observacion,
-            usuario=request.user
-        )
+        try:
+            Reserva.objects.create(
+                laboratorio = laboratorio,
+                asignatura=asignatura,
+                carrera_id=carrera_id,
+                ciclo_id=ciclo_id,
+                paralelo_id=paralelo_id,
+                estacion_id=estacion_id,
+                slot_id=slot_id,
+                fecha=fecha,
+                observacion=observacion,
+                usuario=request.user
+            )
+        except ValidationError as e:
+            # Franja bloqueada o estación ya tomada: es un no del dominio, no
+            # un fallo del servidor. Se devuelve el motivo para poder mostrarlo.
+            detalle = " ".join(e.messages) if hasattr(e, "messages") else str(e)
+            return JsonResponse({"success": False, "error": detalle}, status=400)
 
         return JsonResponse({"success": True})
 

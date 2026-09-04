@@ -5,6 +5,7 @@ app_name = "gestion"
 urlpatterns = [
     path("laboratorios/", obtenerlaboratorios , name="obtenerlaboratorios"),
     path("laboratorios/horario/<int:id_lab>/", obtenerhorario , name="obtenerhorario"),
+    path("laboratorios/bloqueos/<int:id_lab>/", bloqueos_laboratorio , name="bloqueos_laboratorio"),
     path("reservas/<int:id_lab>/", listadoreservas , name="listadoreservas"),
     path("reservas/<int:reserva_id>/estado/",cambiar_estado_reserva,name="cambiar_estado_reserva"),
     path("correos/pendientes/<int:id_lab>/", correos_pendientes_agrupados, name="correos_pendientes_agrupados"),

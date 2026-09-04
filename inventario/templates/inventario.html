@@ -137,6 +137,10 @@
             <i class="fa-solid fa-layer-group" aria-hidden="true"></i> Ver todas las aulas
         </a>
         {% endif %}
+        <a class="btn" id="btnExportar"
+           href="{% url 'inventario:exportar_inventario_excel' %}{% if laboratorio %}?lab_id={{ laboratorio.id }}{% endif %}">
+            <i class="fa-solid fa-file-excel" aria-hidden="true"></i> Descargar Excel
+        </a>
         <a class="btn btn--primario" href="{% url 'inventario:nuevoinventario' %}">
             <i class="fa-solid fa-plus" aria-hidden="true"></i> Agregar equipo
         </a>
@@ -385,21 +389,51 @@
     poblar("filtroTipo", [...new Set(inventario.map(function (i) { return i.tipo; }))]);
     poblar("filtroMarca", [...new Set(inventario.map(function (i) { return i.marca; }))]);
 
+    function criterios() {
+        return {
+            q: document.getElementById("buscar").value.trim(),
+            lab: document.getElementById("filtroLab").value,
+            estado: document.getElementById("filtroEstado").value,
+            tipo: document.getElementById("filtroTipo").value,
+            marca: document.getElementById("filtroMarca").value
+        };
+    }
+
+    // El Excel baja lo que está en pantalla, no siempre el inventario entero:
+    // los mismos criterios viajan en la URL y el servidor los repite sobre la
+    // consulta. Sin esto, filtrar y descargar darían resultados distintos.
+    var botonExportar = document.getElementById("btnExportar");
+    var exportarBase = botonExportar.getAttribute("href");
+
+    function actualizarExportar(c) {
+        var params = new URLSearchParams(exportarBase.split("?")[1] || "");
+
+        ["q", "lab", "estado", "tipo", "marca"].forEach(function (clave) {
+            if (c[clave] && c[clave] !== "TODOS") {
+                params.set(clave, c[clave]);
+            } else {
+                params.delete(clave);
+            }
+        });
+
+        var cadena = params.toString();
+        botonExportar.href = exportarBase.split("?")[0] + (cadena ? "?" + cadena : "");
+    }
+
     function filtrar() {
-        var q = document.getElementById("buscar").value.trim().toLowerCase();
-        var lab = document.getElementById("filtroLab").value;
-        var estado = document.getElementById("filtroEstado").value;
-        var tipo = document.getElementById("filtroTipo").value;
-        var marca = document.getElementById("filtroMarca").value;
+        var c = criterios();
+        var q = c.q.toLowerCase();
 
         pintar(inventario.filter(function (i) {
             var texto = [i.codigo, i.serie, i.marca, i.modelo, i.tipo].filter(Boolean).join(" ").toLowerCase();
             return (!q || texto.indexOf(q) !== -1)
-                && (lab === "TODOS" || i.laboratorio.nombre === lab)
-                && (estado === "TODOS" || i.estado === estado)
-                && (tipo === "TODOS" || i.tipo === tipo)
-                && (marca === "TODOS" || i.marca === marca);
+                && (c.lab === "TODOS" || i.laboratorio.nombre === c.lab)
+                && (c.estado === "TODOS" || i.estado === c.estado)
+                && (c.tipo === "TODOS" || i.tipo === c.tipo)
+                && (c.marca === "TODOS" || i.marca === c.marca);
         }));
+
+        actualizarExportar(c);
     }
 
     ["buscar", "filtroLab", "filtroEstado", "filtroTipo", "filtroMarca"].forEach(function (id) {

@@ -236,6 +236,83 @@ def obtenerhorario(request, id_lab):
 
 @login_required
 @rol_required(["TECNICO", "ADMIN"])
+def bloqueos_laboratorio(request, id_lab):
+    """Qué franjas no ofrece este laboratorio.
+
+    El bloqueo institucional (`TimeSlot.tipo`) se muestra pero no se toca
+    desde aquí: quien administra un aula no debería poder abrir una hora que
+    la institución cerró para todas.
+    """
+    laboratorio = get_object_or_404(Laboratorio, id=id_lab)
+    slots_qs = TimeSlot.objects.all().order_by("hora_inicio")
+
+    if request.method == "POST":
+        # El formulario manda el conjunto completo de franjas marcadas. Se
+        # guarda sólo la diferencia: así un guardado sin cambios no reescribe
+        # filas ni pierde el motivo que alguien hubiera anotado.
+        # Las franjas institucionales llegan deshabilitadas, así que nunca
+        # vienen en el POST: se las deja fuera del cotejo para no borrar por
+        # omisión un bloqueo del aula que quedó debajo de uno institucional.
+        editables = set(slots_qs.exclude(tipo="BLOQUEADA").values_list("id", flat=True))
+        elegidos = {int(v) for v in request.POST.getlist("slots") if v.isdigit()} & editables
+
+        actuales = set(
+            BloqueoLaboratorio.objects
+            .filter(laboratorio=laboratorio, slot_id__in=editables)
+            .values_list("slot_id", flat=True)
+        )
+
+        quitar = actuales - elegidos
+        agregar = elegidos - actuales
+
+        with transaction.atomic():
+            if quitar:
+                BloqueoLaboratorio.objects.filter(laboratorio=laboratorio, slot_id__in=quitar).delete()
+            if agregar:
+                BloqueoLaboratorio.objects.bulk_create(
+                    [BloqueoLaboratorio(laboratorio=laboratorio, slot_id=sid) for sid in agregar]
+                )
+
+        if quitar or agregar:
+            messages.success(
+                request,
+                f"Horario de {laboratorio.nombre} actualizado: "
+                f"{len(agregar)} franja(s) bloqueada(s), {len(quitar)} liberada(s).",
+            )
+        else:
+            messages.info(request, "No hubo cambios en las franjas de este laboratorio.")
+
+        return redirect("gestion:bloqueos_laboratorio", id_lab=laboratorio.id)
+
+    propios = set(
+        BloqueoLaboratorio.objects.filter(laboratorio=laboratorio).values_list("slot_id", flat=True)
+    )
+
+    slots = [
+        {
+            "id": s.id,
+            "label": f"{s.hora_inicio.strftime('%H:%M')} - {s.hora_fin.strftime('%H:%M')}",
+            "institucional": s.tipo == "BLOQUEADA",
+            "bloqueado": s.id in propios,
+        }
+        for s in slots_qs
+    ]
+
+    contexto = {
+        "laboratorio": laboratorio,
+        "slots": slots,
+        "total_franjas": len(slots),
+        "total_propios": len(propios),
+        "total_institucionales": sum(1 for s in slots if s["institucional"]),
+        "fondo": get_fondo_valor,
+        "titulos": get_letra_titulos,
+    }
+
+    return render(request, "bloqueoslaboratorio.html", contexto)
+
+
+@login_required
+@rol_required(["TECNICO", "ADMIN"])
 def correos_pendientes_agrupados(request, id_lab):
     # Traemos correos pendientes con sus reservas (optimizado)
     correos_qs = (

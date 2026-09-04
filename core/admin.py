@@ -5,6 +5,7 @@ from .models import *
 admin.site.register(Laboratorio)
 admin.site.register(Estacion)
 admin.site.register(TimeSlot)
+admin.site.register(BloqueoLaboratorio)
 admin.site.register(Reserva)
 
 admin.site.register(Programa)

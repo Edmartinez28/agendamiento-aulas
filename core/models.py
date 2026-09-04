@@ -71,6 +71,44 @@ class TimeSlot(models.Model):
     def __str__(self):
         return f"{self.hora_inicio} - {self.hora_fin}"
 
+class BloqueoLaboratorio(models.Model):
+    """Franja que un laboratorio concreto decide no ofrecer.
+
+    El bloqueo de `TimeSlot.tipo` es institucional: apaga la franja en todas
+    las aulas. Este otro es local: cada laboratorio apaga las suyas sin tocar
+    el horario de los demás.
+    """
+
+    laboratorio = models.ForeignKey(Laboratorio, on_delete=models.CASCADE, related_name="bloqueos")
+    slot = models.ForeignKey(TimeSlot, on_delete=models.CASCADE, related_name="bloqueos")
+    motivo = models.CharField(max_length=200, blank=True, null=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("laboratorio", "slot")
+        ordering = ["laboratorio__nombre", "slot__hora_inicio"]
+
+    def __str__(self):
+        return f"{self.laboratorio.nombre} - {self.slot}"
+
+
+def slots_bloqueados(laboratorio):
+    """Ids de las franjas no reservables en un laboratorio.
+
+    Acepta la instancia o su id. Reúne las dos fuentes de bloqueo —la
+    institucional y la del propio laboratorio— porque para quien reserva son
+    la misma cosa: esa hora no está.
+    """
+    laboratorio_id = getattr(laboratorio, "pk", laboratorio)
+
+    globales = TimeSlot.objects.filter(tipo="BLOQUEADA").values_list("id", flat=True)
+    propios = BloqueoLaboratorio.objects.filter(
+        laboratorio_id=laboratorio_id
+    ).values_list("slot_id", flat=True)
+
+    return set(globales) | set(propios)
+
+
 class Carrera(models.Model):
     nombre = models.CharField(max_length=100)
 
@@ -131,6 +169,15 @@ class Reserva(models.Model):
         ]
 
     def clean(self):
+        # Una franja bloqueada no se reserva aunque el POST llegue a mano: el
+        # botón deshabilitado del front no es la validación. Sólo se exige al
+        # crear, para que bloquear una franja no deje huérfanas las reservas
+        # que ya existían (cambiarles el estado vuelve a pasar por clean()).
+        if self._state.adding and self.slot_id in slots_bloqueados(self.laboratorio_id):
+            raise ValidationError(
+                "La franja seleccionada está bloqueada para este laboratorio."
+            )
+
         reservas_conflicto = Reserva.objects.filter(
             fecha=self.fecha,
             slot=self.slot,

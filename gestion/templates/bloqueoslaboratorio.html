@@ -1,0 +1,235 @@
+{% extends "base.html" %}
+
+{% block titulo %}Franjas · {{ laboratorio.nombre }}{% endblock %}
+
+{% block ruta %}
+    <a href="{% url 'gestion:obtenerlaboratorios' %}">Aulas</a>
+    <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+    <a href="{% url 'gestion:listadoreservas' laboratorio.id %}">{{ laboratorio.nombre }}</a>
+    <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+    <strong>Franjas</strong>
+{% endblock %}
+
+{% block css %}
+<style>
+    /* Cada franja es una decisión de sí/no, así que se dibuja como el mismo
+       botón que verá el docente en la rejilla de reservas: marcarla aquí es
+       apagarla allá. El checkbox real sigue existiendo debajo para que el
+       teclado y el formulario funcionen sin JavaScript. */
+    .franjas-lista {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+        gap: var(--esp-3);
+    }
+
+    .franja-op { position: relative; }
+
+    .franja-op input {
+        position: absolute;
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .franja-op__cara {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--esp-3);
+        padding: var(--esp-3) var(--esp-4);
+        border: 1px solid var(--filo);
+        border-radius: var(--r-control);
+        background: var(--panel);
+        cursor: pointer;
+        transition: background var(--rapido) var(--curva),
+                    border-color var(--rapido) var(--curva),
+                    color var(--rapido) var(--curva);
+    }
+
+    .franja-op__hora {
+        font-family: var(--tipo-dato);
+        font-variant-numeric: tabular-nums;
+        font-size: 13px;
+        color: var(--tinta-2);
+        white-space: nowrap;
+    }
+
+    .franja-op__estado {
+        font-size: 11.5px;
+        letter-spacing: 0.02em;
+        color: var(--tinta-4);
+    }
+
+    .franja-op__cara:hover { border-color: var(--filo-fuerte); }
+
+    .franja-op input:focus-visible + .franja-op__cara {
+        outline: 2px solid var(--marca);
+        outline-offset: 2px;
+    }
+
+    /* Bloqueada por este laboratorio: el mismo rayado de la rejilla de
+       reservas, para que el técnico reconozca lo que está creando. */
+    .franja-op input:checked + .franja-op__cara {
+        border-color: color-mix(in oklab, var(--cancelada) 40%, transparent);
+        color: color-mix(in oklab, var(--cancelada) var(--chip-mezcla), var(--legible));
+        background-image: repeating-linear-gradient(
+            -45deg,
+            transparent, transparent 5px,
+            color-mix(in oklab, var(--tinta) 7%, transparent) 5px,
+            color-mix(in oklab, var(--tinta) 7%, transparent) 6px
+        );
+    }
+
+    .franja-op input:checked + .franja-op__cara .franja-op__hora,
+    .franja-op input:checked + .franja-op__cara .franja-op__estado { color: inherit; }
+
+    /* Bloqueada por la institución: se muestra para que nadie la busque en
+       vano, pero no se puede reabrir desde el aula. */
+    .franja-op--fija .franja-op__cara {
+        cursor: not-allowed;
+        opacity: 0.65;
+        background-image: repeating-linear-gradient(
+            -45deg,
+            transparent, transparent 5px,
+            color-mix(in oklab, var(--tinta) 7%, transparent) 5px,
+            color-mix(in oklab, var(--tinta) 7%, transparent) 6px
+        );
+    }
+
+    .barra-guardar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--esp-3);
+        flex-wrap: wrap;
+    }
+</style>
+{% endblock %}
+
+{% block contenido %}
+
+<div class="cabecera">
+    <div class="cabecera__texto">
+        <div class="cabecera__eyebrow">Franjas del aula</div>
+        <h1 class="t-display">{{ laboratorio.nombre }}</h1>
+        <p class="t-sub cabecera__sub">
+            Marca las horas que este laboratorio <strong>no</strong> ofrece.
+            El bloqueo vale para todos los días de la semana y sólo afecta a
+            esta aula; las reservas ya registradas no se tocan.
+        </p>
+    </div>
+    <div class="cabecera__acciones">
+        <a class="btn" href="{% url 'gestion:obtenerhorario' laboratorio.id %}">
+            <i class="fa-solid fa-calendar-days" aria-hidden="true"></i> Horario
+        </a>
+        <a class="btn" href="{% url 'gestion:listadoreservas' laboratorio.id %}">
+            <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Reservas
+        </a>
+    </div>
+</div>
+
+<div class="pila">
+
+    <div class="tiles">
+        <div class="tile guardian guardian--alto">
+            <div class="tile__valor">{{ total_franjas }}</div>
+            <div class="tile__etiqueta">Franjas del día</div>
+        </div>
+        <div class="tile guardian guardian--alto">
+            <div class="tile__valor">{{ total_propios }}</div>
+            <div class="tile__etiqueta">Bloqueadas por el aula</div>
+        </div>
+        <div class="tile guardian guardian--alto">
+            <div class="tile__valor">{{ total_institucionales }}</div>
+            <div class="tile__etiqueta">Bloqueadas institucionalmente</div>
+        </div>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        <section class="panel">
+            <div class="panel__cabecera">
+                <div>
+                    <div class="etiqueta">Disponibilidad</div>
+                    <div class="t-sub">Marcada = bloqueada</div>
+                </div>
+                <div class="fila">
+                    <button type="button" class="btn btn--sm btn--sutil" id="marcarTodo">Bloquear todas</button>
+                    <button type="button" class="btn btn--sm btn--sutil" id="limpiarTodo">Liberar todas</button>
+                </div>
+            </div>
+
+            <div class="panel__cuerpo">
+                {% if slots %}
+                <div class="franjas-lista">
+                    {% for s in slots %}
+                    <label class="franja-op {% if s.institucional %}franja-op--fija{% endif %}">
+                        <input type="checkbox"
+                               name="slots"
+                               value="{{ s.id }}"
+                               {% if s.bloqueado %}checked{% endif %}
+                               {% if s.institucional %}disabled{% endif %}>
+                        <span class="franja-op__cara">
+                            <span class="franja-op__hora">{{ s.label }}</span>
+                            <span class="franja-op__estado">
+                                {% if s.institucional %}Institucional
+                                {% elif s.bloqueado %}Bloqueada
+                                {% else %}Disponible{% endif %}
+                            </span>
+                        </span>
+                    </label>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="t-sub">Todavía no hay franjas horarias definidas.</p>
+                {% endif %}
+            </div>
+
+            <div class="panel__pie barra-guardar">
+                <span class="t-sub" style="font-size:12.5px">
+                    Las franjas institucionales están cerradas para todas las aulas
+                    y no se pueden reabrir desde aquí.
+                </span>
+                <button type="submit" class="btn btn--primario">
+                    <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Guardar franjas
+                </button>
+            </div>
+        </section>
+    </form>
+</div>
+
+{% endblock %}
+
+{% block js %}
+<script>
+(function () {
+    "use strict";
+
+    // Atajos para las dos operaciones frecuentes: cerrar el aula entera
+    // (mantenimiento) o volver a abrirla. Sólo tocan lo que el aula controla.
+    function propias() {
+        return Array.prototype.slice.call(
+            document.querySelectorAll('.franja-op:not(.franja-op--fija) input[name="slots"]')
+        );
+    }
+
+    function fijar(valor) {
+        propias().forEach(function (input) {
+            input.checked = valor;
+            var estado = input.parentNode.querySelector(".franja-op__estado");
+            if (estado) estado.textContent = valor ? "Bloqueada" : "Disponible";
+        });
+    }
+
+    document.getElementById("marcarTodo").addEventListener("click", function () { fijar(true); });
+    document.getElementById("limpiarTodo").addEventListener("click", function () { fijar(false); });
+
+    propias().forEach(function (input) {
+        input.addEventListener("change", function () {
+            var estado = input.parentNode.querySelector(".franja-op__estado");
+            if (estado) estado.textContent = input.checked ? "Bloqueada" : "Disponible";
+        });
+    });
+})();
+</script>
+{% endblock %}
